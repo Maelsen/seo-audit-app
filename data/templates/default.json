@@ -3,7 +3,7 @@
   "name": "Artistic Avenue Default",
   "version": 1,
   "createdAt": "2026-04-14T20:26:15.467Z",
-  "updatedAt": "2026-04-14T20:28:17.593Z",
+  "updatedAt": "2026-04-14T20:57:06.078Z",
   "pages": [
     {
       "id": "cover",
@@ -19,7 +19,7 @@
           "zIndex": 0,
           "frame": {
             "x": -0.30489305365527153,
-            "y": 0.1147222726574393,
+            "y": 0.05374376737105262,
             "w": 210,
             "h": 296
           }
@@ -44,7 +44,7 @@
             "x": 18,
             "y": 52,
             "w": 174,
-            "h": 44
+            "h": 41.993910529476665
           },
           "binding": {
             "kind": "static"
@@ -305,15 +305,144 @@
       "height": 296,
       "blocks": [
         {
-          "id": "top-risks-legacy",
-          "type": "legacyPage",
-          "pageKey": "topRisks",
-          "zIndex": 1,
+          "id": "bg-glow",
+          "type": "brandDecoration",
+          "kind": "radialGlow",
+          "zIndex": 0,
           "frame": {
             "x": 0,
             "y": 0,
             "w": 210,
             "h": 296
+          }
+        },
+        {
+          "id": "signet",
+          "type": "brandDecoration",
+          "kind": "signet",
+          "zIndex": 10,
+          "frame": {
+            "x": 18,
+            "y": 10,
+            "w": 18.32,
+            "h": 15
+          }
+        },
+        {
+          "id": "header-label",
+          "type": "text",
+          "zIndex": 5,
+          "frame": {
+            "x": 131.82,
+            "y": 10,
+            "w": 60.18,
+            "h": 3.6
+          },
+          "binding": {
+            "kind": "static"
+          },
+          "style": {
+            "fontFamily": "Poppins",
+            "fontSize": 10,
+            "fontWeight": 700,
+            "color": "#38E1E1",
+            "lineHeight": 1,
+            "textAlign": "right"
+          },
+          "staticText": "SEO-Audit"
+        },
+        {
+          "id": "header-url",
+          "type": "text",
+          "zIndex": 5,
+          "frame": {
+            "x": 131.82,
+            "y": 14.05,
+            "w": 60.18,
+            "h": 4.3
+          },
+          "binding": {
+            "kind": "static"
+          },
+          "style": {
+            "fontFamily": "Poppins",
+            "fontSize": 8,
+            "fontWeight": 400,
+            "color": "#ffffff",
+            "lineHeight": 1.2,
+            "textAlign": "right"
+          },
+          "staticText": "für {audit.url}"
+        },
+        {
+          "id": "tr-title",
+          "type": "text",
+          "zIndex": 5,
+          "frame": {
+            "x": 18,
+            "y": 38,
+            "w": 174,
+            "h": 11
+          },
+          "binding": {
+            "kind": "static"
+          },
+          "style": {
+            "fontFamily": "Poppins",
+            "fontSize": 20,
+            "fontWeight": 700,
+            "color": "#ffffff",
+            "lineHeight": 1.15,
+            "textAlign": "left"
+          },
+          "staticText": "Top 3 Risiken"
+        },
+        {
+          "id": "top-risks-list",
+          "type": "topRiskList",
+          "zIndex": 5,
+          "frame": {
+            "x": 18,
+            "y": 56.58,
+            "w": 174,
+            "h": 226
+          },
+          "binding": {
+            "kind": "audit",
+            "path": "topRisks"
+          },
+          "itemGap": 8,
+          "overflow": "shrink",
+          "numbered": true,
+          "itemStyle": {
+            "titleStyle": {
+              "fontFamily": "Poppins",
+              "fontSize": 14,
+              "fontWeight": 700,
+              "color": "#ffffff",
+              "lineHeight": 1.3,
+              "textAlign": "left"
+            },
+            "bodyStyle": {
+              "fontFamily": "Open Sans",
+              "fontSize": 14,
+              "fontWeight": 400,
+              "color": "#d4d4d4",
+              "lineHeight": 1.55,
+              "textAlign": "left"
+            }
+          }
+        },
+        {
+          "id": "footer-bar",
+          "type": "brandDecoration",
+          "kind": "footerBar",
+          "zIndex": 1,
+          "frame": {
+            "x": 0,
+            "y": 290,
+            "w": 210,
+            "h": 6
           }
         }
       ]
@@ -374,7 +503,7 @@
           "zIndex": 1,
           "frame": {
             "x": 0,
-            "y": 0,
+            "y": -0.06097850528638668,
             "w": 210,
             "h": 296
           }
@@ -536,26 +665,413 @@
       "height": 296,
       "blocks": [
         {
-          "id": "thankyou-legacy",
-          "type": "legacyPage",
-          "pageKey": "thankYou",
-          "zIndex": 1,
+          "id": "bg-glow",
+          "type": "brandDecoration",
+          "kind": "radialGlow",
+          "zIndex": 0,
           "frame": {
-            "x": 0,
-            "y": 0,
+            "x": -0.0609786107310543,
+            "y": -0.06097850528638668,
             "w": 210,
             "h": 296
           }
         },
         {
-          "id": "img-mnz2pveb",
+          "id": "logo",
+          "type": "brandDecoration",
+          "kind": "logo",
+          "zIndex": 10,
+          "frame": {
+            "x": 66.5,
+            "y": 22,
+            "w": 77,
+            "h": 22
+          }
+        },
+        {
+          "id": "ty-title",
+          "type": "text",
+          "zIndex": 5,
+          "frame": {
+            "x": 18,
+            "y": 61.8,
+            "w": 108,
+            "h": 9
+          },
+          "binding": {
+            "kind": "static"
+          },
+          "style": {
+            "fontFamily": "Poppins",
+            "fontSize": 20,
+            "fontWeight": 700,
+            "color": "#ffffff",
+            "lineHeight": 1.2,
+            "textAlign": "left"
+          },
+          "staticText": "Vielen Dank für Ihre Zeit!"
+        },
+        {
+          "id": "ty-b1",
+          "type": "text",
+          "zIndex": 5,
+          "frame": {
+            "x": 18,
+            "y": 76.3,
+            "w": 108,
+            "h": 31
+          },
+          "binding": {
+            "kind": "static"
+          },
+          "style": {
+            "fontFamily": "Open Sans",
+            "fontSize": 14,
+            "fontWeight": 400,
+            "color": "#d4d4d4",
+            "lineHeight": 1.55,
+            "textAlign": "left"
+          },
+          "staticText": "Sie haben heute den ersten und wichtigsten Schritt gemacht, Erkenntnisse gewinnen. Aus unserer Erfahrung mit über 80 Kunden wissen wir,"
+        },
+        {
+          "id": "ty-b2",
+          "type": "text",
+          "zIndex": 5,
+          "frame": {
+            "x": 18,
+            "y": 111.9,
+            "w": 108,
+            "h": 31
+          },
+          "binding": {
+            "kind": "static"
+          },
+          "style": {
+            "fontFamily": "Open Sans",
+            "fontSize": 14,
+            "fontWeight": 400,
+            "color": "#d4d4d4",
+            "lineHeight": 1.55,
+            "textAlign": "left"
+          },
+          "staticText": "Die besten Ergebnisse erzielen diejenigen, die jetzt direkt los legen, sei es nur die Bildkomprimierung in 30 Minuten. Jede noch so kleine Optimierung bringt Sie nach vorn."
+        },
+        {
+          "id": "ty-h3a",
+          "type": "text",
+          "zIndex": 5,
+          "frame": {
+            "x": 18,
+            "y": 150.6,
+            "w": 108,
+            "h": 17
+          },
+          "binding": {
+            "kind": "static"
+          },
+          "style": {
+            "fontFamily": "Poppins",
+            "fontSize": 20,
+            "fontWeight": 700,
+            "color": "#ffffff",
+            "lineHeight": 1.2,
+            "textAlign": "left"
+          },
+          "staticText": "Jede Marke hat eine Geschichte."
+        },
+        {
+          "id": "ty-h3b",
+          "type": "text",
+          "zIndex": 5,
+          "frame": {
+            "x": 18,
+            "y": 168.6,
+            "w": 108,
+            "h": 17
+          },
+          "binding": {
+            "kind": "static"
+          },
+          "style": {
+            "fontFamily": "Poppins",
+            "fontSize": 20,
+            "fontWeight": 700,
+            "color": "#ffffff",
+            "lineHeight": 1.2,
+            "textAlign": "left"
+          },
+          "staticText": "Lassen Sie uns Ihre zum Erfolg machen."
+        },
+        {
+          "id": "ty-ps",
+          "type": "text",
+          "zIndex": 5,
+          "frame": {
+            "x": 18,
+            "y": 191.5,
+            "w": 108,
+            "h": 23
+          },
+          "binding": {
+            "kind": "static"
+          },
+          "style": {
+            "fontFamily": "Open Sans",
+            "fontSize": 14,
+            "fontWeight": 400,
+            "color": "#d4d4d4",
+            "lineHeight": 1.55,
+            "textAlign": "left",
+            "fontStyle": "italic"
+          },
+          "staticText": "PS 92% unserer Kunden sehen die ersten Verbesserungen innerhalb von 14 Tagen, Sie schaffen das auch!"
+        },
+
+        {
+          "id": "ty-name",
+          "type": "text",
+          "zIndex": 5,
+          "frame": {
+            "x": 133.8,
+            "y": 124.3,
+            "w": 58.2,
+            "h": 8
+          },
+          "binding": {
+            "kind": "static"
+          },
+          "style": {
+            "fontFamily": "Poppins",
+            "fontSize": 14,
+            "fontWeight": 700,
+            "color": "#ffffff",
+            "lineHeight": 1.2,
+            "textAlign": "center"
+          },
+          "staticText": "Vasilis Mavridis"
+        },
+        {
+          "id": "ty-role",
+          "type": "text",
+          "zIndex": 5,
+          "frame": {
+            "x": 133.8,
+            "y": 132,
+            "w": 58.2,
+            "h": 6
+          },
+          "binding": {
+            "kind": "static"
+          },
+          "style": {
+            "fontFamily": "Open Sans",
+            "fontSize": 12,
+            "fontWeight": 400,
+            "color": "#d4d4d4",
+            "lineHeight": 1.2,
+            "textAlign": "center"
+          },
+          "staticText": "Inhaber von Artistic Avenue"
+        },
+        {
+          "id": "ty-icon-in",
+          "type": "shape",
+          "zIndex": 3,
+          "frame": {
+            "x": 147.5,
+            "y": 141.5,
+            "w": 8.5,
+            "h": 8.5
+          },
+          "shape": "ellipse",
+          "fill": "#38E1E1"
+        },
+        {
+          "id": "ty-icon-ig",
+          "type": "shape",
+          "zIndex": 3,
+          "frame": {
+            "x": 158.7,
+            "y": 141.5,
+            "w": 8.5,
+            "h": 8.5
+          },
+          "shape": "ellipse",
+          "fill": "#38E1E1"
+        },
+        {
+          "id": "ty-icon-w",
+          "type": "shape",
+          "zIndex": 3,
+          "frame": {
+            "x": 169.8,
+            "y": 141.5,
+            "w": 8.5,
+            "h": 8.5
+          },
+          "shape": "ellipse",
+          "fill": "#38E1E1"
+        },
+        {
+          "id": "ty-icon-in-t",
+          "type": "text",
+          "zIndex": 5,
+          "frame": {
+            "x": 147.5,
+            "y": 141.5,
+            "w": 8.5,
+            "h": 8.5
+          },
+          "binding": {
+            "kind": "static"
+          },
+          "style": {
+            "fontFamily": "Poppins",
+            "fontSize": 11,
+            "fontWeight": 700,
+            "color": "#1a1a1a",
+            "lineHeight": 1.2,
+            "textAlign": "center"
+          },
+          "staticText": "in"
+        },
+        {
+          "id": "ty-icon-ig-t",
+          "type": "text",
+          "zIndex": 5,
+          "frame": {
+            "x": 158.7,
+            "y": 141.5,
+            "w": 8.5,
+            "h": 8.5
+          },
+          "binding": {
+            "kind": "static"
+          },
+          "style": {
+            "fontFamily": "Poppins",
+            "fontSize": 11,
+            "fontWeight": 700,
+            "color": "#1a1a1a",
+            "lineHeight": 1.2,
+            "textAlign": "center"
+          },
+          "staticText": "IG"
+        },
+        {
+          "id": "ty-icon-w-t",
+          "type": "text",
+          "zIndex": 5,
+          "frame": {
+            "x": 169.8,
+            "y": 141.5,
+            "w": 8.5,
+            "h": 8.5
+          },
+          "binding": {
+            "kind": "static"
+          },
+          "style": {
+            "fontFamily": "Poppins",
+            "fontSize": 11,
+            "fontWeight": 700,
+            "color": "#1a1a1a",
+            "lineHeight": 1.2,
+            "textAlign": "center"
+          },
+          "staticText": "W"
+        },
+        {
+          "id": "ty-phone",
+          "type": "text",
+          "zIndex": 5,
+          "frame": {
+            "x": 133.8,
+            "y": 154.7,
+            "w": 58.2,
+            "h": 7.6
+          },
+          "binding": {
+            "kind": "static"
+          },
+          "style": {
+            "fontFamily": "Poppins",
+            "fontSize": 12,
+            "fontWeight": 400,
+            "color": "#ffffff",
+            "lineHeight": 1.8,
+            "textAlign": "left"
+          },
+          "staticText": "+49 179 3213 445"
+        },
+        {
+          "id": "ty-email",
+          "type": "text",
+          "zIndex": 5,
+          "frame": {
+            "x": 133.8,
+            "y": 162.3,
+            "w": 58.2,
+            "h": 7.6
+          },
+          "binding": {
+            "kind": "static"
+          },
+          "style": {
+            "fontFamily": "Poppins",
+            "fontSize": 12,
+            "fontWeight": 400,
+            "color": "#ffffff",
+            "lineHeight": 1.8,
+            "textAlign": "left"
+          },
+          "staticText": "info@artisticavenue.de"
+        },
+        {
+          "id": "ty-web",
+          "type": "text",
+          "zIndex": 5,
+          "frame": {
+            "x": 133.8,
+            "y": 170,
+            "w": 58.2,
+            "h": 7.6
+          },
+          "binding": {
+            "kind": "static"
+          },
+          "style": {
+            "fontFamily": "Poppins",
+            "fontSize": 12,
+            "fontWeight": 400,
+            "color": "#ffffff",
+            "lineHeight": 1.8,
+            "textAlign": "left"
+          },
+          "staticText": "www.artisticavenue.de"
+        },
+        {
+          "id": "footer-bar",
+          "type": "brandDecoration",
+          "kind": "footerBar",
+          "zIndex": 1,
+          "frame": {
+            "x": 0,
+            "y": 290,
+            "w": 210,
+            "h": 6
+          }
+        },
+        {
+          "id": "img-mnz3ppnf",
           "type": "image",
           "zIndex": 10,
           "frame": {
-            "x": 124.39543078755426,
-            "y": 58.28743418204166,
-            "w": 72.2484324707411,
-            "h": 63.31652676713362
+            "x": 124.92873524750719,
+            "y": 50.06050363831898,
+            "w": 76.74844723553788,
+            "h": 72.23075741281303
           },
           "binding": {
             "kind": "static"
