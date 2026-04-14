@@ -17,8 +17,9 @@ function getSnapshot(): ChatContext {
   return current;
 }
 
+const SERVER_SNAPSHOT: ChatContext = { location: "global" };
 function getServerSnapshot(): ChatContext {
-  return { location: "global" };
+  return SERVER_SNAPSHOT;
 }
 
 export function setAgentContext(ctx: ChatContext) {
