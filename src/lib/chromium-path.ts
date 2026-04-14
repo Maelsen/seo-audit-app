@@ -27,23 +27,27 @@ export async function resolveChromiumExecutable(
     return cached;
   }
 
-  for (const p of CANDIDATES) {
-    if (existsSync(p)) {
-      cached = { executablePath: p, useSparticuzArgs: false };
-      return cached;
-    }
-  }
-
   try {
-    const which = execSync("which chromium || which chromium-browser || which google-chrome", {
-      encoding: "utf8",
-    }).trim();
-    if (which) {
-      cached = { executablePath: which, useSparticuzArgs: false };
+    const out = execSync(
+      "command -v chromium 2>/dev/null; command -v chromium-browser 2>/dev/null; command -v google-chrome 2>/dev/null; true",
+      { encoding: "utf8" },
+    );
+    const paths = out.split("\n").map((s) => s.trim()).filter(Boolean);
+    const good = paths.find((p) => !p.startsWith("/usr/bin/") && existsSync(p));
+    if (good) {
+      cached = { executablePath: good, useSparticuzArgs: false };
       return cached;
     }
   } catch {
     // fall through
+  }
+
+  for (const p of CANDIDATES) {
+    if (p.startsWith("/usr/bin/chromium")) continue;
+    if (existsSync(p)) {
+      cached = { executablePath: p, useSparticuzArgs: false };
+      return cached;
+    }
   }
 
   const sparticuz = await sparticuzFallback();
