@@ -3,7 +3,7 @@
 # Deshalb: NICHT next build laufen lassen.
 
 [phases.setup]
-nixPkgs = ["nodejs_20", "npm-10_x", "git"]
+nixPkgs = ["nodejs_20", "npm-10_x", "git", "chromium"]
 
 [phases.install]
 cmds = ["npm ci --include=dev || npm install --include=dev"]

@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { listAudits, loadAudit, loadTemplate } from "@/lib/storage";
 import { EditorClient } from "./EditorClient";
 import type { AuditData } from "@/lib/types";
@@ -17,7 +17,7 @@ export default async function TemplateEditorPage({
 
   const template = await loadTemplate(templateId);
   if (!template) {
-    notFound();
+    redirect("/editor");
   }
 
   let audit: AuditData | null = null;

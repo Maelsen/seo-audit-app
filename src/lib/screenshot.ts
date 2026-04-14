@@ -1,23 +1,14 @@
 import puppeteer from "puppeteer-core";
 import chromium from "@sparticuz/chromium";
 import { saveScreenshot } from "./storage";
+import { resolveChromiumExecutable } from "./chromium-path";
 
 async function launchBrowser() {
-  const isVercel = !!process.env.VERCEL;
-  if (isVercel) {
-    return puppeteer.launch({
-      args: chromium.args,
-      executablePath: await chromium.executablePath(),
-      headless: true,
-    });
-  }
-  const localPath =
-    process.env.PUPPETEER_EXECUTABLE_PATH ||
-    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+  const path = await resolveChromiumExecutable(() => chromium.executablePath());
   return puppeteer.launch({
-    executablePath: localPath,
+    executablePath: path.executablePath,
     headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    args: [...(path.useSparticuzArgs ? chromium.args : []), "--no-sandbox", "--disable-setuid-sandbox"],
   });
 }
 
