@@ -53,18 +53,40 @@ function configureGit() {
   }
 }
 
+// Nur diese Pfade darf der Cron pushen. NIEMALS data/ (= Volume, user-generated)
+// oder dynamisch generierte Build-Artefakte.
+const SAFE_PATHS = [
+  "src",
+  "public",
+  "scripts",
+  "package.json",
+  "package-lock.json",
+  "nixpacks.toml",
+  "railway.json",
+  ".gitignore",
+  ".env.example",
+  "AGENTS.md",
+  "CLAUDE.md",
+  "README.md",
+  "tsconfig.json",
+  "next.config.ts",
+  "eslint.config.mjs",
+  "postcss.config.mjs",
+];
+
 function syncOnce() {
   try {
-    const status = run("git status --porcelain");
-    if (!status) {
+    // nur Aenderungen in SAFE_PATHS adden, damit wir NIEMALS data/-Loeschungen committen
+    run(`git add -- ${SAFE_PATHS.join(" ")}`);
+    const staged = run("git diff --cached --name-only");
+    if (!staged) {
       log("clean, nichts zu committen");
       return;
     }
-    log(`uncommitted changes:\n${status}`);
-    run("git add -A");
+    log(`staged changes:\n${staged}`);
     const msg = `chore(agent): auto-sync ${new Date().toISOString()}`;
     run(`git commit -m "${msg}"`);
-    run("git push origin HEAD");
+    run("git push origin HEAD:main");
     log("push erfolgreich");
   } catch (err) {
     log(`Sync-Fehler: ${(err as Error).message}`);

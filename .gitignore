@@ -48,3 +48,6 @@ next-env.d.ts
 /data/screenshots/
 /data/uploads/
 /tmp/
+
+# Railway Nixpacks build artefakte (nicht committen)
+/.nixpacks/

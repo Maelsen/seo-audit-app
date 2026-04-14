@@ -482,17 +482,36 @@ async function runGitSync(args: { message: string }): Promise<ToolResult> {
       isError: true,
     };
   }
+  // Allowlist: NIEMALS data/ (= Volume, user-generated Inhalte, darf nicht in git).
+  const SAFE_PATHS = [
+    "src",
+    "public",
+    "scripts",
+    "package.json",
+    "package-lock.json",
+    "nixpacks.toml",
+    "railway.json",
+    ".gitignore",
+    ".env.example",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "README.md",
+    "tsconfig.json",
+    "next.config.ts",
+    "eslint.config.mjs",
+    "postcss.config.mjs",
+  ];
   try {
-    const status = git(["status", "--porcelain"]);
-    if (!status) {
-      return { content: "Nichts zu committen (git ist clean).", isError: false };
+    git(["add", "--", ...SAFE_PATHS]);
+    const staged = git(["diff", "--cached", "--name-only"]);
+    if (!staged) {
+      return { content: "Nichts zu committen (keine Aenderungen in src/public/scripts/config).", isError: false };
     }
-    git(["add", "-A"]);
     const msg = args.message.trim() || "chore(agent): changes";
     git(["commit", "-m", `agent: ${msg}`]);
-    git(["push", "origin", "HEAD"]);
+    git(["push", "origin", "HEAD:main"]);
     return {
-      content: `Push erfolgreich. Commit-Message: "agent: ${msg}"\n\nGeaenderte Dateien:\n${status}`,
+      content: `Push erfolgreich. Commit-Message: "agent: ${msg}"\n\nGestagte Dateien:\n${staged}`,
       isError: false,
     };
   } catch (err) {
