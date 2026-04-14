@@ -37,7 +37,8 @@ export async function captureScreenshots(
 
     const coverPage = await browser.newPage();
     await coverPage.setViewport({ width: 1440, height: 900 });
-    await coverPage.goto(url, { waitUntil: "load", timeout: 30000 });
+    await coverPage.goto(url, { waitUntil: "domcontentloaded", timeout: 45000 });
+    await new Promise((r) => setTimeout(r, 2500));
     const coverBuf = (await coverPage.screenshot({
       type: "png",
       fullPage: false,
@@ -53,7 +54,8 @@ export async function captureScreenshots(
       hasTouch: true,
       deviceScaleFactor: 2,
     });
-    await mobilePage.goto(url, { waitUntil: "load", timeout: 30000 });
+    await mobilePage.goto(url, { waitUntil: "domcontentloaded", timeout: 45000 });
+    await new Promise((r) => setTimeout(r, 2500));
     const mobileBuf = (await mobilePage.screenshot({
       type: "png",
       fullPage: false,
@@ -67,7 +69,8 @@ export async function captureScreenshots(
       height: 1180,
       deviceScaleFactor: 2,
     });
-    await tabletPage.goto(url, { waitUntil: "load", timeout: 30000 });
+    await tabletPage.goto(url, { waitUntil: "domcontentloaded", timeout: 45000 });
+    await new Promise((r) => setTimeout(r, 2500));
     const tabletBuf = (await tabletPage.screenshot({
       type: "png",
       fullPage: false,
@@ -89,7 +92,7 @@ export async function screenshotToBase64(
   try {
     const page = await browser.newPage();
     await page.setViewport(viewport);
-    await page.goto(url, { waitUntil: "load", timeout: 30000 });
+    await page.goto(url, { waitUntil: "domcontentloaded", timeout: 45000 });
     const buf = (await page.screenshot({ type: "png" })) as Buffer;
     return buf.toString("base64");
   } finally {
