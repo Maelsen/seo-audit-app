@@ -3,10 +3,11 @@
 // Jede Seite hat einen einzelnen legacyPage-Block der die originale React-Komponente rendert.
 // Im Editor kann der User per "Elemente bearbeiten"-Button die Seite in einzelne Bloecke zerlegen.
 
-import { readFileSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 
 const TEMPLATE_PATH = resolve(process.cwd(), "data/templates/default.json");
+const IF_MISSING = process.argv.includes("--if-missing");
 
 const PAGES = [
   { id: "cover", name: "Cover", pageKey: "cover" },
@@ -36,6 +37,11 @@ function buildPage({ id, name, pageKey }) {
 }
 
 function main() {
+  if (IF_MISSING && existsSync(TEMPLATE_PATH)) {
+    console.log(`Template exists at ${TEMPLATE_PATH}, skipping seed.`);
+    return;
+  }
+  mkdirSync(dirname(TEMPLATE_PATH), { recursive: true });
   let existing;
   try {
     existing = JSON.parse(readFileSync(TEMPLATE_PATH, "utf8"));
