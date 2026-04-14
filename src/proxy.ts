@@ -29,6 +29,6 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|_next/webpack-hmr|__nextjs_original-stack-frames|favicon.ico).*)",
+    "/((?!_next/static|_next/image|_next/webpack-hmr|__nextjs_original-stack-frames|api/health|favicon.ico).*)",
   ],
 };
