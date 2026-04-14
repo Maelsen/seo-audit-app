@@ -7,7 +7,18 @@ async function launchBrowser() {
   return puppeteer.launch({
     executablePath: path.executablePath,
     headless: true,
-    args: [...(path.useSparticuzArgs ? chromium.args : []), "--no-sandbox", "--disable-setuid-sandbox"],
+    args: [
+      ...(path.useSparticuzArgs ? chromium.args : []),
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+      "--disable-gpu",
+      "--disable-extensions",
+      "--disable-background-networking",
+      "--disable-default-apps",
+      "--no-first-run",
+      "--no-zygote",
+    ],
   });
 }
 
