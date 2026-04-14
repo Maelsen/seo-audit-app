@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "start:railway": "concurrently -n next,gitcron -c cyan,yellow \"next dev -H 0.0.0.0 -p ${PORT:-3000}\" \"tsx scripts/git-cron.ts\"",
+    "start:railway": "concurrently -n next,gitcron -c cyan,yellow --restart-tries=-1 --restart-after=2000 \"next dev -H 0.0.0.0 -p ${PORT:-3000}\" \"tsx scripts/git-cron.ts\"",
     "lint": "eslint"
   },
   "engines": {
