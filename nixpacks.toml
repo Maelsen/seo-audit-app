@@ -1,0 +1,15 @@
+# Wir deployen absichtlich den Dev-Server (next dev) damit HMR auf Railway laeuft
+# und Agent-Code-Aenderungen sofort sichtbar sind (wie Lovable/Bolt).
+# Deshalb: NICHT next build laufen lassen.
+
+[phases.setup]
+nixPkgs = ["nodejs_20", "npm-10_x", "git"]
+
+[phases.install]
+cmds = ["npm ci --include=dev || npm install --include=dev"]
+
+[phases.build]
+cmds = ["echo 'Skipping next build on purpose (dev-server deployment)'"]
+
+[start]
+cmd = "npm run start:railway"
