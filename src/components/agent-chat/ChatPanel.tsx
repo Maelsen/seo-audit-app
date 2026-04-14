@@ -189,6 +189,11 @@ export function ChatPanel({ context, onClose, onChangesApplied }: Props): ReactE
           await loadSession(sessionId);
           if (event.data.appliedChanges.length > 0) {
             onChangesApplied?.();
+            window.dispatchEvent(
+              new CustomEvent("agent-applied-changes", {
+                detail: { changes: event.data.appliedChanges },
+              }),
+            );
           }
         }
       }
@@ -210,6 +215,7 @@ export function ChatPanel({ context, onClose, onChangesApplied }: Props): ReactE
       }
       await loadSession(sessionId);
       onChangesApplied?.();
+      window.dispatchEvent(new CustomEvent("agent-applied-changes", { detail: { undo: true } }));
     } catch (err) {
       setError((err as Error).message);
     }

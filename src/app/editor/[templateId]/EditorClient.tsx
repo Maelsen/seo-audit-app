@@ -98,6 +98,25 @@ export function EditorClient({ initialTemplate, audit }: Props) {
     selectedBlockId: selectedBlockId ?? undefined,
   });
 
+  useEffect(() => {
+    async function reloadTemplate() {
+      try {
+        const res = await fetch(`/api/templates/${template.id}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.template) {
+          setTemplate(data.template);
+          historyRef.current = [];
+          futureRef.current = [];
+        }
+      } catch {}
+    }
+    window.addEventListener("agent-applied-changes", reloadTemplate);
+    return () => {
+      window.removeEventListener("agent-applied-changes", reloadTemplate);
+    };
+  }, [template.id]);
+
   const updateTemplate = useCallback(
     (updater: (t: Template) => Template, options?: { skipHistory?: boolean }) => {
       setTemplate((prev) => {
