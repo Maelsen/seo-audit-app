@@ -10,6 +10,15 @@ function run(cmd: string): string {
   return execSync(cmd, { encoding: "utf8", cwd: process.cwd() }).trim();
 }
 
+function isGitRepo(): boolean {
+  try {
+    run("git rev-parse --is-inside-work-tree");
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function configureGit() {
   const name = process.env.GIT_AUTHOR_NAME || "Agent";
   const email = process.env.GIT_AUTHOR_EMAIL || "agent@local";
@@ -21,10 +30,22 @@ function configureGit() {
     return false;
   }
 
+  const remoteUrl = `https://x-access-token:${pat}@github.com/${repo}.git`;
+
   try {
+    if (!isGitRepo()) {
+      log("kein .git vorhanden — initialisiere Repo gegen origin/main");
+      run("git init -b main");
+      run(`git remote add origin ${remoteUrl}`);
+      run("git fetch origin main --depth=1");
+      // HEAD auf origin/main zeigen lassen, Working-Dir-Files bleiben.
+      // Danach zeigt `git status` nur noch echte Diffs zum Remote.
+      run("git reset --mixed FETCH_HEAD");
+    } else {
+      run(`git remote set-url origin ${remoteUrl}`);
+    }
     run(`git config user.name "${name}"`);
     run(`git config user.email "${email}"`);
-    run(`git remote set-url origin https://x-access-token:${pat}@github.com/${repo}.git`);
     return true;
   } catch (err) {
     log(`Git-Config fehlgeschlagen: ${(err as Error).message}`);
