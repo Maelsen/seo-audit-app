@@ -1,0 +1,303 @@
+{
+  "id": "default",
+  "name": "Artistic Avenue Default",
+  "version": 1,
+  "createdAt": "2026-04-14T20:26:15.467Z",
+  "updatedAt": "2026-04-14T20:26:15.467Z",
+  "pages": [
+    {
+      "id": "cover",
+      "name": "Cover",
+      "background": "#1a1a1a",
+      "width": 210,
+      "height": 296,
+      "blocks": [
+        {
+          "id": "cover-legacy",
+          "type": "legacyPage",
+          "pageKey": "cover",
+          "zIndex": 1,
+          "frame": {
+            "x": 0,
+            "y": 0,
+            "w": 210,
+            "h": 296
+          }
+        }
+      ]
+    },
+    {
+      "id": "overview",
+      "name": "Overview",
+      "background": "#1a1a1a",
+      "width": 210,
+      "height": 296,
+      "blocks": [
+        {
+          "id": "overview-legacy",
+          "type": "legacyPage",
+          "pageKey": "overview",
+          "zIndex": 1,
+          "frame": {
+            "x": 0,
+            "y": 0,
+            "w": 210,
+            "h": 296
+          }
+        }
+      ]
+    },
+    {
+      "id": "top-risks",
+      "name": "Top Risiken",
+      "background": "#1a1a1a",
+      "width": 210,
+      "height": 296,
+      "blocks": [
+        {
+          "id": "top-risks-legacy",
+          "type": "legacyPage",
+          "pageKey": "topRisks",
+          "zIndex": 1,
+          "frame": {
+            "x": 0,
+            "y": 0,
+            "w": 210,
+            "h": 296
+          }
+        }
+      ]
+    },
+    {
+      "id": "recommendations",
+      "name": "Empfehlungen",
+      "background": "#1a1a1a",
+      "width": 210,
+      "height": 296,
+      "blocks": [
+        {
+          "id": "recommendations-legacy",
+          "type": "legacyPage",
+          "pageKey": "recommendations",
+          "zIndex": 1,
+          "frame": {
+            "x": 0,
+            "y": 0,
+            "w": 210,
+            "h": 296
+          }
+        }
+      ]
+    },
+    {
+      "id": "onpage-seo-1",
+      "name": "On-Page SEO 1",
+      "background": "#1a1a1a",
+      "width": 210,
+      "height": 296,
+      "blocks": [
+        {
+          "id": "onpage-seo-1-legacy",
+          "type": "legacyPage",
+          "pageKey": "onPageSeo1",
+          "zIndex": 1,
+          "frame": {
+            "x": 0,
+            "y": 0,
+            "w": 210,
+            "h": 296
+          }
+        }
+      ]
+    },
+    {
+      "id": "onpage-seo-2",
+      "name": "On-Page SEO 2",
+      "background": "#1a1a1a",
+      "width": 210,
+      "height": 296,
+      "blocks": [
+        {
+          "id": "onpage-seo-2-legacy",
+          "type": "legacyPage",
+          "pageKey": "onPageSeo2",
+          "zIndex": 1,
+          "frame": {
+            "x": 0,
+            "y": 0,
+            "w": 210,
+            "h": 296
+          }
+        }
+      ]
+    },
+    {
+      "id": "ux-conversion",
+      "name": "UX & Conversion",
+      "background": "#1a1a1a",
+      "width": 210,
+      "height": 296,
+      "blocks": [
+        {
+          "id": "ux-conversion-legacy",
+          "type": "legacyPage",
+          "pageKey": "uxConversion",
+          "zIndex": 1,
+          "frame": {
+            "x": 0,
+            "y": 0,
+            "w": 210,
+            "h": 296
+          }
+        }
+      ]
+    },
+    {
+      "id": "links-1",
+      "name": "Links 1",
+      "background": "#1a1a1a",
+      "width": 210,
+      "height": 296,
+      "blocks": [
+        {
+          "id": "links-1-legacy",
+          "type": "legacyPage",
+          "pageKey": "links1",
+          "zIndex": 1,
+          "frame": {
+            "x": 0,
+            "y": 0,
+            "w": 210,
+            "h": 296
+          }
+        }
+      ]
+    },
+    {
+      "id": "links-2",
+      "name": "Links 2",
+      "background": "#1a1a1a",
+      "width": 210,
+      "height": 296,
+      "blocks": [
+        {
+          "id": "links-2-legacy",
+          "type": "legacyPage",
+          "pageKey": "links2",
+          "zIndex": 1,
+          "frame": {
+            "x": 0,
+            "y": 0,
+            "w": 210,
+            "h": 296
+          }
+        }
+      ]
+    },
+    {
+      "id": "usability",
+      "name": "Usability",
+      "background": "#1a1a1a",
+      "width": 210,
+      "height": 296,
+      "blocks": [
+        {
+          "id": "usability-legacy",
+          "type": "legacyPage",
+          "pageKey": "usability",
+          "zIndex": 1,
+          "frame": {
+            "x": 0,
+            "y": 0,
+            "w": 210,
+            "h": 296
+          }
+        }
+      ]
+    },
+    {
+      "id": "leistung",
+      "name": "Leistung",
+      "background": "#1a1a1a",
+      "width": 210,
+      "height": 296,
+      "blocks": [
+        {
+          "id": "leistung-legacy",
+          "type": "legacyPage",
+          "pageKey": "leistung",
+          "zIndex": 1,
+          "frame": {
+            "x": 0,
+            "y": 0,
+            "w": 210,
+            "h": 296
+          }
+        }
+      ]
+    },
+    {
+      "id": "social",
+      "name": "Social",
+      "background": "#1a1a1a",
+      "width": 210,
+      "height": 296,
+      "blocks": [
+        {
+          "id": "social-legacy",
+          "type": "legacyPage",
+          "pageKey": "social",
+          "zIndex": 1,
+          "frame": {
+            "x": 0,
+            "y": 0,
+            "w": 210,
+            "h": 296
+          }
+        }
+      ]
+    },
+    {
+      "id": "lokales-seo",
+      "name": "Lokales SEO",
+      "background": "#1a1a1a",
+      "width": 210,
+      "height": 296,
+      "blocks": [
+        {
+          "id": "lokales-seo-legacy",
+          "type": "legacyPage",
+          "pageKey": "lokalesSeo",
+          "zIndex": 1,
+          "frame": {
+            "x": 0,
+            "y": 0,
+            "w": 210,
+            "h": 296
+          }
+        }
+      ]
+    },
+    {
+      "id": "thankyou",
+      "name": "Danke",
+      "background": "#1a1a1a",
+      "width": 210,
+      "height": 296,
+      "blocks": [
+        {
+          "id": "thankyou-legacy",
+          "type": "legacyPage",
+          "pageKey": "thankYou",
+          "zIndex": 1,
+          "frame": {
+            "x": 0,
+            "y": 0,
+            "w": 210,
+            "h": 296
+          }
+        }
+      ]
+    }
+  ]
+}
