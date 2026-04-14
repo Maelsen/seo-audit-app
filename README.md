@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SEO Audit App (Artistic Avenue)
 
-## Getting Started
+Interner Tool-Prototyp. Audit-Pipeline + PDF-Report + AI-Editor.
 
-First, run the development server:
+## Lokal starten
 
 ```bash
+npm install
+cp .env.example .env.local    # ANTHROPIC_API_KEY eintragen
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Oeffnet auf http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Live-Umgebung (Railway)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Die Live-URL laeuft **`next dev`** mit HMR, damit der eingebaute AI-Agent
+Code-Aenderungen ohne Rebuild sofort live zeigen kann (wie Lovable/Bolt).
 
-## Learn More
+Noetige Env-Vars auf Railway:
 
-To learn more about Next.js, take a look at the following resources:
+| Var | Zweck |
+|---|---|
+| `ANTHROPIC_API_KEY` | Claude-Zugriff (Agent + Audit-Pipeline) |
+| `BASIC_AUTH_USER` / `BASIC_AUTH_PASS` | Browser-Login-Dialog schuetzt die Seite |
+| `ENABLE_GIT_SYNC` | `1` auf Railway (nicht lokal!) |
+| `GITHUB_PAT` | Fine-grained PAT mit `Contents: read/write` aufs Repo |
+| `GITHUB_REPO` | `owner/repo` |
+| `NODE_ENV` | `development` (explizit, fuer HMR) |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Volume: `/app/data` (persistent, enthaelt Audits, Templates, Uploads, Agent-Chats, Backups).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Agent
 
-## Deploy on Vercel
+- Floating-Button unten rechts auf jeder Seite
+- Kann Dateien lesen/schreiben/editieren/loeschen (mit Backup + Undo)
+- Vision (Screenshot per Paste)
+- Auf Railway: kann mit `git_sync` den aktuellen Stand nach GitHub pushen
+- Cron pusht zusaetzlich alle 6h automatisch als Backup
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Scripts
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+npm run dev              # lokal
+npm run start:railway    # Production-ish auf Railway (next dev + git-cron parallel)
+npm run build            # Nur fuer lokale Validierung
+```
