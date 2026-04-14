@@ -8,6 +8,11 @@ const nextConfig: NextConfig = {
     "pdf-parse",
     "pdfjs-dist",
   ],
+  allowedDevOrigins: [
+    "*.railway.app",
+    "*.up.railway.app",
+    "seo-audit-app-production-578b.up.railway.app",
+  ],
 };
 
 export default nextConfig;
