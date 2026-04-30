@@ -42,4 +42,16 @@ Niemals in Git. `.env.example` als Template committen, echte Werte in `.env.loca
 
 1. **Landing** (`/`) → `src/app/page.tsx`. Upload-Form.
 2. **Audit-Review** (`/audit/[id]`) → `src/app/audit/[id]/page.tsx`. Inline-Styles.
-3. **PDF-Template** (Editor `/editor/[templateId]` + PDF-Export) → Block-System mit `data/templates/{id}.json`. Decomposed Pages haben Content im JSON, nicht-decomposed rendern die React-Komponente aus `src/components/pdf-template/pages/*.tsx`.
+3. **PDF-Template** (Editor `/editor/[templateId]` + PDF-Export) → Block-System mit `data/templates/{id}.json`. Pages bestehen ausschliesslich aus dekomponierten Bloecken (text, image, scoreCircle, gauge, checkList, table, ...). Kein legacy React-Page-Rendering mehr (in M1 retired). Block-Layouts werden in `src/lib/editor/page-builders.ts` definiert (PageKey-Enum + BUILDERS-Map). Block-Views (rendert JSX zu PDF) in `src/lib/editor/blocks/*BlockView.tsx`.
+
+## Projekt-Tools
+
+Vier Automation-Artefakte unter `.claude/`. Alle committed, beim naechsten Session-Start automatisch verfuegbar.
+
+- **`/verify-app`** — Smoke-Sequenz `tsc --noEmit` + `npm run lint` + Health-Check + Templates-API. Wann nutzen: VOR jedem Commit, VOR jeder "done"-Meldung, nach groesseren Schema-Aenderungen. Definiert in `.claude/skills/verify-app/SKILL.md`.
+
+- **`/render-pdf-preview <auditId> [templateId] [pageRange]`** — Generiert PDF aus laufendem dev-server, rendert Pages als PNGs nach `/tmp/preview-page-NN.png`, gibt Pfade zurueck zum Lesen mit Read-Tool. Wann nutzen: nach Page-Builder-Aenderungen in M3-M13, immer wenn PDF-Output visuell verifiziert werden muss. Defaults: templateId=`default`, pageRange=`1-3`. Definiert in `.claude/skills/render-pdf-preview/SKILL.md`.
+
+- **`tsc-on-schema-edit` Hook** (auto-aktiv, kein Aufruf) — PostToolUse-Hook der nach Edit/Write auf `src/lib/types.ts`, `src/lib/agent/schema.ts`, `src/lib/agent/prompts.ts`, `src/lib/editor/template-types.ts`, `src/lib/editor/binding-catalog.ts` automatisch `npx tsc --noEmit` ausfuehrt und das Ergebnis als Context zurueckgibt. Wann triggert: automatisch bei jedem Edit auf diese 5 Dateien. Faengt Schema-Bruch sofort. Skript: `.claude/hooks/tsc-on-schema-edit.sh`.
+
+- **`pdf-verifier` Subagent** (`subagent_type: "pdf-verifier"`) — Visueller Diff zwischen App-PDF und Vasileios' Referenz-PDF (`SEO AUDIT WASCHBÄR SERVICE.pdf` in `~/Downloads/`). Rendert beide bei 200 DPI, vergleicht Header/Footer/Score-Donuts/Tabellen Position+Style, gibt Drift-Report zurueck. Tools: nur Bash + Read (read-only, modifiziert keinen Code). Wann nutzen: ab M3 nach jedem Page-Builder-Update bevor man den Builder als "fertig" abhaktet. Definiert in `.claude/agents/pdf-verifier.md`.
