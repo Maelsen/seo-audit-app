@@ -29,7 +29,6 @@ import {
   bindingsForValueTypes,
   type BindingValueType,
 } from "@/lib/editor/binding-catalog";
-import { decomposePageBlocks } from "@/lib/editor/page-builders";
 import { useProvideAgentContext } from "@/components/agent-chat/context-store";
 
 const GRADE_ORDER: Grade[] = [
@@ -240,21 +239,6 @@ export function EditorClient({ initialTemplate, audit }: Props) {
     [addBlock],
   );
 
-  const decomposePage = useCallback(() => {
-    if (!selectedBlock || selectedBlock.type !== "legacyPage") return;
-    const pageKey = selectedBlock.pageKey;
-    const newBlocks = decomposePageBlocks(pageKey);
-    if (newBlocks.length === 0) return;
-    updateTemplate((t) => ({
-      ...t,
-      pages: t.pages.map((p, idx) =>
-        idx === pageIndex
-          ? { ...p, blocks: newBlocks }
-          : p,
-      ),
-    }));
-    setSelectedBlockId(null);
-  }, [selectedBlock, pageIndex, updateTemplate]);
 
   const undo = useCallback(() => {
     const prev = historyRef.current.pop();
@@ -568,7 +552,6 @@ export function EditorClient({ initialTemplate, audit }: Props) {
         onUpdateAssets={updateAssets}
         onDelete={() => selectedBlock && deleteBlock(selectedBlock.id)}
         onDuplicate={() => selectedBlock && duplicateBlock(selectedBlock.id)}
-        onDecomposePage={decomposePage}
         onAddImageFromFile={addImageFromFile}
         onAddBlock={addBlock}
       />
@@ -963,7 +946,6 @@ function Inspector({
   onUpdateAssets,
   onDelete,
   onDuplicate,
-  onDecomposePage,
   onAddImageFromFile,
   onAddBlock,
 }: {
@@ -973,7 +955,6 @@ function Inspector({
   onUpdateAssets: (updater: (a: TemplateAssets) => TemplateAssets) => void;
   onDelete: () => void;
   onDuplicate: () => void;
-  onDecomposePage: () => void;
   onAddImageFromFile: (file: File) => void;
   onAddBlock: (block: Block) => void;
 }) {
@@ -1082,51 +1063,7 @@ function Inspector({
           </Section>
         </div>
       )}
-      {tab === "block" && block && block.type === "legacyPage" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          <div style={{ fontSize: 11, color: "#888" }}>
-            Legacy-Seite · <code style={{ color: "#38E1E1" }}>{block.pageKey}</code>
-          </div>
-          <div
-            style={{
-              padding: 12,
-              background: "#1a2a2a",
-              border: "1px solid #2a4a4a",
-              borderRadius: 6,
-              fontSize: 12,
-              color: "#c2c2c2",
-              lineHeight: 1.6,
-            }}
-          >
-            Diese Seite wird als Ganzes gerendert (1:1 identisch mit dem SEO-Audit PDF).
-            Du kannst Bilder, Texte oder Shapes über die Seite legen — wechsle dazu rechts oben auf den Tab "Hinzufügen".
-
-            Erst dekomponieren wenn du die einzelnen Original-Elemente verschieben willst. Achtung: das Layout weicht dann leicht vom Original ab.
-          </div>
-          <button
-            onClick={onDecomposePage}
-            style={{
-              background: "#1a3838",
-              border: "1.5px solid #38E1E1",
-              color: "#38E1E1",
-              padding: "12px 16px",
-              borderRadius: 6,
-              fontSize: 13,
-              fontWeight: 600,
-              fontFamily: "inherit",
-              cursor: "pointer",
-              textAlign: "center",
-            }}
-          >
-            Seite in Elemente aufteilen
-          </button>
-          <div style={{ fontSize: 10, color: "#666", lineHeight: 1.5 }}>
-            Nach dem Aufteilen kannst du jedes Element einzeln verschieben, skalieren und stylen.
-            Du kannst mit Undo (Cmd+Z) wieder zur Legacy-Ansicht zurückkehren.
-          </div>
-        </div>
-      )}
-      {tab === "block" && block && block.type !== "legacyPage" && (
+      {tab === "block" && block && (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div style={{ fontSize: 11, color: "#888" }}>
             {block.type} · <code style={{ color: "#38E1E1" }}>{block.id}</code>

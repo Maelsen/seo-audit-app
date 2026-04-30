@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { loadAudit, loadTemplate } from "@/lib/storage";
-import { buildAuditHtml, buildTemplateHtml } from "@/lib/pdf/build";
+import { loadAudit } from "@/lib/storage";
+import { buildTemplateHtml } from "@/lib/pdf/build";
 import { renderHtmlToPdf } from "@/lib/pdf/render";
 
 export const maxDuration = 300;
@@ -21,27 +21,18 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  const engine = searchParams.get("engine");
   const templateIdParam = searchParams.get("templateId");
+  const resolvedTemplateId = templateIdParam ?? DEFAULT_TEMPLATE_ID;
   let html: string;
   try {
-    if (engine === "legacy") {
-      html = await buildAuditHtml(audit);
-    } else {
-      const resolvedTemplateId = templateIdParam ?? DEFAULT_TEMPLATE_ID;
-      const template = await loadTemplate(resolvedTemplateId);
-      if (template) {
-        html = await buildTemplateHtml(audit, resolvedTemplateId);
-      } else {
-        html = await buildAuditHtml(audit);
-      }
-    }
+    html = await buildTemplateHtml(audit, resolvedTemplateId);
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Render-Fehler" },
       { status: 500 },
     );
   }
+
   const preview = searchParams.get("format") === "html";
   if (preview) {
     return new NextResponse(html, {

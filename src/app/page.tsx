@@ -2,6 +2,7 @@
 
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 type ProgressItem = {
   kind: "progress" | "warn";
@@ -153,9 +154,9 @@ export default function LandingPage() {
             URL eingeben, Exporte hochladen, AI macht den Rest
           </p>
           <p style={{ marginTop: 12, fontSize: 13 }}>
-            <a href="/editor" style={{ color: "#38E1E1", textDecoration: "none" }}>
+            <Link href="/editor" style={{ color: "#38E1E1", textDecoration: "none" }}>
               Template-Editor öffnen →
-            </a>
+            </Link>
           </p>
         </div>
 

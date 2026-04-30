@@ -208,27 +208,6 @@ export type SerpPreviewBlock = BlockBase & {
   descriptionBinding: Binding;
 };
 
-export type LegacyPageKey =
-  | "cover"
-  | "overview"
-  | "topRisks"
-  | "recommendations"
-  | "onPageSeo1"
-  | "onPageSeo2"
-  | "uxConversion"
-  | "links1"
-  | "links2"
-  | "usability"
-  | "leistung"
-  | "social"
-  | "lokalesSeo"
-  | "thankYou";
-
-export type LegacyPageBlock = BlockBase & {
-  type: "legacyPage";
-  pageKey: LegacyPageKey;
-};
-
 export type Block =
   | TextBlock
   | ImageBlock
@@ -241,8 +220,7 @@ export type Block =
   | GaugeBlock
   | StarRatingBlock
   | ResourceTileBlock
-  | SerpPreviewBlock
-  | LegacyPageBlock;
+  | SerpPreviewBlock;
 
 export type BlockType = Block["type"];
 

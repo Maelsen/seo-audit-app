@@ -9,69 +9,48 @@ import { parseSeoptimerPdf, type SeoptimerData } from "@/lib/parsers/seoptimer";
 import { fetchPageSpeed, type PageSpeedData } from "@/lib/parsers/pagespeed";
 import { captureScreenshots } from "@/lib/screenshot";
 import { ndjsonResponse } from "@/lib/stream";
-import type { AuditData } from "@/lib/types";
+import type {
+  AuditData,
+  ComparisonSection,
+  PhasenplanSection,
+  SectionBase,
+} from "@/lib/types";
 
 export const maxDuration = 300;
+
+function emptySectionBase(): SectionBase {
+  return {
+    score: "C",
+    heading: "",
+    text: "",
+    findings: [],
+    costText: "",
+    actions: [],
+  };
+}
 
 function stub(): AuditData["sections"] {
   return {
     onpageSeo: {
-      score: "C",
-      heading: "",
-      text: "",
-      titleTag: { value: "", length: 0, status: "info" },
-      metaDescription: { value: "", length: 0, status: "info" },
+      ...emptySectionBase(),
       serpPreview: { title: "", url: "", description: "" },
-      language: { value: "", status: "info" },
-      h1: { value: "", status: "info" },
       h2h6Frequency: { h2: 0, h3: 0, h4: 0, h5: 0, h6: 0 },
-      wordCount: { value: 0, status: "info" },
-      technicalChecks: [],
     },
-    uxConversion: {
-      score: "C",
-      heading: "",
-      text: "",
-      findings: [],
-      summary: "",
-    },
-    usability: {
-      score: "C",
-      heading: "",
-      text: "",
-      mobilePageSpeed: 0,
-      desktopPageSpeed: 0,
-      coreWebVitals: "info",
-      viewport: "info",
-      pageSpeedStatus: "info",
-    },
+    uxConversion: emptySectionBase(),
+    seitenstrukturContent: emptySectionBase(),
+    lokalesSeo: emptySectionBase(),
     leistung: {
-      score: "C",
-      heading: "",
-      text: "",
+      ...emptySectionBase(),
       serverResponseTime: 0,
       contentLoadTime: 0,
       scriptLoadTime: 0,
-      resources: { html: 0, js: 0, css: 0, img: 0, other: 0, total: 0 },
-      jsErrors: "info",
-      http2: "info",
-      imagesOptimized: "info",
-      minified: "info",
-    },
-    social: { score: "F", heading: "", text: "", checks: [] },
-    lokalesSeo: {
-      score: "C",
-      heading: "",
-      text: "",
-      businessSchema: "info",
-      gbpIdentified: "info",
-      gbpCompleteness: "info",
-      reviewsStatus: "info",
+      resourceCounts: { html: 0, js: 0, css: 0, img: 0, other: 0, total: 0 },
+      pageSizeMb: 0,
+      pageSizeBreakdown: { html: 0, js: 0, css: 0, img: 0, other: 0 },
     },
     links: {
+      ...emptySectionBase(),
       score: "F",
-      heading: "",
-      text: "",
       domainStrength: 0,
       pageStrength: 0,
       totalBacklinks: 0,
@@ -81,13 +60,23 @@ function stub(): AuditData["sections"] {
       subnets: 0,
       ips: 0,
       govBacklinks: 0,
-      topBacklinks: [],
-      topPages: [],
-      topAnchors: [],
-      topTlds: [],
-      topCountries: [],
-      internalLinks: 0,
     },
+  };
+}
+
+function emptyComparison(): ComparisonSection {
+  return { heading: "", altSentences: [], rows: [] };
+}
+
+function emptyPhasenplan(): PhasenplanSection {
+  return {
+    intro: "",
+    phase1: { title: "Phase 1 - Sofortmassnahmen (Woche 1-2)", entries: [] },
+    phase2: { title: "Phase 2 - Conversion & Sichtbarkeit (Monat 1)", entries: [] },
+    phase3: { title: "Phase 3 - Reichweite ausbauen (Monat 2-3)", entries: [] },
+    afterPhase1: "",
+    afterPhase2: "",
+    afterPhase3: "",
   };
 }
 
@@ -205,13 +194,17 @@ export async function POST(req: NextRequest) {
       overallScore: "C",
       overallHeading: "Ihre Seite koennte besser sein",
       introText:
-        "Dieser Bericht bewertet Ihre Website anhand wichtiger Faktoren wie On-Page-SEO, Off-Page-Backlinks, Social Media, Leistung und mehr.",
+        "Dieser Bericht bewertet Ihre Website anhand wichtiger Faktoren wie On-Page-SEO, Off-Page-Backlinks, Performance und mehr.",
+      diagnosisText:
+        "Die Diagnose wird vom Agent generiert. Hier steht die Zusammenfassung der Gesamtsituation.",
       sections: stub(),
       topRisks: [
         { title: "Platzhalter 1", description: "Wird vom Agent ersetzt" },
         { title: "Platzhalter 2", description: "Wird vom Agent ersetzt" },
         { title: "Platzhalter 3", description: "Wird vom Agent ersetzt" },
       ],
+      comparison: emptyComparison(),
+      phasenplan: emptyPhasenplan(),
       recommendations: [],
       screenshots,
       rawInputs: { screamingFrog, seoptimer, pageSpeed },

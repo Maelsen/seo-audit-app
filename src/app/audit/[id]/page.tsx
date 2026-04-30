@@ -213,11 +213,10 @@ export default function AuditReviewPage({
   const sectionLabels: Record<string, string> = {
     onpageSeo: "On-Page SEO",
     uxConversion: "UX & Conversion",
-    usability: "Usability",
-    leistung: "Leistung",
-    social: "Social",
+    seitenstrukturContent: "Seitenstruktur & Content",
     lokalesSeo: "Lokales SEO",
-    links: "Links",
+    leistung: "Performance & Technisches",
+    links: "Links & Autoritaet",
   };
 
   return (

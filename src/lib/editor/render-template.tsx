@@ -21,7 +21,6 @@ import { GaugeBlockView } from "./blocks/GaugeBlockView";
 import { StarRatingBlockView } from "./blocks/StarRatingBlockView";
 import { ResourceTileBlockView } from "./blocks/ResourceTileBlockView";
 import { SerpPreviewBlockView } from "./blocks/SerpPreviewBlockView";
-import { LegacyPageBlockView } from "./blocks/LegacyPageBlockView";
 
 type Props = {
   template: Template;
@@ -46,13 +45,6 @@ function PageView({ page, audit }: PageProps): ReactElement {
     .filter((b) => b.visible !== false)
     .sort((a, b) => a.zIndex - b.zIndex);
 
-  const legacy = sorted.find((b) => b.type === "legacyPage");
-  const others = sorted.filter((b) => b.type !== "legacyPage");
-
-  if (legacy && others.length === 0) {
-    return <BlockRenderer block={legacy} audit={audit} />;
-  }
-
   return (
     <section
       className="audit-page"
@@ -66,18 +58,7 @@ function PageView({ page, audit }: PageProps): ReactElement {
         breakAfter: "page",
       }}
     >
-      {legacy && (
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            zIndex: legacy.zIndex,
-          }}
-        >
-          <BlockRenderer block={legacy} audit={audit} />
-        </div>
-      )}
-      {others.map((block) => (
+      {sorted.map((block) => (
         <BlockRenderer key={block.id} block={block} audit={audit} />
       ))}
     </section>
@@ -116,8 +97,6 @@ export function BlockRenderer({ block, audit }: BlockProps): ReactElement | null
       return <ResourceTileBlockView block={block} audit={audit} />;
     case "serpPreview":
       return <SerpPreviewBlockView block={block} audit={audit} />;
-    case "legacyPage":
-      return <LegacyPageBlockView block={block} audit={audit} />;
     default:
       return <PlaceholderView block={block} />;
   }

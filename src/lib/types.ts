@@ -15,6 +15,17 @@ export type FindingCheck = {
   detail?: string;
 };
 
+export type SectionFinding = {
+  problem: string;
+  befund: string;
+  status: CheckStatus;
+};
+
+export type ActionItem = {
+  title: string;
+  detail?: string;
+};
+
 export type Recommendation = {
   id: string;
   title: string;
@@ -33,32 +44,55 @@ export type SerpPreview = {
   description: string;
 };
 
-export type OnPageSeoSection = {
+export type SectionBase = {
   score: Grade;
   heading: string;
   text: string;
-  titleTag: { value: string; length: number; status: CheckStatus };
-  metaDescription: { value: string; length: number; status: CheckStatus };
+  findings: SectionFinding[];
+  costText: string;
+  actions: ActionItem[];
+  closingNote?: string;
+};
+
+export type OnPageSeoSection = SectionBase & {
   serpPreview: SerpPreview;
-  language: { value: string; status: CheckStatus };
-  h1: { value: string; status: CheckStatus };
   h2h6Frequency: { h2: number; h3: number; h4: number; h5: number; h6: number };
-  wordCount: { value: number; status: CheckStatus };
-  technicalChecks: FindingCheck[];
 };
 
-export type UxConversionSection = {
-  score: Grade;
-  heading: string;
-  text: string;
-  findings: FindingCheck[];
-  summary: string;
+export type UxConversionSection = SectionBase;
+
+export type SeitenstrukturContentSection = SectionBase & {
+  comparisonImages?: { src?: string; caption?: string }[];
 };
 
-export type LinksSection = {
-  score: Grade;
-  heading: string;
-  text: string;
+export type LokalesSeoSection = SectionBase & {
+  schemaMarkupImage?: string;
+  schemaMarkupCaption?: string;
+};
+
+export type LeistungSection = SectionBase & {
+  serverResponseTime: number;
+  contentLoadTime: number;
+  scriptLoadTime: number;
+  resourceCounts: {
+    html: number;
+    js: number;
+    css: number;
+    img: number;
+    other: number;
+    total: number;
+  };
+  pageSizeMb: number;
+  pageSizeBreakdown: {
+    html: number;
+    js: number;
+    css: number;
+    img: number;
+    other: number;
+  };
+};
+
+export type LinksSection = SectionBase & {
   domainStrength: number;
   pageStrength: number;
   totalBacklinks: number;
@@ -68,74 +102,43 @@ export type LinksSection = {
   subnets: number;
   ips: number;
   govBacklinks: number;
-  topBacklinks: {
-    domainStrength: number;
-    url: string;
-    title: string;
-    anchor: string;
-  }[];
-  topPages: { url: string; backlinks: number }[];
-  topAnchors: { anchor: string; backlinks: number }[];
-  topTlds: { tld: string; count: number }[];
-  topCountries: { country: string; count: number }[];
-  internalLinks: number;
 };
 
-export type UsabilitySection = {
-  score: Grade;
-  heading: string;
-  text: string;
-  mobilePageSpeed: number;
-  desktopPageSpeed: number;
-  coreWebVitals: CheckStatus;
-  viewport: CheckStatus;
-  pageSpeedStatus: CheckStatus;
+export type ComparisonAlt = {
+  aspect: string;
+  vision: string;
 };
 
-export type LeistungSection = {
-  score: Grade;
-  heading: string;
-  text: string;
-  serverResponseTime: number;
-  contentLoadTime: number;
-  scriptLoadTime: number;
-  resources: {
-    html: number;
-    js: number;
-    css: number;
-    img: number;
-    other: number;
-    total: number;
-  };
-  jsErrors: CheckStatus;
-  http2: CheckStatus;
-  imagesOptimized: CheckStatus;
-  minified: CheckStatus;
+export type ComparisonRow = {
+  problem: string;
+  today: string;
+  future: string;
 };
 
-export type SocialSection = {
-  score: Grade;
+export type ComparisonSection = {
   heading: string;
-  text: string;
-  checks: FindingCheck[];
+  altSentences: ComparisonAlt[];
+  rows: ComparisonRow[];
 };
 
-export type LokalesSeoSection = {
-  score: Grade;
-  heading: string;
-  text: string;
-  businessSchema: CheckStatus;
-  gbpIdentified: CheckStatus;
-  gbpCompleteness: CheckStatus;
-  address?: string;
-  phone?: string;
-  website?: string;
-  reviewsStatus: CheckStatus;
-  googleReviews?: {
-    rating: number;
-    count: number;
-    distribution: { stars: 1 | 2 | 3 | 4 | 5; count: number }[];
-  };
+export type PhaseEntry = {
+  measure: string;
+  impact: string;
+};
+
+export type PhasenplanPhase = {
+  title: string;
+  entries: PhaseEntry[];
+};
+
+export type PhasenplanSection = {
+  intro: string;
+  phase1: PhasenplanPhase;
+  phase2: PhasenplanPhase;
+  phase3: PhasenplanPhase;
+  afterPhase1: string;
+  afterPhase2: string;
+  afterPhase3: string;
 };
 
 export type AuditData = {
@@ -147,16 +150,18 @@ export type AuditData = {
   overallScore: Grade;
   overallHeading: string;
   introText: string;
+  diagnosisText: string;
   sections: {
     onpageSeo: OnPageSeoSection;
     uxConversion: UxConversionSection;
-    usability: UsabilitySection;
-    leistung: LeistungSection;
-    social: SocialSection;
+    seitenstrukturContent: SeitenstrukturContentSection;
     lokalesSeo: LokalesSeoSection;
+    leistung: LeistungSection;
     links: LinksSection;
   };
   topRisks: TopRisk[];
+  comparison: ComparisonSection;
+  phasenplan: PhasenplanSection;
   recommendations: Recommendation[];
   screenshots: {
     cover?: string;

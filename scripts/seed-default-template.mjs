@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// Seed default.json mit legacyPage-Bloecken (1:1 identisch mit Legacy-Renderer).
-// Jede Seite hat einen einzelnen legacyPage-Block der die originale React-Komponente rendert.
-// Im Editor kann der User per "Elemente bearbeiten"-Button die Seite in einzelne Bloecke zerlegen.
+// Seed default.json mit den 20 Seiten-Shells fuer Vasileios' neues Layout.
+// Jede Seite ist initial leer (blocks: []), Block-Befuellung erfolgt in M3-M13.
+// --if-missing skipt wenn die Datei schon existiert (Bootstrap auf Railway).
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -10,29 +10,36 @@ const TEMPLATE_PATH = resolve(process.cwd(), "data/templates/default.json");
 const IF_MISSING = process.argv.includes("--if-missing");
 
 const PAGES = [
-  { id: "cover", name: "Cover", pageKey: "cover" },
-  { id: "overview", name: "Overview", pageKey: "overview" },
-  { id: "top-risks", name: "Top Risiken", pageKey: "topRisks" },
-  { id: "recommendations", name: "Empfehlungen", pageKey: "recommendations" },
-  { id: "onpage-seo-1", name: "On-Page SEO 1", pageKey: "onPageSeo1" },
-  { id: "onpage-seo-2", name: "On-Page SEO 2", pageKey: "onPageSeo2" },
-  { id: "ux-conversion", name: "UX & Conversion", pageKey: "uxConversion" },
-  { id: "links-1", name: "Links 1", pageKey: "links1" },
-  { id: "links-2", name: "Links 2", pageKey: "links2" },
-  { id: "usability", name: "Usability", pageKey: "usability" },
-  { id: "leistung", name: "Leistung", pageKey: "leistung" },
-  { id: "social", name: "Social", pageKey: "social" },
-  { id: "lokales-seo", name: "Lokales SEO", pageKey: "lokalesSeo" },
-  { id: "thankyou", name: "Danke", pageKey: "thankYou" },
+  { id: "cover",                     name: "Cover" },
+  { id: "gesamtsituation",           name: "Gesamtsituation & Diagnose" },
+  { id: "top-risiken",               name: "Top 3 Risiken" },
+  { id: "wo-du-sein-koenntest",      name: "Wo du sein koenntest" },
+  { id: "onpage-seo-1",              name: "On-Page SEO Ergebnisse" },
+  { id: "onpage-seo-2",              name: "On-Page SEO Was kostet" },
+  { id: "ux-conversion-1",           name: "UX & Conversion Ergebnisse" },
+  { id: "ux-conversion-2",           name: "UX & Conversion Was kostet" },
+  { id: "seitenstruktur-content-1",  name: "Seitenstruktur & Content Ergebnisse" },
+  { id: "seitenstruktur-content-2",  name: "Seitenstruktur & Content Was kostet" },
+  { id: "lokales-seo-1",             name: "Lokales SEO Ergebnisse" },
+  { id: "lokales-seo-2",             name: "Lokales SEO Was kostet" },
+  { id: "performance-1",             name: "Performance & Technisches Ergebnisse" },
+  { id: "performance-2",             name: "Performance & Technisches Was kostet" },
+  { id: "links-1",                   name: "Links & Autoritaet" },
+  { id: "links-2",                   name: "Links & Autoritaet Was kostet" },
+  { id: "phasenplan-1",              name: "Phasenplan Phase 1+2" },
+  { id: "phasenplan-2",              name: "Phasenplan Phase 3" },
+  { id: "zusammenfassung",           name: "Zusammenfassung & naechster Schritt" },
+  { id: "inhaber",                   name: "Inhaber" },
 ];
 
-function buildPage({ id, name, pageKey }) {
+function buildPage({ id, name }) {
   return {
-    id, name, background: "#1a1a1a", width: 210, height: 296,
-    blocks: [{
-      id: `${id}-legacy`, type: "legacyPage", pageKey,
-      zIndex: 1, frame: { x: 0, y: 0, w: 210, h: 296 },
-    }],
+    id,
+    name,
+    background: "#1a1a1a",
+    width: 210,
+    height: 296,
+    blocks: [],
   };
 }
 
@@ -48,9 +55,12 @@ function main() {
   } catch (e) {
     if (e.code !== "ENOENT") throw e;
     existing = {
-      id: "default", name: "Artistic Avenue Default",
-      version: 1, createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(), pages: [],
+      id: "default",
+      name: "Artistic Avenue Default",
+      version: 1,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      pages: [],
     };
   }
   const assets = existing.assets;
@@ -58,7 +68,7 @@ function main() {
   existing.updatedAt = new Date().toISOString();
   if (assets) existing.assets = assets;
   writeFileSync(TEMPLATE_PATH, JSON.stringify(existing, null, 2));
-  console.log(`Wrote ${existing.pages.length} legacy pages to ${TEMPLATE_PATH}`);
+  console.log(`Wrote ${existing.pages.length} page shells to ${TEMPLATE_PATH}`);
 }
 
 main();

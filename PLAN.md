@@ -23,7 +23,7 @@ Status-Snapshot der Features. Checkboxen werden beim Milestone-Ende aktualisiert
 Detail-Plan: `~/.claude/plans/soft-tickling-iverson.md`
 
 - [x] M0 Vorbereitung: Local-Wipe + PDF-Vermessungs-PNGs (Railway-Volume-Wipe deferred auf M1-Deploy)
-- [ ] M1 Schema-Migration: usability+social raus, seitenstrukturContent + comparison + phasenplan rein
+- [x] M1 Schema-Migration + Legacy-Cleanup: usability+social raus; seitenstrukturContent + comparison + phasenplan rein; legacy pdf-template/pages/* + AuditDocument + buildAuditHtml + LegacyPageBlockView geloescht; default.json seedet jetzt 20 leere Page-Shells
 - [ ] M2 Block-Primitives: pieChart, arrowBulletList, comparisonTable falls noetig
 - [ ] M3 Page-Chrome (Header + Footer Helper)
 - [ ] M4 Cover + Gesamtsituation

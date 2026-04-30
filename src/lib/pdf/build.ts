@@ -1,4 +1,3 @@
-import { AuditDocument } from "@/components/pdf-template/AuditDocument";
 import { setBrandAssets } from "@/components/pdf-template/brand-state";
 import type { AuditData } from "../types";
 import { loadTemplate, readScreenshot } from "../storage";
@@ -61,30 +60,6 @@ function htmlShell(audit: AuditData, body: string): string {
 ${body}
 </body>
 </html>`;
-}
-
-export async function buildAuditHtml(audit: AuditData): Promise<string> {
-  const [cover, mobile, tablet, logo, signet] = await Promise.all([
-    screenshotToDataUrl(audit.id, "cover"),
-    screenshotToDataUrl(audit.id, "mobile"),
-    screenshotToDataUrl(audit.id, "tablet"),
-    assetToDataUrl("ArtisticAvenue-Logo.png"),
-    assetToDataUrl("ArtisticAvenue-Signet.png"),
-  ]);
-
-  setBrandAssets(logo, signet);
-
-  const render = await getRenderer();
-  const body = render(
-    AuditDocument({
-      audit,
-      coverScreenshotDataUrl: cover,
-      mobileScreenshotDataUrl: mobile,
-      tabletScreenshotDataUrl: tablet,
-    }),
-  );
-
-  return htmlShell(audit, body);
 }
 
 export async function buildTemplateHtml(

@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { decomposePageBlocks } from "@/lib/editor/page-builders";
-import type { LegacyPageKey } from "@/lib/editor/template-types";
 
 export async function POST(req: NextRequest) {
-  let body: { pageKey?: LegacyPageKey };
+  let body: { pageKey?: string };
   try {
     body = await req.json();
   } catch {
