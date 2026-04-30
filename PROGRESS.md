@@ -4,6 +4,8 @@ Was gebaut wurde, welche Vertraege/Typen entstanden, welche Gotchas auftraten.
 
 ## 2026-04-30: M2 Block-Primitives (arrowBulletList, comparisonTable, pieChart)
 
+Commits: `c73b223` (initial M2) + `1664f69` (Edge-Bug-Fixes nach Verify-Pass).
+
 ### Was
 
 Drei neue Block-Typen ergaenzen das bestehende Block-System fuer das Vasileios-Layout:
@@ -11,6 +13,29 @@ Drei neue Block-Typen ergaenzen das bestehende Block-System fuer das Vasileios-L
 - **`arrowBulletList`** fuer "Was dagegen zu tun ist" Sections (Pages 6, 8, 10, 12, 14, 16). Cyan-Pfeil-Glyph (SVG) + bold Title + optional detail darunter. Existing `recommendationList` ist priorisiert+nummeriert, `checkList` ist Status-basiert — passt nicht.
 - **`comparisonTable`** fuer Page 4 (Wo du sein koenntest). Drei separate gerundete Header-Pillen (statt single header-row der existing `table`), Hairlines im Body, fixe N-Spalten ueber `columns: ComparisonTableColumn[]`.
 - **`pieChart`** fuer Page 13 (Performance — Aufschluesselung Seitengroesse). SVG-Slices via polar-arc, optionaler innerRadius (Pie/Donut), Slice-Prozente, Legend rechts oder unten.
+
+### Gebaute Dateien
+
+```
+NEU:
+  src/lib/editor/blocks/ArrowBulletListBlockView.tsx
+  src/lib/editor/blocks/ComparisonTableBlockView.tsx
+  src/lib/editor/blocks/PieChartBlockView.tsx
+
+MODIFIZIERT:
+  src/lib/editor/template-types.ts           (Block-Union + 3 neue Types + StaticArrowItem, ComparisonTableColumn, PieSlice)
+  src/lib/editor/render-template.tsx         (Dispatcher-Cases: arrowBulletList, comparisonTable, pieChart)
+  src/lib/editor/binding-catalog.ts          (+pageSizeBreakdown + resourceCounts als type:"object")
+  src/lib/agent/chat-orchestrator.ts         (System-Prompt: vollstaendige Block-Type-Liste fuer AI-Agent)
+  PLAN.md                                    (M2 abgehakt)
+  PROGRESS.md                                (dieser Eintrag)
+
+GITIGNORED ASSETS (Re-Smoke-Test):
+  data/audits/m2-smoke.json                  (Clone von M1-E2E + 4 mock comparison.rows)
+  data/templates/m2-smoke.json               (1 Page mit allen 3 Bloecken kombiniert)
+  data/audits/m2-edges.json                  (20 actions, leere Arrays, all-zero + single-100% breakdowns)
+  data/templates/m2-edges.json               (3 Pages, jede Page testet eine Block-Type-Edge-Variation)
+```
 
 ### Vertraege/Typen
 
@@ -78,11 +103,29 @@ PieChartBlock = BlockBase & {
 
 **Inspector-Caveat:** Die drei neuen Blocks haben kein Custom-Properties-Panel (kein UI-Editing fuer arrowColor/sliceColor/headerPillColor etc). Fallen in den default-Inspector-Pfad — gleich wie barChart/gauge/starRating heute auch. Property-Aenderungen via JSON-Edit oder AI-Agent.
 
+### Design-Entscheidungen
+
+- **Drei separate Block-Types statt eine generische "list"** — arrowBulletList ist semantisch verschieden von recommendationList (priorisiert) und checkList (status-basiert). comparisonTable ist verschieden von table (single-header-row). Statt existing-Bloecke ueberladen ist es sauberer separate Block-Types zu fuehren — pro Vasileios-Layout-Konstrukt einer.
+- **Inspector ohne Custom-Properties-Panel** — bewusst weggelassen. Konsistent mit existing barChart/gauge/starRating/resourceTile/serpPreview die das auch nicht haben. Property-Aenderungen via JSON-Edit oder AI-Chat-Agent. Custom-Inspector-UIs sind ein eigener spaeterer Milestone wenn der User sie wirklich braucht.
+- **shrink-Algo mit `MIN_SCALE = 0.55` Clamp + fitCount-Reduktion** — wenn Items selbst bei 0.55 Skalierung nicht passen, wird die sichtbare Anzahl reduziert statt overflow:hidden Cutoff. Akzeptabel weil oberes Items immer noch lesbar bleiben.
+- **`MIN_INLINE_LABEL_PCT = 5` als Konstante (nicht Block-Property)** — Default ist gut genug, Konfigurierbarkeit waere Overkill. Bei < 5% Slices steht der Wert eh in der Legend.
+- **PieChart `pageSizeBreakdown` als generic object-binding** — der Block bindet auf ein Object, die slices benennen die Keys via fieldPath. Damit kann derselbe pieChart-Block-Typ fuer beliebige named-keys-Objekte genutzt werden, nicht nur pageSizeBreakdown.
+
 ### Gotchas
 
 - **SVG `<text>` ignoriert CSS `color`** — braucht `fill`. Erste Pie-Render-Iteration zeigte schwarze Prozent-Labels statt der konfigurierten `#ffffff`. Fix in `PieChartBlockView.tsx` setzt `fill={fillColor}` zusaetzlich zum style.
 - **SVG-viewBox-Clipping bei Slice-Labels** — Erste Iteration setzte `svgSizeMm = diameter + offset*2`, da Labels mit textAnchor=middle aber bis ~5mm halbe Breite ueber den Rand ragen wurden sie geclippt. Fix: `labelMargin = offset + 8mm` Reserve, `labelRadius = outerR + offset` (statt 0.6 * offset).
+- **PieChart 100%-Slice = null-area path** — wenn nur ein Slice die volle Summe traegt, wird startRad == endRad und der arc-path hat 0 area. Fallback: full circle (oder annulus bei innerRadius>0) mit fill-rule="evenodd".
 - **Editor-Inspector hat keine UI-Add-Buttons fuer die neuen Blocks** — bewusst nicht hinzugefuegt. Die existing barChart/gauge/starRating/resourceTile/serpPreview haben das auch nicht; sie kommen aus Page-Buildern in M3-M13. Konsistente Linie.
+- **Templates haben keine Runtime-Schema-Validation** — `/api/templates/[id]` PATCH akzeptiert beliebiges Partial<Template> ohne Zod-Validation. Vorteil: neue Block-Types funktionieren automatisch ohne Schema-Update. Nachteil: kein Schutz vor mal-formed JSON. Akzeptabel weil Single-Tenant.
+
+### Offene Tests / Bekannte Gaps fuer naechste Milestones
+
+- **Production-hinter-Auth nicht getestet** — lokal alle Pfade gruen (smoke + edges + Chrome E2E + save-persist + reload). Production-Deep blockiert auf BASIC_AUTH_PASS, mache ich erst beim ersten echten Vasileios-Run mit Marlin zusammen (gleiche Linie wie M1).
+- **Page-Builder fuer die 20 Pages sind weiterhin EMPTY_BUILDER** — die Bloecke sind verfuegbar, werden aber erst in M3-M13 ueber `BUILDERS` map in den 20 Page-Shells genutzt.
+- **Resize-Handles im Editor nicht explizit getestet** — selber BlockOverlay-Code wie Drag, das fuer alle 3 Bloecke geht; Resize sollte aequivalent funktionieren. Nicht hand-getestet.
+- **Concurrent-Save mit gleichzeitigem Agent-Edit** — nicht getestet. Single-Tenant, niedrige Wahrscheinlichkeit.
+- **Vasileios-Page-Layout-Density** — Subagent-Verify hat ⚠ "kompakteres Spacing" gemeldet fuer arrowBulletList und comparisonTable in der M2-Smoke. Das ist Smoke-Page-Density, nicht Block-Bug — beim echten M3-M13 Page-Layout mit ordentlichem Padding wird es passen.
 
 ### Public Interfaces (Quick-Reference)
 
@@ -106,7 +149,41 @@ pdftoppm -r 100 -f 1 -l 1 /tmp/preview.pdf /tmp/preview-page -png
 
 ### Wiederholte manuelle Aktionen / Friction-Points
 
-- 2x manuell PDF generiert + pdftoppm + Read um pieChart-Bugs zu finden (beide Iterations: SVG-clipping, dann fill-vs-color). Akzeptabel — `/render-pdf-preview` Skill macht das schon trivial.
+In M2 mehrfach von Hand gemacht:
+
+| Aktion | Wie oft | Pain |
+|---|---|---|
+| Mock-Audit-JSON via `python3 -c "..."` patchen (m2-smoke creation, m2-edges creation, altSentences-Daten nachpflegen) | 3x | mittel |
+| Edge-Case-Template-JSON mit Wiederholungs-Boilerplate fuer 8 Bloecke schreiben (jedes Block hat dieselbe Stilstruktur, nur frame+binding+Type unterscheiden sich) | 1x (gross, ~280 Zeilen JSON) | hoch |
+| `curl PDF + pdftoppm + Read PNG` Loop fuer Bug-Iteration (SVG-clipping → fill-vs-color → shrink-overflow → 100%-slice → label-collision) | 5x | mittel |
+| Subagent fuer Vasileios-Diff manuell starten mit ~600-Worte-Prompt | 1x | mittel |
+| Chrome-Browser-Klicks fuer Inspector + Drag pro Block-Type (Auswahl + Inspector-Check + Drag + Console + Screenshot) | 6x | mittel |
+| Save-Persistenz-Test (Save → reload → JSON-Diff pruefen) | 1x | niedrig |
+
+### Vorschlaege fuer Automatisierung (Quellen, nichts installiert)
+
+**1. Skill `/render-edge-cases <blockType>`** — generiert Mock-Audit + Mini-Template mit allen Edge-Cases fuer einen Block-Typ und rendert Pages 1-N als PNGs. Spart das Python-Patchen + 280-Zeilen-JSON-Schreiben pro Block. Wuerde in M3-M13 jedes Mal nuetzen wenn neue Block-Combos getestet werden. Definition: `.claude/skills/render-edge-cases/SKILL.md` mit Bash-Steps.
+- Quelle: [Claude Code Skills Doc](https://docs.claude.com/en/docs/claude-code/skills)
+
+**2. Skill `/visual-diff-against-vasileios <appPages> <refPages>`** — automatisiert die "render beide PDFs als PNG bei 200 DPI + Subagent-Diff" Sequenz die ich heute mit ~600 Worten Prompt manuell zusammengeschrieben habe. Existing pdf-verifier Subagent ist da, aber Aufrufen kostet je 30s Prompt-Engineering.
+- Quelle: [Claude Code Skills Doc](https://docs.claude.com/en/docs/claude-code/skills) + bestehender Subagent unter `.claude/agents/pdf-verifier.md`
+
+**3. Helper-Skript `scripts/build-mock-audit.mjs <baseAuditId> <newId> <patch.json>`** — kein Subagent/Skill/Hook, einfach ein Node-Skript. Liest existing audit, applyt JSON-Patch (z.B. `{"sections.uxConversion.actions": [...]}`), schreibt neuen audit. War in M2 3x der Pain-Point. Aber: nicht klar dass es in M3+ wieder gebraucht wird, weil Page-Builder gegen echte Audits laufen. Niedrige Prioritaet.
+- Kein offizielles Tool, einfach ein internes scripts/-Skript.
+
+**4. Hook `format-on-save` mit Prettier auf data/templates/*.json** — ist niedrige Prioritaet, aber: das m2-edges-Template wurde nach Editor-Save in formatiertem JSON gespeichert (vom JSON.stringify mit `null, 2` ueber storage layer), aber `m2-smoke.json` und `m2-edges.json` waren urspruenglich kompakter geschrieben. Konsistenz waere nett. Skip wenn nicht weiter relevant.
+- Quelle: [Claude Code Hooks Reference](https://docs.claude.com/en/docs/claude-code/hooks)
+
+**5. Playwright MCP (offiziell, Microsoft)** — koennte die Chrome-Klicks (Block-Click + Inspector-Check + Drag + Console-Pruefung) automatisieren als deklarative Test-Suite statt 6x manuell durch claude-in-chrome. Aber: die existing claude-in-chrome MCP macht das schon, und der echte UX-Hand-Test soll an Marlin uebergeben werden ab jetzt (siehe Memory-Update). Skip — nicht produktiv.
+- Quelle: [microsoft/playwright-mcp](https://github.com/microsoft/playwright-mcp) (community/official Microsoft)
+
+**Empfehlung priorisiert:**
+
+a) **Skill `/render-edge-cases`** und **Skill `/visual-diff-against-vasileios`** wuerden M3-M13 erheblich beschleunigen weil dort jeder Page-Builder gegen echte Vasileios-Pages verglichen werden muss. Hoher Nutzen, geringer Aufwand. Wenn ich am Anfang von M3 0.5h investiere, spare ich pro Builder 5-10min.
+
+b) Helper-Skript fuer Mock-Audit-Builder ist optional — nur einbauen wenn M3+ wieder Mock-Audits braucht.
+
+(4) Hook und (5) Playwright sind nicht produktiv jetzt.
 
 ## 2026-04-17: M1 Schema-Migration + Legacy-Cleanup
 
