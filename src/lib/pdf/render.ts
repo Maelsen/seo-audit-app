@@ -26,7 +26,8 @@ export async function renderHtmlToPdf(html: string): Promise<Buffer> {
   const browser = await launchBrowser();
   try {
     const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: "networkidle0" });
+    await page.setContent(html, { waitUntil: "load", timeout: 60000 });
+    await page.evaluate(() => (document as Document & { fonts?: { ready: Promise<unknown> } }).fonts?.ready);
     const pdf = await page.pdf({
       format: "A4",
       printBackground: true,

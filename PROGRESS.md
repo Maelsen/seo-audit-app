@@ -54,6 +54,19 @@ Was gebaut wurde, welche Vertraege/Typen entstanden, welche Gotchas auftraten.
 
 - Schema-Bruch hat den ganzen `pdf-template/pages/*.tsx` Komplex und damit verbundene Komponenten unkompilierbar gemacht. M14 (Cleanup) musste in M1 gezogen werden — es gab keinen Halbzustand bei dem die Legacy-Pages ohne `usability`/`social`/`technicalChecks` haetten kompilieren koennen.
 - Wenn `next dev` waehrend grosser Type-Aenderungen laeuft, kann es in einen broken Zustand kommen (500-er) — Restart noetig.
+- E2E-Verifikation in Chrome enthuellte: PDF-Render hatte `waitUntil: "networkidle0"` was 30s timeout warf weil Google Fonts CDN + `--disable-background-networking` schlecht zusammenspielen. Gefixt zu `waitUntil: "load"` + `document.fonts.ready` evaluation. PDF rendert jetzt in 2.5s.
+- E2E-Verifikation in Chrome enthuellte: Anthropic Agent generiert validen Output gegen neues Zod-Schema (175s, 8.6k in / 9.6k out tokens) inkl. korrekter findings+actions pro Section. ABER `comparison.rows` und `phasenplan.phase{1,2,3}.entries` bleiben leer obwohl der System-Prompt sie verlangt. Zod akzeptiert leere Arrays. Fuer M9 (Prompt-Engineering) — entweder `.min(3)` Constraint oder Prompt strenger formulieren.
+
+### M1 E2E-Verifikation (vollstaendig durchgezogen)
+
+1. POST `/api/upload` mit homeraum-immobilien.de → Audit erstellt (auditId persistiert), Screenshots cover/mobile/tablet, PageSpeed 46/43
+2. GET `/api/audit/{id}` → JSON enthaelt alle 6 neuen Sections, comparison{}, phasenplan{}, diagnosisText, KEIN usability/social
+3. GET `/audit/{id}` (UI) → Audit-Review-Page rendert: Gesamt, Top 3 Risiken, Empfehlungen, On-Page SEO, UX & Conversion, Seitenstruktur & Content, Lokales SEO, Performance & Technisches, Links & Autoritaet, Tipp fürs nächste Mal — exakt 6 Section-Cards
+4. POST `/api/analyze` → Anthropic-Agent laeuft 175s durch, Output-Validation gegen Zod gruen, 18 Empfehlungen, 3 Top-Risiken, alle 6 Sub-Scores gesetzt
+5. GET `/api/generate-pdf?auditId=...&templateId=default` → PDF 200, 10KB (20 leere Pages, blocks-arrays leer wie erwartet bis M3-M13)
+6. GET `/editor/default` (mit Audit-Context) → Editor zeigt alle 20 Pages-Sidebar, Canvas leer (Cover hat 0 Bloecke)
+7. POST `/api/agent/chat` mit Editor-Context → Agent liest Template via `read_file`, antwortet korrekt nach 5s, 2 Iterationen
+
 
 
 ## 2026-04-17: 20-Seiten-Migration M0 (Vorbereitung)
