@@ -81,6 +81,105 @@ Was gebaut wurde, welche Vertraege/Typen entstanden, welche Gotchas auftraten.
 - **PDF-Render `networkidle0` Timeout** → render.ts: `waitUntil: "load"` + `document.fonts.ready`. PDF rendert in 2.5s.
 - **Empty-Page-Collapsing in PDF** → render-template.tsx: Anchor-Div mit 1px transparentem `&nbsp;` pro Page. 20 Pages aus 20 Sections garantiert.
 
+### Public Interfaces (Quick-Reference)
+
+```ts
+// src/lib/types.ts
+SectionBase = { score, heading, text, findings: SectionFinding[], costText, actions: ActionItem[], closingNote? }
+SectionFinding = { problem: string; befund: string; status: "ok"|"warning"|"fail"|"info" }
+ActionItem = { title: string; detail?: string }
+
+AuditData.sections = {
+  onpageSeo: SectionBase & { serpPreview, h2h6Frequency }
+  uxConversion: SectionBase
+  seitenstrukturContent: SectionBase & { comparisonImages? }    // NEU
+  lokalesSeo: SectionBase & { schemaMarkupImage?, schemaMarkupCaption? }
+  leistung: SectionBase & { serverResponseTime, contentLoadTime, scriptLoadTime, resourceCounts, pageSizeMb, pageSizeBreakdown }
+  links: SectionBase & { domainStrength, pageStrength, totalBacklinks, ... }
+}
+
+AuditData.comparison = { heading, altSentences[], rows[] }   // NEU, Page 4
+AuditData.phasenplan = { intro, phase1{title, entries[]}, phase2, phase3, afterPhase1, afterPhase2, afterPhase3 }   // NEU, Pages 17-18
+AuditData.diagnosisText: string   // NEU, Page 2
+
+// src/lib/editor/page-builders.ts
+PageKey = "cover" | "gesamtsituation" | "topRisiken" | "woDuSeinKoenntest"
+       | "onPageSeo1" | "onPageSeo2" | "uxConversion1" | "uxConversion2"
+       | "seitenstrukturContent1" | "seitenstrukturContent2"
+       | "lokalesSeo1" | "lokalesSeo2"
+       | "performance1" | "performance2" | "links1" | "links2"
+       | "phasenplan1" | "phasenplan2" | "zusammenfassung" | "inhaber"
+BUILDERS: Record<PageKey, () => Block[]>   // alle aktuell EMPTY_BUILDER, gefuellt in M3-M13
+decomposePageBlocks(pageKey: string): Block[]
+```
+
+### Design-Entscheidungen
+
+- **Block-System ist Source-of-Truth** statt React-Pages. Editor + Agent + PDF lesen alle aus `data/templates/{id}.json`. Kein dual-render-path mehr.
+- **Internal Naming bleibt `leistung`/`links`**, Display-Labels werden lokal in der UI/PDF auf "Performance & Technisches" / "Links & Autoritaet" gemapped — spart 30+ Datei-Touches.
+- **20-Seiten-Schale ohne Inhalt im M1**, jeder Builder ist `EMPTY_BUILDER`. Pages erscheinen leer im PDF (1px-Anchor erzwingt Page-Break). Inkrementell befuellt M3-M13.
+- **Schema akzeptiert leere Arrays** fuer `comparison.rows`, `phasenplan.phase{1,2,3}.entries[]`. Agent generiert gegen das Schema, Zod-Validation passiert. Aber Agent fuellt diese Arrays aktuell leer. Constraint absichtlich nicht eng (`min(N)`) gesetzt — sonst crasht `/api/analyze` ohne dass M9 fertig ist.
+- **Old test audits werden NICHT migriert** — wipen war effizienter. M0 hat data/audits/ etc geleert.
+- **Volume-Mount auf Railway ueberschreibt git-tracked /data**. Templates-Seed laeuft on-boot via `start:railway` Hook (`--if-missing`).
+
+### Offene Tests / Bekannte Gaps fuer naechste Milestones
+
+- **Agent fuellt comparison.rows + phasenplan.entries leer**. Behebt sich in M9 (Prompt-Engineering oder Schema-Constraints).
+- **Production-hinter-Auth**: lokal alle 16 Pfade verifiziert. Production-Deep blockiert auf BASIC_AUTH_PASS, mache ich erst beim ersten echten Vasileios-Run mit Marlin zusammen.
+- **PDF-Inhalt der 20 Pages ist leer** bis M3-M13. Nicht "broken" — designed gap. Erst M3 (Page-Chrome) bringt erste sichtbare Inhalte.
+- **Editor-Drag-and-Drop in der Canvas** habe ich nicht getestet. Bekommt Coverage in M3 wenn ich erste Bloecke verschiebe.
+- **Mehrere Audits parallel** (Concurrency) — nicht getestet, aber Vasileios laeuft eh single-tenant.
+
+### Wiederholte manuelle Aktionen / Friction-Points
+
+In M0+M1 mehrfach von Hand gemacht:
+
+| Aktion | Wie oft | Pain |
+|---|---|---|
+| `tsc --noEmit && npm run lint && curl health && curl /api/templates` als Smoke-Sequenz | 4x | mittel |
+| PDF generieren → `pdftoppm -r 80 -f N -l N` → Read PNG fuer visuelle Pruefung | 3x | hoch |
+| `tail /tmp/seo-dev.log | grep -E "...zod|Error|...auditId..."` waehrend Anthropic-Agent laeuft | 5x | mittel |
+| `git pull --rebase && git push` weil git-cron auto-syncs (~6h) — race condition zwischen lokalem Push und Container-Cron | 4x | niedrig |
+| `pgrep next dev && pkill && nohup npm run dev` nach Schema-Bruch der dev-server in 500-state bringt | 2x | mittel |
+| Browser-Tab management (created/closed/recreate/find by URL) nachdem User Tabs schliesst | 6x | niedrig |
+| Agent-Generation triggern → 60-180s warten → status-poll → tail des response | 3x | mittel |
+
+### Vorschlaege fuer Automatisierung (Quellen, nichts installiert)
+
+**1. Custom Skill `/verify-app` (lokal)** — Ersetzt die Smoke-Sequenz.
+- Skill-Definition: `~/.claude/skills/verify-app/SKILL.md` mit Bash-Steps (`tsc`, `lint`, `curl health`, `curl templates`, `pdf-gen + page-count check`).
+- Quelle: [Claude Code Skills Doc](https://docs.claude.com/en/docs/claude-code/skills) — built-in Mechanismus.
+
+**2. Custom Skill `/render-pdf-preview {auditId}`** — Ersetzt curl→pdftoppm→Read.
+- Bash unterm: `curl -s -o /tmp/x.pdf ... && pdftoppm -r 80 -f 1 -l 3 ... && ls /tmp/x-page-*.png` und meldet Pfade die ich mit Read-Tool oeffnen kann.
+- Quelle: gleiche Skills-Doc.
+
+**3. PostToolUse-Hook auf Edit/Write** — laeuft `npx tsc --noEmit` nach jedem `src/lib/types.ts`/`schema.ts` Edit.
+- Konfiguration in `.claude/settings.json` mit `hooks.PostToolUse[].matcher = "Edit|Write"`.
+- Quelle: [Claude Code Hooks Reference](https://docs.claude.com/en/docs/claude-code/hooks).
+
+**4. Subagent `pdf-verifier`** — bekommt `auditId+templateId`, gibt PNG-Paths + Page-Count + Pixel-Diff vs. Vasileios-Referenz-PDF zurueck.
+- Definition: `~/.claude/agents/pdf-verifier.md`.
+- Quelle: [Claude Code Subagents Doc](https://docs.claude.com/en/docs/claude-code/sub-agents).
+
+**5. Filesystem MCP Server (offiziell, Anthropic)** — bringt nichts fuer uns, weil Read/Write/Edit das schon abdecken. Skip.
+- Quelle: [modelcontextprotocol/servers — filesystem](https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem).
+
+**6. GitHub MCP Server (offiziell)** — falls wir mehr `gh` Workflows kriegen (PRs, Issues). Aktuell nicht noetig, Bash + `gh` reicht.
+- Quelle: [github/github-mcp-server](https://github.com/github/github-mcp-server).
+
+**7. Puppeteer MCP (Reference Server)** — wuerde meine Chrome-Manuell-Klicks ersetzen koennen. Aber `claude-in-chrome` MCP haben wir schon.
+- Quelle: [modelcontextprotocol/servers — puppeteer](https://github.com/modelcontextprotocol/servers/tree/main/src/puppeteer) (community/reference).
+
+**Empfehlung priorisiert:**
+
+a) Skill `/verify-app` + Skill `/render-pdf-preview` → **maximaler Nutzen, geringer Aufwand**. Spart pro Milestone 5-10min Smoke-Pruefen + visuelles PDF-Verifizieren.
+b) PostToolUse-Hook fuer `tsc` Auto-Run → faengt Schema-Bruch sofort, statt nach 30 Edits.
+c) `pdf-verifier` Subagent → erst sinnvoll ab M3 wenn Pixel-Vergleich gegen Vasileios-PDF wirklich noetig wird.
+
+(7) und MCP-Server kann man spaeter ergaenzen — nicht produktiv jetzt.
+
+
 
 
 ## 2026-04-17: 20-Seiten-Migration M0 (Vorbereitung)

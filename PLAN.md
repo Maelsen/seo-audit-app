@@ -23,7 +23,7 @@ Status-Snapshot der Features. Checkboxen werden beim Milestone-Ende aktualisiert
 Detail-Plan: `~/.claude/plans/soft-tickling-iverson.md`
 
 - [x] M0 Vorbereitung: Local-Wipe + PDF-Vermessungs-PNGs (Railway-Volume-Wipe deferred auf M1-Deploy)
-- [x] M1 Schema-Migration + Legacy-Cleanup: usability+social raus; seitenstrukturContent + comparison + phasenplan rein; legacy pdf-template/pages/* + AuditDocument + buildAuditHtml + LegacyPageBlockView geloescht; default.json seedet jetzt 20 leere Page-Shells
+- [x] M1 Schema-Migration + Legacy-Cleanup + M14-Cleanup vorgezogen: usability+social raus; seitenstrukturContent + comparison + phasenplan rein; legacy pdf-template/pages/* + AuditDocument + buildAuditHtml + LegacyPageBlockView geloescht; default.json seedet jetzt 20 leere Page-Shells; PDF-Render-Fixes (networkidle0 → load+fonts.ready, Empty-Page-Anchor)
 - [ ] M2 Block-Primitives: pieChart, arrowBulletList, comparisonTable falls noetig
 - [ ] M3 Page-Chrome (Header + Footer Helper)
 - [ ] M4 Cover + Gesamtsituation
@@ -36,7 +36,7 @@ Detail-Plan: `~/.claude/plans/soft-tickling-iverson.md`
 - [ ] M11 Links & Autoritaet (2 pages)
 - [ ] M12 Phasenplan (2 pages)
 - [ ] M13 Zusammenfassung + Inhaber
-- [ ] M14 Cleanup: Legacy React-Pages loeschen
+- [x] M14 Cleanup: Legacy React-Pages loeschen (in M1 mitgenommen)
 
 ## Backlog / Ideen
 
