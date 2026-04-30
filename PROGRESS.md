@@ -179,6 +179,15 @@ c) `pdf-verifier` Subagent → erst sinnvoll ab M3 wenn Pixel-Vergleich gegen Va
 
 (7) und MCP-Server kann man spaeter ergaenzen — nicht produktiv jetzt.
 
+### Implementierte Automation (Commit `a933a12`)
+
+- `.claude/skills/verify-app/SKILL.md` — Smoke-Sequenz (tsc, lint, health, templates, optional PDF)
+- `.claude/skills/render-pdf-preview/SKILL.md` — `<auditId> [templateId] [pageRange]` → PDF + PNGs in `/tmp`
+- `.claude/hooks/tsc-on-schema-edit.sh` + `.claude/settings.json` — PostToolUse-Hook der `tsc --noEmit` ausfuehrt nach Edit auf `types.ts`/`schema.ts`/`prompts.ts`/`template-types.ts`/`binding-catalog.ts`. Hook-Test grun (clean nach types.ts edit, silent skip bei nicht-relevanten Files).
+- `.claude/agents/pdf-verifier.md` — Subagent fuer App-PDF-vs-Vasileios-Referenz Visual-Diff. Tools: Bash + Read (read-only). Fuer M3+ wenn echte Page-Builder gegen Referenz verglichen werden muessen.
+
+Nach `/clear` sind die Skills + Subagent + Hook aktiv. Aufrufen via `/verify-app`, `/render-pdf-preview <auditId>`, oder Agent-Tool mit `subagent_type: "pdf-verifier"`. Hook feuert automatisch.
+
 
 
 
