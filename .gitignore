@@ -54,4 +54,13 @@ next-env.d.ts
 /data/audits/
 /data/screenshots/
 /data/uploads/
+/data/templates/
 /tmp/
+
+# Measurement reference PNGs (rendered from Vasileios PDF, large)
+docs/measurements/*.png
+
+# Vasileios input files (not source, not committed)
+/SEO AUDIT WASCHBÄR SERVICE.pdf
+/visilis sprachmemo.txt
+/sprachnachricht.txt

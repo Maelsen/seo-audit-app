@@ -18,9 +18,25 @@ Status-Snapshot der Features. Checkboxen werden beim Milestone-Ende aktualisiert
 - [x] Default-Template Bootstrap-Seed beim Container-Start (idempotent)
 - [x] Screenshot-Robustheit: separater Browser pro Viewport, kein Total-Crash mehr
 
-## Offen (geplante Anpassungen)
+## Offen — 20-Seiten-Migration (Vasileios Waschbaer-Layout)
 
-- [ ] (kommt — User listet als naechstes auf)
+Detail-Plan: `~/.claude/plans/soft-tickling-iverson.md`
+
+- [x] M0 Vorbereitung: Local-Wipe + PDF-Vermessungs-PNGs (Railway-Volume-Wipe deferred auf M1-Deploy)
+- [ ] M1 Schema-Migration: usability+social raus, seitenstrukturContent + comparison + phasenplan rein
+- [ ] M2 Block-Primitives: pieChart, arrowBulletList, comparisonTable falls noetig
+- [ ] M3 Page-Chrome (Header + Footer Helper)
+- [ ] M4 Cover + Gesamtsituation
+- [ ] M5 Top 3 Risiken + Wo du sein koenntest
+- [ ] M6 On-Page SEO (2 pages)
+- [ ] M7 UX & Conversion (2 pages)
+- [ ] M8 Seitenstruktur & Content (2 pages)
+- [ ] M9 Lokales SEO (2 pages)
+- [ ] M10 Performance & Technisches (2 pages)
+- [ ] M11 Links & Autoritaet (2 pages)
+- [ ] M12 Phasenplan (2 pages)
+- [ ] M13 Zusammenfassung + Inhaber
+- [ ] M14 Cleanup: Legacy React-Pages loeschen
 
 ## Backlog / Ideen
 
