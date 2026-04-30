@@ -55,6 +55,8 @@ next-env.d.ts
 /data/screenshots/
 /data/uploads/
 /data/templates/
+/data/edits.json
+/data/style-profile.json
 /tmp/
 
 # Measurement reference PNGs (rendered from Vasileios PDF, large)
