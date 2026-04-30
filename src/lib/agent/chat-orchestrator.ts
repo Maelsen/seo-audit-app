@@ -50,7 +50,7 @@ function buildSystemPrompt(context: ChatContext): string {
     "   - Template-JSON: data/templates/{id}.json (Positionen, Styles, Bindings, TEXT-INHALT)",
     "   - page-builders.ts: Definiert die Block-Layouts pro Seite (PageKey enum + BUILDERS map)",
     "",
-    "   Pages bestehen ausschliesslich aus dekomponierten Bloecken (text/image/shape/scoreCircle/checkList/table/...).",
+    "   Pages bestehen ausschliesslich aus dekomponierten Bloecken (text/image/shape/scoreCircle/checkList/table/topRiskList/recommendationList/barChart/gauge/starRating/resourceTile/serpPreview/brandDecoration/arrowBulletList/comparisonTable/pieChart).",
     "   Es gibt keine Legacy-React-Page-Komponenten mehr. Um Text/Style einer Seite zu aendern: den entsprechenden Block im Template-JSON unter data/templates/{templateId}.json editieren (Feld 'text' bei textBlock, 'src' bei imageBlock, 'staticItems' bei checkList usw).",
     "",
     "   Wenn context.selectedBlockId gesetzt ist, ist der User auf einem konkreten Block. Edit ausschliesslich diesen Block im Template-JSON.",

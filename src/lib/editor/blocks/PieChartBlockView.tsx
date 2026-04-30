@@ -124,6 +124,11 @@ function renderPie(
     );
   }
 
+  // If exactly one slice carries the full total, an arc with start==end has zero
+  // area and renders nothing — fall back to a full circle (or annulus) for it.
+  const nonZero = slices.filter((s) => s.value > 0);
+  const fullCircleSlice = nonZero.length === 1 ? nonZero[0] : null;
+
   let cumulative = 0;
   const labelStyle = textStyleToCss(block.sliceLabelStyle);
   return (
@@ -133,19 +138,54 @@ function renderPie(
       viewBox={`0 0 ${svgSizeMm} ${svgSizeMm}`}
       style={{ flexShrink: 0 }}
     >
-      {slices.map((slice, idx) => {
-        if (slice.value <= 0) return null;
-        const startRad = -Math.PI / 2 + (cumulative / total) * Math.PI * 2;
-        cumulative += slice.value;
-        const endRad = -Math.PI / 2 + (cumulative / total) * Math.PI * 2;
-        const path = buildArcPath(cx, cy, outerR, innerR, startRad, endRad);
-        return <path key={idx} d={path} fill={slice.color} />;
-      })}
+      {fullCircleSlice ? (
+        innerR > 0 ? (
+          <path
+            d={buildAnnulusPath(cx, cy, outerR, innerR)}
+            fill={fullCircleSlice.color}
+            fillRule="evenodd"
+          />
+        ) : (
+          <circle cx={cx} cy={cy} r={outerR} fill={fullCircleSlice.color} />
+        )
+      ) : (
+        slices.map((slice, idx) => {
+          if (slice.value <= 0) return null;
+          const startRad = -Math.PI / 2 + (cumulative / total) * Math.PI * 2;
+          cumulative += slice.value;
+          const endRad = -Math.PI / 2 + (cumulative / total) * Math.PI * 2;
+          const path = buildArcPath(cx, cy, outerR, innerR, startRad, endRad);
+          return <path key={idx} d={path} fill={slice.color} />;
+        })
+      )}
       {block.showSliceLabels &&
         renderSliceLabels(slices, total, cx, cy, outerR, labelOffset, labelStyle)}
     </svg>
   );
 }
+
+function buildAnnulusPath(
+  cx: number,
+  cy: number,
+  outerR: number,
+  innerR: number,
+): string {
+  // Outer ring + inner ring with even-odd fill creates a donut.
+  return [
+    `M ${cx - outerR} ${cy}`,
+    `A ${outerR} ${outerR} 0 1 0 ${cx + outerR} ${cy}`,
+    `A ${outerR} ${outerR} 0 1 0 ${cx - outerR} ${cy}`,
+    `Z`,
+    `M ${cx - innerR} ${cy}`,
+    `A ${innerR} ${innerR} 0 1 0 ${cx + innerR} ${cy}`,
+    `A ${innerR} ${innerR} 0 1 0 ${cx - innerR} ${cy}`,
+    `Z`,
+  ].join(" ");
+}
+
+// Slices smaller than this percentage skip inline labels — their value still
+// appears in the legend, so we avoid the typical small-slice label-collision.
+const MIN_INLINE_LABEL_PCT = 5;
 
 function renderSliceLabels(
   slices: ResolvedSlice[],
@@ -169,6 +209,7 @@ function renderSliceLabels(
     const startRad = -Math.PI / 2 + (cumulative / total) * Math.PI * 2;
     cumulative += slice.value;
     const endRad = -Math.PI / 2 + (cumulative / total) * Math.PI * 2;
+    if (slice.pct < MIN_INLINE_LABEL_PCT) continue;
     const midRad = (startRad + endRad) / 2;
     const r = outerR + offset;
     const p = polarToCartesian(cx, cy, r, midRad);

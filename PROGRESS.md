@@ -51,16 +51,32 @@ PieChartBlock = BlockBase & {
 }
 ```
 
-### Verifikation (lokal + E2E in Chrome)
+### Verifikation (Smoke + Edge-Cases + Chrome E2E + Subagent-Diff)
 
-- `npx tsc --noEmit` clean
-- `npm run lint` clean
-- `npm run dev` health 200
-- Smoke-Template `m2-smoke.json` (gitignored) mit allen drei Blocks auf einer Page erstellt; Smoke-Audit `m2-smoke.json` (Clone von M1-E2E-Audit + 4 mock comparison.rows). PDF rendert in 2.5s, alle drei Blocks visuell korrekt:
-  - arrowBulletList: cyan-Pfeile + bold-title + grau-detail, matcht Page 6 von Vasileios
-  - comparisonTable: 3 cyan Pillen mit Gap, Hairlines im Body, matcht Page 4
-  - pieChart: 5-Slice-Pie mit Prozenten weiss innen + Legend rechts, matcht Page 13 (modulo das stylized 3D-Volumen das wir absichtlich flat machen)
-- **Chrome E2E** auf `/editor/m2-smoke?auditId=m2-smoke`: alle drei Bloecke rendern im Editor-Canvas mit echten Daten. Click auf pieChart-Block oeffnet Inspector ("pieChart · pie-1" + Frame + Layer + Duplizieren/Loeschen) ohne Crash. Console clean (keine errors/warnings). Editor-Inspector hat fuer die neuen Block-Types kein Custom-Properties-Panel — landet im default-Fall, was ok ist (gleich wie barChart/gauge/starRating heute auch).
+**Smoke (`m2-smoke` audit + template, gitignored):**
+- `npx tsc --noEmit` clean, `npm run lint` clean, health 200
+- PDF rendert in 2.5s, alle drei Blocks visuell korrekt
+- arrowBulletList matcht Vasileios Page 6, comparisonTable Page 4, pieChart Page 13
+
+**Edge-Cases (`m2-edges` audit + template, gitignored, 3 Pages):**
+- arrowBulletList: empty array → leerer Frame; 20 items mit overflow=shrink → 11 items skaliert auf scale=0.55, kein cutoff; maxItems=2 clip von 20 → exakt 2; static binding ohne staticItems → leerer Frame, kein Crash
+- comparisonTable: 0 rows → nur Header-Pillen ohne Body; column.width gesetzt + fehlender fieldPath in einer Spalte → fixe widths, leere Zellen ohne Crash
+- pieChart: total=0 → graue Dummy-Circle + Legend ohne Werte; 1 slice = 100% → voller einfarbiger Kreis (war Bug: arc start==end → null path, gefixt mit full-circle/annulus fallback); innerRadius>0 + legendPosition=bottom → Donut mit Loch + Legend unten
+
+**Chrome E2E auf `/editor/m2-edges?auditId=m2-edges`:**
+- arrowBulletList Block selektieren → Inspector zeigt "arrowBulletList · arrow-clip" + Frame + Layer + Duplizieren/Loeschen, X 15→25 ueber Inspector-Edit funktioniert
+- comparisonTable Block selektieren → Inspector clean, Mouse-Drag Y 77→97.64 funktioniert
+- pieChart Block selektieren → Inspector clean, Mouse-Drag X 15→50.72 funktioniert
+- Console clean ueber alle drei Block-Type-Interaktionen
+
+**Subagent-Verifikation (`pdf-verifier` Aequivalent ueber general-purpose Subagent gegen Vasileios-Referenz-Pages 4/6/13):**
+- arrowBulletList: ✓ Pfeil-Form, ✓ cyan-Farbe, ✓ Title-Bold, ⚠ minimal engeres Item-Spacing (smoke-Page-Density, kein Block-Bug)
+- comparisonTable: ✓ Header-Pillen Form+Farbe, ✓ Spalten-Spacing, ✓ Hairlines, ✓ Cell-Alignment, ⚠ kompakteres vertical Padding (smoke-Density)
+- pieChart: ✓ Pie-Form, ✓ Slice-Farben, ✓ Legend-Style; ✗ **Bug entdeckt**: HTML 3% + Andere 2% Inline-Labels ueberlappen oben am Pie-Rand. Fix: Slices unter 5% bekommen kein Inline-Label (Wert steht weiter in der Legend), `MIN_INLINE_LABEL_PCT = 5` als Konstante. Re-Render bestaetigt clean — beide Smoke- und Edge-Pies haben keine Label-Kollisionen mehr.
+
+**Agent-Tool-Pfad:** Templates haben keine Runtime-Schema-Validation, neue Block-Types werden vom JSON.parse → Renderer-Dispatch automatisch akzeptiert. System-Prompt in `chat-orchestrator.ts` um die drei neuen Types erweitert, sodass der AI-Chat-Agent sie aktiv referenzieren kann.
+
+**Inspector-Caveat:** Die drei neuen Blocks haben kein Custom-Properties-Panel (kein UI-Editing fuer arrowColor/sliceColor/headerPillColor etc). Fallen in den default-Inspector-Pfad — gleich wie barChart/gauge/starRating heute auch. Property-Aenderungen via JSON-Edit oder AI-Agent.
 
 ### Gotchas
 
