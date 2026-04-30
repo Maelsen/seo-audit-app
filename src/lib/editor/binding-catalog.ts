@@ -62,6 +62,8 @@ export const BINDING_CATALOG: BindingEntry[] = [
   { path: "sections.leistung.contentLoadTime", label: "Performance - Content Load (s)", type: "number" },
   { path: "sections.leistung.scriptLoadTime", label: "Performance - Skript Load (s)", type: "number" },
   { path: "sections.leistung.pageSizeMb", label: "Performance - Page Size (MB)", type: "number" },
+  { path: "sections.leistung.pageSizeBreakdown", label: "Performance - Page Size Breakdown (Pie)", type: "object" },
+  { path: "sections.leistung.resourceCounts", label: "Performance - Resource Counts (Object)", type: "object" },
 
   // Links & Autoritaet (intern: links)
   { path: "sections.links.score", label: "Links - Note", type: "grade" },

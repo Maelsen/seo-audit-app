@@ -2,6 +2,96 @@
 
 Was gebaut wurde, welche Vertraege/Typen entstanden, welche Gotchas auftraten.
 
+## 2026-04-30: M2 Block-Primitives (arrowBulletList, comparisonTable, pieChart)
+
+### Was
+
+Drei neue Block-Typen ergaenzen das bestehende Block-System fuer das Vasileios-Layout:
+
+- **`arrowBulletList`** fuer "Was dagegen zu tun ist" Sections (Pages 6, 8, 10, 12, 14, 16). Cyan-Pfeil-Glyph (SVG) + bold Title + optional detail darunter. Existing `recommendationList` ist priorisiert+nummeriert, `checkList` ist Status-basiert — passt nicht.
+- **`comparisonTable`** fuer Page 4 (Wo du sein koenntest). Drei separate gerundete Header-Pillen (statt single header-row der existing `table`), Hairlines im Body, fixe N-Spalten ueber `columns: ComparisonTableColumn[]`.
+- **`pieChart`** fuer Page 13 (Performance — Aufschluesselung Seitengroesse). SVG-Slices via polar-arc, optionaler innerRadius (Pie/Donut), Slice-Prozente, Legend rechts oder unten.
+
+### Vertraege/Typen
+
+```ts
+// src/lib/editor/template-types.ts
+
+ArrowBulletListBlock = BlockBase & {
+  type: "arrowBulletList";
+  binding: Binding;                           // typically audit-bound to ActionItem[]
+  staticItems?: StaticArrowItem[];            // {title, detail?} fallback
+  itemGap: Mm; arrowColor: HexColor;
+  arrowSize: Mm; arrowGap: Mm;
+  titleStyle: TextStyle; detailStyle: TextStyle;
+  maxItems?: number; overflow: "clip" | "shrink" | "none";
+}
+
+ComparisonTableBlock = BlockBase & {
+  type: "comparisonTable";
+  binding: Binding;                           // typically audit-bound to ComparisonRow[]
+  columns: ComparisonTableColumn[];           // { header, fieldPath, width? }[]
+  headerPillColor: HexColor; headerPillRadius: Mm;
+  headerPillPadding: { top, right, bottom, left };
+  headerCellGap: Mm;
+  headerStyle: TextStyle; cellStyle: TextStyle;
+  rowDividerColor: HexColor; rowVerticalPadding: Mm;
+}
+
+PieChartBlock = BlockBase & {
+  type: "pieChart";
+  binding: Binding;                           // bound to object with named keys
+  slices: PieSlice[];                         // { label, fieldPath, color }[]
+  pieDiameter: Mm; innerRadius?: Mm;
+  showLegend: boolean; legendPosition: "right" | "bottom";
+  legendGap, legendItemGap, legendSwatchSize: Mm;
+  legendStyle: TextStyle;
+  showSliceLabels: boolean; sliceLabelStyle: TextStyle;
+  sliceLabelOffset: Mm;
+}
+```
+
+### Verifikation (lokal + E2E in Chrome)
+
+- `npx tsc --noEmit` clean
+- `npm run lint` clean
+- `npm run dev` health 200
+- Smoke-Template `m2-smoke.json` (gitignored) mit allen drei Blocks auf einer Page erstellt; Smoke-Audit `m2-smoke.json` (Clone von M1-E2E-Audit + 4 mock comparison.rows). PDF rendert in 2.5s, alle drei Blocks visuell korrekt:
+  - arrowBulletList: cyan-Pfeile + bold-title + grau-detail, matcht Page 6 von Vasileios
+  - comparisonTable: 3 cyan Pillen mit Gap, Hairlines im Body, matcht Page 4
+  - pieChart: 5-Slice-Pie mit Prozenten weiss innen + Legend rechts, matcht Page 13 (modulo das stylized 3D-Volumen das wir absichtlich flat machen)
+- **Chrome E2E** auf `/editor/m2-smoke?auditId=m2-smoke`: alle drei Bloecke rendern im Editor-Canvas mit echten Daten. Click auf pieChart-Block oeffnet Inspector ("pieChart · pie-1" + Frame + Layer + Duplizieren/Loeschen) ohne Crash. Console clean (keine errors/warnings). Editor-Inspector hat fuer die neuen Block-Types kein Custom-Properties-Panel — landet im default-Fall, was ok ist (gleich wie barChart/gauge/starRating heute auch).
+
+### Gotchas
+
+- **SVG `<text>` ignoriert CSS `color`** — braucht `fill`. Erste Pie-Render-Iteration zeigte schwarze Prozent-Labels statt der konfigurierten `#ffffff`. Fix in `PieChartBlockView.tsx` setzt `fill={fillColor}` zusaetzlich zum style.
+- **SVG-viewBox-Clipping bei Slice-Labels** — Erste Iteration setzte `svgSizeMm = diameter + offset*2`, da Labels mit textAnchor=middle aber bis ~5mm halbe Breite ueber den Rand ragen wurden sie geclippt. Fix: `labelMargin = offset + 8mm` Reserve, `labelRadius = outerR + offset` (statt 0.6 * offset).
+- **Editor-Inspector hat keine UI-Add-Buttons fuer die neuen Blocks** — bewusst nicht hinzugefuegt. Die existing barChart/gauge/starRating/resourceTile/serpPreview haben das auch nicht; sie kommen aus Page-Buildern in M3-M13. Konsistente Linie.
+
+### Public Interfaces (Quick-Reference)
+
+```ts
+// Block-Union erweitert
+Block = ... | ArrowBulletListBlock | ComparisonTableBlock | PieChartBlock
+
+// binding-catalog.ts neu hinzugefuegt
+{ path: "sections.leistung.pageSizeBreakdown", label: "Performance - Page Size Breakdown (Pie)", type: "object" }
+{ path: "sections.leistung.resourceCounts", label: "Performance - Resource Counts (Object)", type: "object" }
+```
+
+### Smoke-Test reproduzieren
+
+```bash
+# m2-smoke audit + template liegen in data/ (gitignored)
+curl -s -o /tmp/preview.pdf "http://localhost:3000/api/generate-pdf?auditId=m2-smoke&templateId=m2-smoke"
+pdftoppm -r 100 -f 1 -l 1 /tmp/preview.pdf /tmp/preview-page -png
+# /tmp/preview-page-1.png anschauen
+```
+
+### Wiederholte manuelle Aktionen / Friction-Points
+
+- 2x manuell PDF generiert + pdftoppm + Read um pieChart-Bugs zu finden (beide Iterations: SVG-clipping, dann fill-vs-color). Akzeptabel — `/render-pdf-preview` Skill macht das schon trivial.
+
 ## 2026-04-17: M1 Schema-Migration + Legacy-Cleanup
 
 ### Was

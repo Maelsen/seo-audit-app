@@ -208,6 +208,68 @@ export type SerpPreviewBlock = BlockBase & {
   descriptionBinding: Binding;
 };
 
+export type StaticArrowItem = {
+  title: string;
+  detail?: string;
+};
+
+export type ArrowBulletListBlock = BlockBase & {
+  type: "arrowBulletList";
+  binding: Binding;
+  staticItems?: StaticArrowItem[];
+  itemGap: Mm;
+  arrowColor: HexColor;
+  arrowSize: Mm;
+  arrowGap: Mm;
+  titleStyle: TextStyle;
+  detailStyle: TextStyle;
+  maxItems?: number;
+  overflow: "clip" | "shrink" | "none";
+};
+
+export type ComparisonTableColumn = {
+  header: string;
+  fieldPath: string;
+  width?: Mm;
+};
+
+export type ComparisonTableBlock = BlockBase & {
+  type: "comparisonTable";
+  binding: Binding;
+  columns: ComparisonTableColumn[];
+  headerPillColor: HexColor;
+  headerPillRadius: Mm;
+  headerPillPadding: { top: Mm; right: Mm; bottom: Mm; left: Mm };
+  headerCellGap: Mm;
+  headerStyle: TextStyle;
+  cellStyle: TextStyle;
+  rowDividerColor: HexColor;
+  rowVerticalPadding: Mm;
+};
+
+export type PieSlice = {
+  label: string;
+  fieldPath: string;
+  color: HexColor;
+};
+
+export type PieChartBlock = BlockBase & {
+  type: "pieChart";
+  binding: Binding;
+  slices: PieSlice[];
+  pieDiameter: Mm;
+  innerRadius?: Mm;
+  showLegend: boolean;
+  legendPosition: "right" | "bottom";
+  legendGap: Mm;
+  legendItemGap: Mm;
+  legendSwatchSize: Mm;
+  legendStyle: TextStyle;
+  showSliceLabels: boolean;
+  sliceLabelStyle: TextStyle;
+  sliceLabelOffset: Mm;
+};
+
 export type Block =
   | TextBlock
   | ImageBlock
@@ -220,7 +282,10 @@ export type Block =
   | GaugeBlock
   | StarRatingBlock
   | ResourceTileBlock
-  | SerpPreviewBlock;
+  | SerpPreviewBlock
+  | ArrowBulletListBlock
+  | ComparisonTableBlock
+  | PieChartBlock;
 
 export type BlockType = Block["type"];
 

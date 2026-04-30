@@ -21,6 +21,9 @@ import { GaugeBlockView } from "./blocks/GaugeBlockView";
 import { StarRatingBlockView } from "./blocks/StarRatingBlockView";
 import { ResourceTileBlockView } from "./blocks/ResourceTileBlockView";
 import { SerpPreviewBlockView } from "./blocks/SerpPreviewBlockView";
+import { ArrowBulletListBlockView } from "./blocks/ArrowBulletListBlockView";
+import { ComparisonTableBlockView } from "./blocks/ComparisonTableBlockView";
+import { PieChartBlockView } from "./blocks/PieChartBlockView";
 
 type Props = {
   template: Template;
@@ -99,6 +102,12 @@ export function BlockRenderer({ block, audit }: BlockProps): ReactElement | null
       return <ResourceTileBlockView block={block} audit={audit} />;
     case "serpPreview":
       return <SerpPreviewBlockView block={block} audit={audit} />;
+    case "arrowBulletList":
+      return <ArrowBulletListBlockView block={block} audit={audit} />;
+    case "comparisonTable":
+      return <ComparisonTableBlockView block={block} audit={audit} />;
+    case "pieChart":
+      return <PieChartBlockView block={block} audit={audit} />;
     default:
       return <PlaceholderView block={block} />;
   }
