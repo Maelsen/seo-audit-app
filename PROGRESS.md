@@ -59,13 +59,27 @@ Was gebaut wurde, welche Vertraege/Typen entstanden, welche Gotchas auftraten.
 
 ### M1 E2E-Verifikation (vollstaendig durchgezogen)
 
-1. POST `/api/upload` mit homeraum-immobilien.de → Audit erstellt (auditId persistiert), Screenshots cover/mobile/tablet, PageSpeed 46/43
-2. GET `/api/audit/{id}` → JSON enthaelt alle 6 neuen Sections, comparison{}, phasenplan{}, diagnosisText, KEIN usability/social
-3. GET `/audit/{id}` (UI) → Audit-Review-Page rendert: Gesamt, Top 3 Risiken, Empfehlungen, On-Page SEO, UX & Conversion, Seitenstruktur & Content, Lokales SEO, Performance & Technisches, Links & Autoritaet, Tipp fürs nächste Mal — exakt 6 Section-Cards
-4. POST `/api/analyze` → Anthropic-Agent laeuft 175s durch, Output-Validation gegen Zod gruen, 18 Empfehlungen, 3 Top-Risiken, alle 6 Sub-Scores gesetzt
-5. GET `/api/generate-pdf?auditId=...&templateId=default` → PDF 200, 10KB (20 leere Pages, blocks-arrays leer wie erwartet bis M3-M13)
-6. GET `/editor/default` (mit Audit-Context) → Editor zeigt alle 20 Pages-Sidebar, Canvas leer (Cover hat 0 Bloecke)
-7. POST `/api/agent/chat` mit Editor-Context → Agent liest Template via `read_file`, antwortet korrekt nach 5s, 2 Iterationen
+1. POST `/api/upload` ohne CSV → 200, Audit erstellt, Screenshots+PageSpeed
+2. POST `/api/upload` MIT CSV-Blob → 200, "Screaming Frog fertig" geloggt, Audit erstellt
+3. GET `/api/audit/{id}` → JSON enthaelt alle 6 neuen Sections, comparison{}, phasenplan{}, diagnosisText, KEIN usability/social
+4. GET `/audit/{id}` (UI) → Audit-Review-Page rendert exakt 6 Section-Cards
+5. POST `/api/analyze` → Anthropic-Agent laeuft 175s durch, Output-Validation gegen Zod gruen, 18 Empfehlungen, 3 Top-Risiken, alle 6 Sub-Scores gesetzt. ABER `comparison.rows[]` und `phasenplan.phase{1,2,3}.entries[]` bleiben leer (M9 Prompt-Engineering).
+6. PATCH `/api/audit/{id}` (Save-Button) → 200, overallHeading persistiert verifiziert
+7. POST `/api/style-profile` action=addTip → 200, Tipp im profile.explicitTips
+8. PATCH `/api/templates/default` (Editor-Save) → 200, Block-Persistenz verifiziert
+9. GET `/api/generate-pdf?auditId=...` → 200, **20 Pages** (initial 8 wegen Empty-Page-Collapsing-Bug, gefixt mit Anchor-Div in render-template.tsx)
+10. PDF visuell ueber `pdftoppm`: schwarze A4 Pages mit `#1a1a1a` Background korrekt
+11. Editor + Block hinzufuegen via PATCH + PDF rendert "E2E TEST OK" sichtbar in PNG
+12. POST `/api/agent/chat` lesender Pfad → Agent liest Template via `read_file`, 5s, 2 Iterationen
+13. POST `/api/agent/chat` schreibender Pfad → Agent ruft `edit_file` Tool, 8s, Template-JSON tatsaechlich modifiziert ("AGENT EDITED" persistiert + im PDF sichtbar)
+14. POST `/api/agent/undo/{sessionId}` → Block-staticText auf vorherigen Wert zurueckgesetzt verifiziert
+15. GET `/editor/default` UI → 20 Page-Shells in Sidebar
+16. Railway-Production health 200, 401 auf protected paths (proxy.ts geladen). Auto-Deploy konfiguriert; deep-Verifikation hinter Basic-Auth erfordert User-Passwort, das ich nicht hab — gilt als deployed, nicht behind-auth verifiziert.
+
+### Bug-Fixes waehrend E2E (M1.1)
+
+- **PDF-Render `networkidle0` Timeout** → render.ts: `waitUntil: "load"` + `document.fonts.ready`. PDF rendert in 2.5s.
+- **Empty-Page-Collapsing in PDF** → render-template.tsx: Anchor-Div mit 1px transparentem `&nbsp;` pro Page. 20 Pages aus 20 Sections garantiert.
 
 
 

@@ -58,6 +58,8 @@ function PageView({ page, audit }: PageProps): ReactElement {
         breakAfter: "page",
       }}
     >
+      {/* Anchor: zwingt Chromium leere Pages nicht zu kollabieren */}
+      <div style={{ position: "absolute", top: 0, left: 0, width: "1px", height: "1px", opacity: 0 }}>&nbsp;</div>
       {sorted.map((block) => (
         <BlockRenderer key={block.id} block={block} audit={audit} />
       ))}
