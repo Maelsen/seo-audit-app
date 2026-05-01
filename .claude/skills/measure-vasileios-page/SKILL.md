@@ -1,23 +1,27 @@
 ---
 name: measure-vasileios-page
-description: Vermisst Elemente in Vasileios' Referenz-PDF-Pages (docs/measurements/page-NN.png) per Python+PIL und gibt mm-Bboxes + Hex-Colors aus. Wraps die wiederholte Pixel-Analyse-Sequenz aus M3. Args - pageNum [element]. element ist eines von logo, header-text, footer-stripe, all (Default).
+description: Vermisst Elemente in Vasileios' Referenz-PDF-Pages (docs/measurements/page-NN.png) per Python+PIL und gibt mm-Bboxes + Hex-Colors aus. Wraps die wiederholte Pixel-Analyse-Sequenz aus M3. Args - pageNum [element] [yMin] [yMax]. element ist eines von logo, header-text, footer-stripe, text-rows, pills, dividers, cyan-region, all (Default all). yMin/yMax in mm grenzen Scan ein (nur fuer text-rows/pills/dividers/cyan-region).
 ---
 
 # measure-vasileios-page
 
-Vermisst Logo / Header-Text / Footer-Stripes in Vasileios' Referenz-PDF auf mm-genau, ohne dass man die Python-Pixel-Heuristiken jedes Mal selbst zusammenstellen muss.
+Vermisst Layout-Elemente in Vasileios' Referenz-PDF auf mm-genau, ohne dass man die Python-Pixel-Heuristiken jedes Mal selbst zusammenstellen muss. Standard-Chrome (logo, header, footer) plus Custom-Layout (text-rows, pills, dividers, cyan-regions) fuer M5-M13 Page-Builder.
 
 ## Args
 
-Format: `<pageNum> [element]`.
+Format: `<pageNum> [element] [yMin] [yMax]`.
 
 - `pageNum`: 1-20, mappt auf `docs/measurements/page-NN.png`
-- `element` (optional, Default `all`): `logo` | `header-text` | `footer-stripe` | `all`
+- `element` (optional, Default `all`): `logo` | `header-text` | `footer-stripe` | `text-rows` | `pills` | `dividers` | `cyan-region` | `all`
+- `yMin`, `yMax`: optional in mm. Nur fuer `text-rows` | `pills` | `dividers` | `cyan-region` — grenzt den Scan-Bereich ein. Default ist Page-Mid-Range (35mm bis 285mm) damit Chrome ausgeblendet bleibt.
 
 Beispiele:
-- `5` → vermisst Logo + Header-Text + Footer auf Page 5
+- `5` → Standard-Chrome auf Page 5 (logo + header-text + footer-stripe)
 - `5 logo` → nur Logo
-- `13 footer-stripe` → nur Footer auf Performance-Page
+- `4 pills 145 175` → cyan Pills im y-Range 145-175mm (Tabellen-Header auf Page 4)
+- `4 dividers 165 285` → horizontale gray Row-Dividers im Tabellen-Bereich
+- `3 text-rows 65 230` → alle white-text-Rows im Body-Bereich (fuer Risk-Title/Body-Y-Positionen)
+- `4 cyan-region 285 297` → cyan Bereiche im Footer (Stripes-Detection als Cross-Check)
 
 ## Was wird vermessen
 
@@ -26,7 +30,11 @@ Beispiele:
 | `logo` | non-bg-Pixel im upper-left Quadranten (R<60, G<60, B<60 = bg) | mm-Bbox + Size + Color-Sample |
 | `header-text` | strict-cyan im upper-right Quadranten (R<50, G>200, B>200) + getrenntes White-Subline-Bbox | "SEO-Audit" cyan-Bbox + Subline-White-Bbox + text-heights |
 | `footer-stripe` | strict-cyan im untersten 12mm der Page, center-column-scan fuer Bands | je Stripe: y-Range + Thickness + Gap zwischen Stripes + bottom-margin |
-| `all` | alle drei | kombinierter Output |
+| `text-rows` | white-density-Scan (R+G+B > 600) per row in cols 160-1500 | je Run: y-Range in mm + height + density (text-Heights, line-Spacing) |
+| `pills` | cyan-density-Scan (R<150, G>180, B>180) per col-group im yMin/yMax-Bereich | je Pill: x-Range + y-Range in mm + Color-Sample |
+| `dividers` | horizontale gray-line-Detection (R==G==B, 50<R<180, >800px wide) | y-Position pro Divider in mm |
+| `cyan-region` | cyan-density (R<100, G>200, B>200) per row im yMin/yMax | y-Range jeder Cyan-Region + height + Color-Sample |
+| `all` | alle Standard-Chrome (logo + header-text + footer-stripe) | kombinierter Output, kein Custom-Layout |
 
 Alle Werte in mm bei A4 (1mm = 7.874px @ 200dpi). Page-Width 210mm, Height 297mm.
 
@@ -35,10 +43,16 @@ Alle Werte in mm bei A4 (1mm = 7.874px @ 200dpi). Page-Width 210mm, Height 297mm
 ### 1. Voraussetzungen
 
 ```bash
-PAGE="$1"; ELEMENT="${2:-all}"
+PAGE="$1"; ELEMENT="${2:-all}"; YMIN="${3:-35}"; YMAX="${4:-285}"
 PNG="docs/measurements/page-$(printf '%02d' "$PAGE").png"
 test -f "$PNG" || { echo "FEHLT: $PNG"; exit 1; }
 python3 -c "from PIL import Image" 2>/dev/null || { echo "Python-PIL fehlt"; exit 1; }
+# numpy nur fuer Custom-Layout-Elements noetig
+case "$ELEMENT" in
+  text-rows|pills|dividers|cyan-region)
+    python3 -c "import numpy" 2>/dev/null || { echo "FEHLT numpy: pip install numpy"; exit 1; }
+    ;;
+esac
 ```
 
 ### 2. Mess-Skript ausfuehren
@@ -52,6 +66,8 @@ from PIL import Image
 
 PAGE_NUM = int(os.environ.get("PAGE", "5"))
 ELEMENT = os.environ.get("ELEMENT", "all")
+Y_MIN_MM = float(os.environ.get("YMIN", "35"))
+Y_MAX_MM = float(os.environ.get("YMAX", "285"))
 PNG = f"docs/measurements/page-{PAGE_NUM:02d}.png"
 
 img = Image.open(PNG).convert("RGB")
@@ -63,6 +79,7 @@ def is_bg(r,g,b):  return r < 60 and g < 60 and b < 60
 def is_cyan_strict(r,g,b):  return r < 50 and g > 200 and b > 200
 def is_cyan_relaxed(r,g,b): return r < 100 and g > 180 and b > 180
 def to_mm(p): return p / PX_PER_MM
+def from_mm(m): return int(round(m * PX_PER_MM))
 
 def measure_logo():
     xs, ys = [], []
@@ -160,8 +177,152 @@ def measure_footer_stripe():
                 break
     return out
 
+# ---------- Custom-Layout-Element Heuristiken (M5+) ----------
+# Diese brauchen numpy fuer schnelle row/col-Aggregationen
+
+def measure_text_rows():
+    import numpy as np
+    arr = np.array(img)
+    y0 = max(0, from_mm(Y_MIN_MM))
+    y1 = min(H, from_mm(Y_MAX_MM))
+    region = arr[y0:y1, 160:1500]
+    is_w = (region[:,:,0] > 200) & (region[:,:,1] > 200) & (region[:,:,2] > 200)
+    density = is_w.sum(axis=1)
+    runs = []
+    in_run, start = False, None
+    for i, d in enumerate(density):
+        if d > 30:
+            if not in_run: start, in_run = i, True
+        else:
+            if in_run:
+                runs.append((start, i - 1, density[start:i].mean()))
+                in_run = False
+    if in_run:
+        runs.append((start, len(density) - 1, density[start:].mean()))
+    return [
+        {
+            "y_mm": (to_mm(y0 + s), to_mm(y0 + e)),
+            "h_mm": to_mm(e - s + 1),
+            "density": int(d),
+        }
+        for (s, e, d) in runs if 4 < (e - s) < 250
+    ]
+
+def measure_pills():
+    import numpy as np
+    arr = np.array(img)
+    y0 = max(0, from_mm(Y_MIN_MM))
+    y1 = min(H, from_mm(Y_MAX_MM))
+    region = arr[y0:y1, :, :]
+    is_cyan = (region[:,:,1] > 180) & (region[:,:,2] > 180) & (region[:,:,0] < 150)
+    # Mid-y pill detection: pick row with max cyan density
+    row_density = is_cyan.sum(axis=1)
+    if row_density.max() == 0:
+        return {"pills": [], "y_range_mm": None, "color_sample": None}
+    mid_y_local = int(row_density.argmax())
+    mid_y = y0 + mid_y_local
+    # Detect contiguous cyan x-segments at mid_y
+    cyan_cols = np.where(is_cyan[mid_y_local])[0]
+    pills = []
+    if len(cyan_cols):
+        groups = np.split(cyan_cols, np.where(np.diff(cyan_cols) > 8)[0] + 1)
+        for g in groups:
+            if len(g) > 30:
+                pills.append({"x_mm": (to_mm(int(g[0])), to_mm(int(g[-1]))),
+                              "w_mm": to_mm(len(g))})
+    # Pill vertical extent: scan a column inside first pill
+    y_top, y_bot = None, None
+    if pills:
+        x_sample = from_mm((pills[0]["x_mm"][0] + pills[0]["x_mm"][1]) / 2)
+        col_cyan = is_cyan[:, x_sample] if x_sample < region.shape[1] else None
+        if col_cyan is not None and col_cyan.any():
+            ys = np.where(col_cyan)[0]
+            y_top = to_mm(y0 + int(ys[0]))
+            y_bot = to_mm(y0 + int(ys[-1]))
+    color = None
+    if pills:
+        x_c = from_mm((pills[0]["x_mm"][0] + pills[0]["x_mm"][1]) / 2)
+        if x_c < W:
+            r,g,b = px[x_c, mid_y]
+            color = f"#{r:02x}{g:02x}{b:02x}"
+    return {
+        "pills": pills,
+        "y_range_mm": (y_top, y_bot) if y_top is not None else None,
+        "h_mm": (y_bot - y_top) if (y_top is not None and y_bot is not None) else None,
+        "color_sample": color,
+    }
+
+def measure_dividers():
+    import numpy as np
+    arr = np.array(img)
+    y0 = max(0, from_mm(Y_MIN_MM))
+    y1 = min(H, from_mm(Y_MAX_MM))
+    region = arr[y0:y1, 160:1500, :]
+    # Gray-line detection: per row, count near-gray pixels (R==G==B, mid-luma)
+    is_gray = (
+        (np.abs(region[:,:,0].astype(int) - region[:,:,1].astype(int)) < 15) &
+        (np.abs(region[:,:,1].astype(int) - region[:,:,2].astype(int)) < 15) &
+        (region[:,:,0] > 50) & (region[:,:,0] < 180)
+    )
+    counts = is_gray.sum(axis=1)
+    dividers = []
+    in_run, start = False, None
+    for i, c in enumerate(counts):
+        if c > 700:
+            if not in_run: start, in_run = i, True
+        else:
+            if in_run:
+                # Use first y of run as divider position (1-2px thick lines)
+                dividers.append(to_mm(y0 + start))
+                in_run = False
+    if in_run:
+        dividers.append(to_mm(y0 + start))
+    # Deduplicate within ~1mm (anti-aliasing creates 2 adjacent rows)
+    out = []
+    for d in dividers:
+        if not out or (d - out[-1]) > 0.8:
+            out.append(d)
+    return out
+
+def measure_cyan_region():
+    import numpy as np
+    arr = np.array(img)
+    y0 = max(0, from_mm(Y_MIN_MM))
+    y1 = min(H, from_mm(Y_MAX_MM))
+    region = arr[y0:y1, :, :]
+    is_cyan = (region[:,:,1] > 200) & (region[:,:,2] > 200) & (region[:,:,0] < 100)
+    row_density = is_cyan.sum(axis=1)
+    bands = []
+    in_run, start = False, None
+    for i, d in enumerate(row_density):
+        if d > 5:
+            if not in_run: start, in_run = i, True
+        else:
+            if in_run:
+                bands.append((start, i - 1))
+                in_run = False
+    if in_run:
+        bands.append((start, len(row_density) - 1))
+    out = []
+    for (s, e) in bands:
+        # Color sample at mid-band, cyan-pixel
+        mid = (s + e) // 2
+        cols_with_cyan = np.where(is_cyan[mid])[0]
+        color = None
+        if len(cols_with_cyan):
+            x_c = int(cols_with_cyan[len(cols_with_cyan)//2])
+            r,g,b = px[x_c, y0 + mid]
+            color = f"#{r:02x}{g:02x}{b:02x}"
+        out.append({
+            "y_mm": (to_mm(y0 + s), to_mm(y0 + e)),
+            "h_mm": to_mm(e - s + 1),
+            "color_sample": color,
+        })
+    return out
+
 def fmt(v):
     if isinstance(v, tuple):
+        if v[0] is None: return "(none)"
         return "[{:.2f}, {:.2f}]".format(*v)
     if isinstance(v, float):
         return "{:.2f}".format(v)
@@ -202,13 +363,56 @@ if ELEMENT in ("footer-stripe", "all"):
     if "bottom_margin_mm" in r: print(f"  bottom margin: {r['bottom_margin_mm']:.2f}mm")
     if "color_sample" in r: print(f"  color: {r['color_sample']}")
     print()
+
+if ELEMENT == "text-rows":
+    rs = measure_text_rows()
+    print(f"TEXT-ROWS (y_mm {Y_MIN_MM:.0f}-{Y_MAX_MM:.0f}):")
+    if not rs:
+        print("  no text-density rows found")
+    for r in rs:
+        print(f"  y[{r['y_mm'][0]:.2f}, {r['y_mm'][1]:.2f}] h={r['h_mm']:.2f}mm density={r['density']}")
+    print()
+
+if ELEMENT == "pills":
+    r = measure_pills()
+    print(f"PILLS (y_mm {Y_MIN_MM:.0f}-{Y_MAX_MM:.0f}):")
+    if not r["pills"]:
+        print("  no cyan pills found in range")
+    else:
+        if r["y_range_mm"]:
+            print(f"  y_range: [{r['y_range_mm'][0]:.2f}, {r['y_range_mm'][1]:.2f}] h={r['h_mm']:.2f}mm")
+        if r["color_sample"]: print(f"  color: {r['color_sample']}")
+        for i, p in enumerate(r["pills"]):
+            print(f"  pill {i+1}: x[{p['x_mm'][0]:.2f}, {p['x_mm'][1]:.2f}] w={p['w_mm']:.2f}mm")
+    print()
+
+if ELEMENT == "dividers":
+    ds = measure_dividers()
+    print(f"DIVIDERS (y_mm {Y_MIN_MM:.0f}-{Y_MAX_MM:.0f}):")
+    if not ds:
+        print("  no horizontal gray lines found")
+    for i, y in enumerate(ds):
+        gap = ""
+        if i > 0:
+            gap = f"  (gap={y - ds[i-1]:.2f}mm)"
+        print(f"  divider {i+1}: y={y:.2f}mm{gap}")
+    print()
+
+if ELEMENT == "cyan-region":
+    rs = measure_cyan_region()
+    print(f"CYAN-REGIONS (y_mm {Y_MIN_MM:.0f}-{Y_MAX_MM:.0f}):")
+    if not rs:
+        print("  no cyan regions found")
+    for i, r in enumerate(rs):
+        print(f"  region {i+1}: y[{r['y_mm'][0]:.2f}, {r['y_mm'][1]:.2f}] h={r['h_mm']:.2f}mm color={r['color_sample']}")
+    print()
 PY
 ```
 
-Setze `PAGE` und `ELEMENT` als Env-Variablen vor dem Heredoc:
+Setze `PAGE`, `ELEMENT`, `YMIN`, `YMAX` als Env-Variablen vor dem Heredoc:
 
 ```bash
-PAGE="$1" ELEMENT="${2:-all}" python3 <<'PY' ...
+PAGE="$1" ELEMENT="${2:-all}" YMIN="${3:-35}" YMAX="${4:-285}" python3 <<'PY' ...
 ```
 
 ### 3. Output formatieren
