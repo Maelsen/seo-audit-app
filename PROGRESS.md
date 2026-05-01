@@ -8,7 +8,7 @@ Was gebaut wurde, welche Vertraege/Typen entstanden, welche Gotchas auftraten.
 
 Erste zwei echten Section-Pages aus Vasileios' 20-Seiten-Layout sind als Block-Builder implementiert:
 
-- **`buildCover()`** (Page 1): brandDecoration kind:"logo" Wortmarke (70x22mm, top-center) + Mega-Title "SEO-AUDIT" 64pt-bold mit Cyan-Glow textShadow + "für Ihre Website" Subline + computed-binding `domain` URL in cyan + image-Block fuer `screenshots.cover` (160x110mm zentriert) + 3-Spalten-Footer ("info@artisticavenue.de | www.artisticavenue.de | +49 (0) 179 3213 445") + Standard-Footer-Stripes.
+- **`buildCover()`** (Page 1): brandDecoration kind:"logo" Wortmarke (70x22mm, top-center) + Mega-Title "SEO-AUDIT" 64pt-bold mit dezentem Drop-Shadow textShadow ("1.2mm 1.2mm 0 rgba(0,0,0,0.55)") + "für Ihre Website" Subline + computed-binding `domain` URL in cyan + image-Block fuer `screenshots.cover` (160x110mm zentriert) + 3-Spalten-Footer ("info@artisticavenue.de | www.artisticavenue.de | +49 (0) 179 3213 445") + Standard-Footer-Stripes.
 
 - **`buildGesamtsituation()`** (Page 2): pageChrome() + Headline "Gesamtsituation & Diagnose" 22pt-bold + audit-bound `diagnosisText` (10.5pt, lineHeight 1.5) + Sub-Headline "Audit-Ergebnisse für {domain}" 18pt-bold (2 Zeilen) + Big-ScoreCircle 52mm Diameter (overall-grade) + Right-side-Heading audit-bound `overallHeading` 13pt-bold + Right-Paragraph audit-bound `introText` 9.5pt + roter Empfehlungs-Button (50x8.5mm, fill #FF5757) mit Text "Empfehlungen: {audit.recommendations.length}" + 6 Sub-ScoreCircles 19mm Diameter im 4+2-Grid mit bold-Labels darunter.
 
@@ -57,7 +57,7 @@ Audit-Bindings die der Builder nutzt: `screenshots.cover` (image), `url` (comput
 | Element | Status | Drift |
 |---|---|---|
 | Cover: Logo Pos+Size | ✓ | <1mm |
-| Cover: SEO-AUDIT Title + Cyan-Glow | ✓ | matched |
+| Cover: SEO-AUDIT Title + Drop-Shadow | ✓ | initial Cyan-Glow war falsch interpretiert — auf dunklen Drop-Shadow umgestellt, matched Vasileios |
 | Cover: Subline + cyan domain | ✓ | <1mm |
 | Cover: 3-Spalten-Footer | ✓ | aligned |
 | Cover: Footer-Stripes | ✓ | identisch zu pageChrome |
@@ -91,7 +91,7 @@ Echtes Test-Audit (`adc273ac...`, www.homeraum-immobilien.de) rendert mit Cover-
 - **Cover-Screenshot fehlt bei `m2-smoke` Audit** — `screenshots.cover` ist null bei Mock-Audits ohne Upload-Flow. Initial-Render zeigte leeren Frame. Workaround: gegen echtes Audit (`adc273ac...`) rendern, das hat Cover/Mobile/Tablet-Screenshots aus dem PageSpeed-Pipeline. Bei Vasileios-Production-Run wird es immer befuellt sein, weil der Upload-Flow Screenshots vor dem Save erzeugt.
 - **lange Domains im pageChrome-Header** — `chrome-url` Subline mit `für www.{domain}` wraps bei domains > 25 chars auf 2 Lines. fontSize auf 8pt reduziert (von 9pt), gibt etwas mehr Headroom. Bei sehr langen Domains > 30 chars trotzdem moeglich. Akzeptiert — ist M3-Edge-Case-Limitation.
 - **kein PageKey ↔ page-id Mapping vorher** — `seed-default-template.mjs` nutzte kebab-case page-ids ("top-risiken", "ux-conversion-1"), `BUILDERS`-Map nutzt camelCase PageKey ("topRisiken", "uxConversion1"). Der TS-Seed hat jetzt eine explizite `PAGES`-Liste mit `{id, key, name}` die mappt. Beim Adden neuer Pages immer in beide Maps schauen.
-- **textShadow als CSS-Property** — TextStyle hatte schon `textShadow?: string` als optionales Field, aber bisher ungenutzt. Glow-Effekt fuer Cover-Title via "0 0 8mm #38E1E1, 0 0 4mm #38E1E1, 0 0 2mm rgba(56,225,225,0.8)". CSS rendert in Chromium sauber. Fontsize-abhaengige Glow-Skalierung (z.B. relativ zu fontSize) waere robuster aber overkill fuer M4.
+- **textShadow als CSS-Property** — TextStyle hatte schon `textShadow?: string` als optionales Field, aber bisher ungenutzt. Cover-Title via "1.2mm 1.2mm 0 rgba(0,0,0,0.55)" (dezenter Drop-Shadow nach unten-rechts). Erste Implementierung hatte irrtuemlich einen Cyan-Glow ("0 0 8mm cyan, ...") — das war mein Lese-Fehler beim Vasileios-PNG, in Wahrheit hat Vasileios nur einen klassischen Drop-Shadow. Marlin hat das visuell gefangen, danach gefixt.
 - **`tsc-on-schema-edit` hook hat ausgeloest** beim Edit auf `template-types.ts` — clean, kein Schema-Bruch durch M4.
 
 ### Public Interfaces (Quick-Reference)
