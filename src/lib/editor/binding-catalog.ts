@@ -27,6 +27,7 @@ export const BINDING_CATALOG: BindingEntry[] = [
   { path: "sections.onpageSeo.costText", label: "On-Page SEO - Was kostet", type: "string" },
   { path: "sections.onpageSeo.findings", label: "On-Page SEO - Findings (Tabelle)", type: "array" },
   { path: "sections.onpageSeo.actions", label: "On-Page SEO - Aktionen (Pfeil-Bullets)", type: "array" },
+  { path: "sections.onpageSeo.closingNote", label: "On-Page SEO - Footer-Note", type: "string" },
 
   // UX & Conversion
   { path: "sections.uxConversion.score", label: "UX & Conversion - Note", type: "grade" },
@@ -35,6 +36,7 @@ export const BINDING_CATALOG: BindingEntry[] = [
   { path: "sections.uxConversion.costText", label: "UX & Conversion - Was kostet", type: "string" },
   { path: "sections.uxConversion.findings", label: "UX & Conversion - Findings (Tabelle)", type: "array" },
   { path: "sections.uxConversion.actions", label: "UX & Conversion - Aktionen", type: "array" },
+  { path: "sections.uxConversion.closingNote", label: "UX & Conversion - Footer-Note", type: "string" },
 
   // Seitenstruktur & Content (NEU)
   { path: "sections.seitenstrukturContent.score", label: "Seitenstruktur - Note", type: "grade" },
@@ -43,6 +45,7 @@ export const BINDING_CATALOG: BindingEntry[] = [
   { path: "sections.seitenstrukturContent.costText", label: "Seitenstruktur - Was kostet", type: "string" },
   { path: "sections.seitenstrukturContent.findings", label: "Seitenstruktur - Findings (Tabelle)", type: "array" },
   { path: "sections.seitenstrukturContent.actions", label: "Seitenstruktur - Aktionen", type: "array" },
+  { path: "sections.seitenstrukturContent.closingNote", label: "Seitenstruktur - Footer-Note", type: "string" },
 
   // Lokales SEO
   { path: "sections.lokalesSeo.score", label: "Lokales SEO - Note", type: "grade" },
@@ -51,6 +54,7 @@ export const BINDING_CATALOG: BindingEntry[] = [
   { path: "sections.lokalesSeo.costText", label: "Lokales SEO - Was kostet", type: "string" },
   { path: "sections.lokalesSeo.findings", label: "Lokales SEO - Findings (Tabelle)", type: "array" },
   { path: "sections.lokalesSeo.actions", label: "Lokales SEO - Aktionen", type: "array" },
+  { path: "sections.lokalesSeo.closingNote", label: "Lokales SEO - Footer-Note", type: "string" },
 
   // Performance & Technisches (intern: leistung)
   { path: "sections.leistung.score", label: "Performance - Note", type: "grade" },
@@ -58,6 +62,7 @@ export const BINDING_CATALOG: BindingEntry[] = [
   { path: "sections.leistung.text", label: "Performance - Text", type: "string" },
   { path: "sections.leistung.costText", label: "Performance - Was kostet", type: "string" },
   { path: "sections.leistung.actions", label: "Performance - Aktionen", type: "array" },
+  { path: "sections.leistung.closingNote", label: "Performance - Footer-Note", type: "string" },
   { path: "sections.leistung.serverResponseTime", label: "Performance - Server-Antwort (s)", type: "number" },
   { path: "sections.leistung.contentLoadTime", label: "Performance - Content Load (s)", type: "number" },
   { path: "sections.leistung.scriptLoadTime", label: "Performance - Skript Load (s)", type: "number" },
@@ -71,6 +76,7 @@ export const BINDING_CATALOG: BindingEntry[] = [
   { path: "sections.links.text", label: "Links - Text", type: "string" },
   { path: "sections.links.costText", label: "Links - Was kostet", type: "string" },
   { path: "sections.links.actions", label: "Links - Aktionen", type: "array" },
+  { path: "sections.links.closingNote", label: "Links - Footer-Note", type: "string" },
   { path: "sections.links.domainStrength", label: "Links - Domain Strength", type: "number" },
   { path: "sections.links.pageStrength", label: "Links - Page Strength", type: "number" },
   { path: "sections.links.totalBacklinks", label: "Links - Total Backlinks", type: "number" },
