@@ -69,10 +69,55 @@ function buildUxConversion2(): Block[]   // 11 Blocks: pageChrome (5) + 6 inhalt
 
 ### Wiederholte manuelle Aktionen
 
-- **`pdftoppm -png -r 150 -f N -l N`** zum Inspizieren von Pages — bereits durch `/render-pdf-preview`-Skill abgedeckt, Skill nutze ich aktiv.
-- **JSON-Patching von Audits zum Empty-State-Test** — ich habe inline Python geschrieben statt `/seed-edge-case-audit M7` zu nutzen weil das Skill auf andere Section-Felder fokussiert ist (topRisks, comparison.rows). Vorschlag fuer naechstes Mal: das Skill um `M7: leere uxConversion.findings + actions + closingNote` ergaenzen.
+### Editor-E2E in Chrome (verifiziert via /verify-chrome-editor-e2e)
 
+Alle 6 neuen content-Bloecke pro Page anklickbar, Inspector-Werte matchen Backend-JSON exakt:
 
+| Block | Type | Frame (x/y/w/h) | Match |
+|---|---|---|---|
+| uxc1-headline | text | 20/36/170/10, fs=22 fw=800 #fff | ✓ |
+| uxc1-score-donut | scoreCircle | 17/51/37/37, size=37 stroke=5 | ✓ |
+| uxc1-section-heading | text (bound) | 65/50/130/8, fs=13 fw=700 | ✓ |
+| uxc1-section-text | text (bound) | 65/58/130/28, fs=10 fw=400 | ✓ |
+| uxc1-findings-table | findingsTable | 20/103/170/175 | ✓ |
+| uxc2-actions | arrowBulletList | 20/115/170/152 | ✓ |
+| uxc2-closing-note | text (bound) | 20/275/170/12, fs=10.5 fw=700 | ✓ |
+
+Save+Reload-Persistenz: nach Klick auf "Speichern" (Button-Wechsel zu "Gespeichert") und Page-Reload bleibt `uxc2-closing-note.binding = {kind:"audit", path:"sections.uxConversion.closingNote"}` intakt. `updatedAt` aktualisiert. 162 Blocks unveraendert.
+
+Console: clean (keine error/warn/TypeError im App-Code).
+
+### Bug gefunden + gefixt: closingNote im binding-catalog (Commit 2b2e634)
+
+Beim Editor-E2E-Test sichtbar: `uxc2-closing-note` zeigte im Inspector Binding="(statisch)" obwohl der Builder `{kind:"audit", path:"sections.uxConversion.closingNote"}` setzt. PDF-Render funktionierte zwar (Backend liest Audit-Pfad direkt), aber Editor-User haette beim Speichern das audit-Binding zerstoert (silenter Persistenz-Killer).
+
+**Root Cause:** `src/lib/editor/binding-catalog.ts` hatte keinen Eintrag fuer `sections.uxConversion.closingNote`. Editor-UI fiel auf "(statisch)" zurueck, weil Catalog-Lookup fehlschlug. M6 hat das gleiche Pattern nicht getriggert weil M6's Footer-Notes statisch waren (hardcoded staticText).
+
+**Fix:** Eintraege fuer `closingNote` bei allen 7 Sections (`onpageSeo`, `uxConversion`, `seitenstrukturContent`, `lokalesSeo`, `leistung`, `links` — `seitenstrukturContent` ist neuer M1-Section) hinzugefuegt. Future-proof fuer M8-M13.
+
+**Verifiziert nach Fix:** Editor zeigt "UX & Conversion - Footer-Note" als Binding-Label, Save+Reload behaelt die Audit-Bindings.
+
+### Wiederholte manuelle Aktionen / Reibungspunkte
+
+| Aktion | Wie oft | Pain | Loesung |
+|---|---|---|---|
+| `pdftoppm -png -r 150 -f N -l N` zum Page-Inspizieren | 2x | niedrig | Skill `/render-pdf-preview` schon vorhanden, ich war faul — Reminder an mich |
+| Inline Python fuer Empty-State-Audit (`vasileios-m7-empty.json`) | 1x | mittel | `/seed-edge-case-audit M7`-Skill um `uxConversion`-Section erweitern |
+| Editor-Sidebar-Click zur falschen Position bei Reload (Page-1-Cover statt Page-8) | 2x | niedrig | Race-Condition im Skill — `/verify-chrome-editor-e2e` koennte Page-Switch-await haerten |
+| binding-catalog-Drift zwischen `page-builders.ts` und `binding-catalog.ts` (silent) | 1x (bug-find) | hoch | TS-Hook der nach `page-builders.ts`-Edit prueft dass alle audit-bindings im Catalog stehen |
+
+### Vorschlaege fuer Automation (Quellen, nichts installiert)
+
+**1. PostToolUse-Hook `binding-catalog-consistency-check`** — wichtigster Vorschlag aus diesem Milestone. Wenn `page-builders.ts` editiert wird, scannt automatisch alle `binding: { kind: "audit", path: "..." }` und prueft ob jeder Path in `BINDING_CATALOG` existiert. Faengt den heute gefundenen closingNote-Bug bei Build-Time statt Editor-E2E.
+- Konfiguration: `.claude/settings.json` Hook mit matcher `Edit|Write` auf `src/lib/editor/page-builders.ts`
+- Skript: `.claude/hooks/binding-catalog-consistency.sh` mit `grep -E 'kind:\s*"audit",\s*path:\s*"([^"]+)"' src/lib/editor/page-builders.ts | ... | while; check Path-existiert in BINDING_CATALOG`
+- Quelle: [Claude Code Hooks Reference](https://docs.claude.com/en/docs/claude-code/hooks)
+
+**2. `/seed-edge-case-audit` Skill um M7 erweitern** — kein neuer Tool, nur das bestehende Skill um `uxConversion`-Empty-Block ergaenzen. Spart inline-Python beim Empty-State-Test in M7-M13. Eigenes Skill in `.claude/skills/seed-edge-case-audit/SKILL.md`.
+
+Andere Reibungen waren routinemaessig — keine weiteren Tool-Vorschlaege noetig.
+
+## 2026-05-01: M6 On-Page SEO (Page 5+6)
 
 ### Was
 
