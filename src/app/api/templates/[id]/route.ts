@@ -30,12 +30,38 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
     );
   }
 
-  let patch: Partial<Template>;
+  let raw: unknown;
   try {
-    patch = (await req.json()) as Partial<Template>;
+    raw = await req.json();
   } catch {
     return NextResponse.json({ error: "Ungültiges JSON" }, { status: 400 });
   }
+  if (raw == null || typeof raw !== "object" || Array.isArray(raw)) {
+    return NextResponse.json(
+      { error: "Body muss ein Objekt sein (Partial<Template>)" },
+      { status: 400 },
+    );
+  }
+  const ALLOWED_KEYS: ReadonlyArray<keyof Template> = [
+    "id",
+    "name",
+    "version",
+    "createdAt",
+    "updatedAt",
+    "pages",
+    "assets",
+  ];
+  const allowedSet = new Set<string>(ALLOWED_KEYS);
+  const unknownKeys = Object.keys(raw).filter((k) => !allowedSet.has(k));
+  if (unknownKeys.length > 0) {
+    return NextResponse.json(
+      {
+        error: `Unbekannte Top-Level-Keys: ${unknownKeys.join(", ")}. Erlaubt: ${ALLOWED_KEYS.join(", ")}.`,
+      },
+      { status: 400 },
+    );
+  }
+  const patch = raw as Partial<Template>;
 
   const updated: Template = {
     ...existing,

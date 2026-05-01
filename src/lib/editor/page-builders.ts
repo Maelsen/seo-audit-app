@@ -967,6 +967,7 @@ function buildOnPageSeo2(): Block[] {
       zIndex: 50,
       barHeight: 2.2,
       gap: 6.5,
+      overflow: "shrink",
     },
     // Sub-Heading "Was dagegen zu tun ist"
     {

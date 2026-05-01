@@ -97,9 +97,45 @@ DATA = {
             ],
         },
     },
-    # M6-M13: noch nicht erfasst. Pro Milestone hier ergaenzen wenn der Builder gebaut wird.
+    "M6": {
+        "sections": {
+            "onpageSeo": {
+                "score": "C+",
+                "heading": "Technisch vorhanden – aber nicht optimal genutzt",
+                "text": "Die Grundlagen stimmen: SSL, Sitemap, robots.txt und Canonical-Tags sind gesetzt. Das Problem liegt eine Ebene tiefer – Google kann deine Seite lesen, aber nicht richtig einordnen.",
+                "findings": [
+                    {"problem": "Title-Tag Länge",       "befund": "62 Zeichen – wird in Suchergebnissen abgeschnitten",                  "status": "warning"},
+                    {"problem": "H1-Tags",                "befund": "Auf 29 Seiten mehrfach vorhanden – sollte einzigartig sein",          "status": "warning"},
+                    {"problem": "Duplicate H1",           "befund": "17 Seiten mit identischen H1-Tags",                                   "status": "fail"},
+                    {"problem": "Keyword-Verteilung",     "befund": "Ziel-Keywords erscheinen zu selten in H2/H3",                         "status": "warning"},
+                    {"problem": "Identity-Schema",        "befund": "Fehlt komplett (Google kann Unternehmen nicht eindeutig zuordnen)",   "status": "fail"},
+                    {"problem": "Alt-Texte",              "befund": "1 von 12 Bildern ohne Alt-Text",                                      "status": "warning"},
+                    {"problem": "Wortanzahl Startseite",  "befund": "~420 Wörter – unter dem Minimum für rankingfähige Seiten",            "status": "warning"},
+                    {"problem": "SSL / HTTPS",            "befund": "Aktiv und korrekt weitergeleitet",                                    "status": "ok"},
+                    {"problem": "robots.txt",             "befund": "Vorhanden",                                                           "status": "ok"},
+                    {"problem": "Canonical-Tag",          "befund": "Korrekt gesetzt",                                                     "status": "ok"},
+                    {"problem": "Sitemap",                "befund": "Vorhanden und zugänglich",                                            "status": "ok"},
+                ],
+                "costText": "Dein Title-Tag wird in den Suchergebnissen abgeschnitten – potenzielle Kunden sehen nicht den vollständigen Namen deines Unternehmens. Auf 17 Seiten steht derselbe H1-Tag – Google weiß nicht welche Seite für welches Keyword relevant ist. Und ohne Identity-Schema kann kein KI-System dein Unternehmen zuverlässig empfehlen wenn jemand fragt „welcher Reinigungsdienst in (Region) ist gut?“",
+                "actions": [
+                    {"title": "Title-Tag auf maximal 60 Zeichen kürzen",                                            "detail": "Empfehlung: „Gebäudereinigung Warendorf – Waschbär Service“ (46 Zeichen)"},
+                    {"title": "Einzigartigen H1 für jede Seite setzen – Seitenthema klar benennen"},
+                    {"title": "Ziel-Keywords gezielt in H2 und H3 einbauen (gesunde Header Struktur bauen)",        "detail": "Beispiel Büroreinigung-Seite: Statt „Unsere Leistungen“ → „Büroreinigung Warendorf – was ist enthalten?“"},
+                    {"title": "Identity-Schema implementieren",                                                     "detail": "Damit Google und KI-Systeme dein Unternehmen eindeutig zuordnen"},
+                    {"title": "Alt-Text für fehlendes Bild nachtragen"},
+                ],
+                "serpPreview": {
+                    "title": "Waschbär Gebäudereinigung | Ihre Reinigungsfirma aus ...",
+                    "url": "https://waschbaer-service.de",
+                    "description": "Gebäudereinigung in Warendorf ✓ Top Service ✓ Sauberkeit für Gewerbe, Büro & Privat ✓ Ihre bärenstarke Reinigungsfirma. — Jetzt anfragen.",
+                },
+                "h2h6Frequency": {"h2": 3, "h3": 12, "h4": 0, "h5": 0, "h6": 18},
+            },
+        },
+    },
+    # M7-M13: noch nicht erfasst. Pro Milestone hier ergaenzen wenn der Builder gebaut wird.
     # Format pro Milestone:
-    #   "M6": { "sections": { "onpageSeo": { "findings": [...], "actions": [...], "costText": "..." } } }
+    #   "M7": { "sections": { "uxConversion": { "findings": [...], "actions": [...], "costText": "..." } } }
 }
 
 milestones = [MS] if MS != "all" else ["M5","M6","M7","M8","M9","M10","M11","M12","M13"]

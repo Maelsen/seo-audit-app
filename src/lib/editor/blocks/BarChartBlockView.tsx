@@ -6,6 +6,8 @@ import { frameStyle, textStyleToCss } from "../frame-style";
 
 type Props = { block: BarChartBlock; audit: AuditData };
 
+const PT_TO_MM = 0.3528;
+
 export function BarChartBlockView({ block, audit }: Props): ReactElement {
   const root =
     block.binding.kind === "audit"
@@ -18,6 +20,17 @@ export function BarChartBlockView({ block, audit }: Props): ReactElement {
   const max =
     block.maxValue ??
     Math.max(10, ...entries.map((e) => e.value));
+
+  const overflow = block.overflow ?? "clip";
+  let scale = 1;
+  if (overflow === "shrink" && entries.length > 0) {
+    const labelMm = block.labelStyle.fontSize * (block.labelStyle.lineHeight || 1.2) * PT_TO_MM;
+    const rowMm = Math.max(labelMm, block.barHeight);
+    const neededMm = rowMm * entries.length + block.gap * Math.max(0, entries.length - 1);
+    if (neededMm > block.frame.h) {
+      scale = Math.max(0.55, block.frame.h / neededMm);
+    }
+  }
 
   return (
     <div
@@ -34,25 +47,33 @@ export function BarChartBlockView({ block, audit }: Props): ReactElement {
               display: "flex",
               alignItems: "center",
               gap: 3,
-              marginBottom: idx < entries.length - 1 ? `${block.gap}mm` : 0,
+              marginBottom: idx < entries.length - 1 ? `${block.gap * scale}mm` : 0,
             }}
           >
             <div
-              style={{ ...textStyleToCss(block.labelStyle), width: "10mm" }}
+              style={{
+                ...textStyleToCss(block.labelStyle),
+                fontSize: `${block.labelStyle.fontSize * scale}pt`,
+                width: "10mm",
+              }}
             >
               {entry.label}
             </div>
             <div
-              style={{ ...textStyleToCss(block.valueStyle), width: "10mm" }}
+              style={{
+                ...textStyleToCss(block.valueStyle),
+                fontSize: `${block.valueStyle.fontSize * scale}pt`,
+                width: "10mm",
+              }}
             >
               {entry.value}
             </div>
             <div
               style={{
                 flex: 1,
-                height: `${block.barHeight}mm`,
+                height: `${block.barHeight * scale}mm`,
                 background: block.trackColor,
-                borderRadius: `${block.barHeight / 2}mm`,
+                borderRadius: `${(block.barHeight * scale) / 2}mm`,
                 overflow: "hidden",
               }}
             >

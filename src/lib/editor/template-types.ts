@@ -160,6 +160,7 @@ export type BarChartBlock = BlockBase & {
   valueStyle: TextStyle;
   barHeight: number;
   gap: number;
+  overflow?: "clip" | "shrink";
 };
 
 export type GaugeBlock = BlockBase & {
