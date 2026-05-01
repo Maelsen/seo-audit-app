@@ -479,6 +479,216 @@ function buildGesamtsituation(): Block[] {
   ];
 }
 
+// ---------- M5: Top 3 Risiken (Page 3) ----------
+//
+// Vermessen aus docs/measurements/page-03.png:
+// - Headline "Top 3 Risiken & Potenzial": white bold, y[38.4, 43.4]mm, x_left ~30mm, ~22pt
+// - Sub-line "Das kostet dich gerade Anfragen": white bold, y[52.5, 56.3]mm, ~14pt
+// - Risk 1 title y[69.1, 72.8], body 4 lines y[77.5, 97.9]
+// - Risk 2 title y[116.0, 119.5], body 6-7 lines y[124.2, 168.9]
+// - Risk 3 title y[187.3, 192.0], body 5 lines y[195.6, 226.6]
+// - Title font ~14pt bold, body ~10pt regular gray, line-height 1.5
+
+function buildTopRisks(): Block[] {
+  return [
+    ...pageChrome(),
+    {
+      id: "tr-headline",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "Top 3 Risiken & Potenzial",
+      frame: { x: 20, y: 36, w: 170, h: 10 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 22,
+        fontWeight: 800,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    {
+      id: "tr-subline",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "Das kostet dich gerade Anfragen",
+      frame: { x: 20, y: 50, w: 170, h: 7 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 14,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    {
+      id: "tr-list",
+      type: "topRiskList",
+      binding: { kind: "audit", path: "topRisks" },
+      frame: { x: 20, y: 65, w: 170, h: 210 },
+      zIndex: 50,
+      itemGap: 8,
+      itemStyle: {
+        titleStyle: textStyle({
+          fontSize: 12.5,
+          fontWeight: 700,
+          color: "#ffffff",
+          lineHeight: 1.3,
+        }),
+        bodyStyle: textStyle({
+          fontSize: 10,
+          fontWeight: 400,
+          color: "#e6e6e6",
+          lineHeight: 1.5,
+        }),
+      },
+      numbered: true,
+      overflow: "shrink",
+    },
+  ];
+}
+
+// ---------- M5: Wo du sein könntest (Page 4, NEU) ----------
+//
+// Vermessen aus docs/measurements/page-04.png:
+// - Headline "WO DU SEIN KÖNNTEST" (uppercase), centered im Content-Bereich, y[38.6, 43.4]mm, ~22pt
+// - Sub-headline "Das ist möglich – mit der richtigen Reihenfolge", center, y[52.3, 57.5]mm, ~16pt bold
+// - 3 alt-sentences:
+//   - alt 0 aspect y[64.6, 67.8], vision y[72.9, 86.1] (3 lines)
+//   - alt 1 aspect y[94.1, 97.2], vision y[102.2, 110.1] (2 lines)
+//   - alt 2 aspect y[117.9, 121.2], vision y[126.2, 134.1] (2 lines)
+//   - aspect right-aligned, vision center-aligned, gap aspect→vision ~6mm
+// - Table sub-headline "Wo du heute stehst – wo du in 3 Monaten sein könntest:" y[146.1, 149.2]
+// - Vergleichstabelle: pill-Header y[157.2, 171.6] (h ~14.4mm, color cyan #38E1E1),
+//   3 Spalten gleich breit (~55mm), kleine Gaps zwischen Pills
+// - Row dividers y_mm: 172.2, 186.7, 201.8, 216.9, 236.7, 251.8, 267.5, 281.9 (8 dividers = 7 rows)
+// - Row height ~15mm normal, ~20mm wenn Cell-Text wrapt
+
+function buildWoDuSeinKoenntest(): Block[] {
+  return [
+    ...pageChrome(),
+    // Big headline (centered)
+    {
+      id: "wd-headline",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "WO DU SEIN KÖNNTEST",
+      frame: { x: 20, y: 36, w: 170, h: 10 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 22,
+        fontWeight: 800,
+        color: "#ffffff",
+        textAlign: "center",
+        lineHeight: 1.2,
+      }),
+    },
+    // Sub-headline (centered)
+    {
+      id: "wd-subheadline",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "Das ist möglich – mit der richtigen Reihenfolge",
+      frame: { x: 20, y: 50, w: 170, h: 8 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 14,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "center",
+        lineHeight: 1.2,
+      }),
+    },
+    // Alt-sentences (3 blocks of aspect + vision)
+    ...buildAltSentence(0, 63),
+    ...buildAltSentence(1, 92),
+    ...buildAltSentence(2, 116),
+    // Table sub-headline
+    {
+      id: "wd-table-heading",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "Wo du heute stehst – wo du in 3 Monaten sein könntest:",
+      frame: { x: 20, y: 144, w: 170, h: 7 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 12,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    // Vergleichstabelle (pill-header + 7 rows)
+    {
+      id: "wd-comparison-table",
+      type: "comparisonTable",
+      binding: { kind: "audit", path: "comparison.rows" },
+      frame: { x: 20, y: 156, w: 170, h: 130 },
+      zIndex: 50,
+      columns: [
+        { header: "Problemstelle", fieldPath: "problem" },
+        { header: "Heute", fieldPath: "today" },
+        { header: "in 3 Monaten", fieldPath: "future" },
+      ],
+      headerPillColor: BRAND_CYAN,
+      headerPillRadius: 6,
+      headerPillPadding: { top: 3, right: 4, bottom: 3, left: 4 },
+      headerCellGap: 2,
+      headerStyle: textStyle({
+        fontSize: 11,
+        fontWeight: 700,
+        color: "#0a0a0a",
+        textAlign: "center",
+        lineHeight: 1.2,
+      }),
+      cellStyle: textStyle({
+        fontSize: 10,
+        fontWeight: 400,
+        color: "#ffffff",
+        textAlign: "center",
+        lineHeight: 1.4,
+      }),
+      rowDividerColor: "#444444",
+      rowVerticalPadding: 4,
+    },
+  ];
+}
+
+function buildAltSentence(idx: number, yTop: Mm): Block[] {
+  return [
+    {
+      id: `wd-alt-${idx}-aspect`,
+      type: "text",
+      binding: { kind: "audit", path: `comparison.altSentences[${idx}].aspect` },
+      frame: { x: 50, y: yTop, w: 140, h: 6 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 11,
+        fontWeight: 600,
+        color: "#ffffff",
+        textAlign: "right",
+        lineHeight: 1.3,
+      }),
+    },
+    {
+      id: `wd-alt-${idx}-vision`,
+      type: "text",
+      binding: { kind: "audit", path: `comparison.altSentences[${idx}].vision` },
+      frame: { x: 20, y: yTop + 7, w: 170, h: 18 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 10,
+        fontWeight: 400,
+        color: "#e6e6e6",
+        textAlign: "center",
+        lineHeight: 1.5,
+      }),
+    },
+  ];
+}
+
 // ---------- Page-Key registry ----------
 
 export type PageKey =
@@ -512,8 +722,8 @@ const CHROME_ONLY_BUILDER = (): Block[] => pageChrome();
 export const BUILDERS: Record<PageKey, () => Block[]> = {
   cover: buildCover,
   gesamtsituation: buildGesamtsituation,
-  topRisiken: CHROME_ONLY_BUILDER,
-  woDuSeinKoenntest: CHROME_ONLY_BUILDER,
+  topRisiken: buildTopRisks,
+  woDuSeinKoenntest: buildWoDuSeinKoenntest,
   onPageSeo1: CHROME_ONLY_BUILDER,
   onPageSeo2: CHROME_ONLY_BUILDER,
   uxConversion1: CHROME_ONLY_BUILDER,

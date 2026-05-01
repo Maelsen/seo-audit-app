@@ -2,6 +2,120 @@
 
 Was gebaut wurde, welche Vertraege/Typen entstanden, welche Gotchas auftraten.
 
+## 2026-05-01: M5 Top 3 Risiken (Page 3) + Wo du sein könntest (Page 4)
+
+### Was
+
+Pages 3 und 4 von Vasileios' 20-Seiten-Layout:
+
+- **`buildTopRisks()`** (Page 3): pageChrome + Headline "Top 3 Risiken & Potenzial" 22pt-bold + Sub-line "Das kostet dich gerade Anfragen" 14pt-bold + `topRiskList` Block bound to `topRisks` (170x210mm, itemGap 8, numbered, overflow:shrink) — TitleStyle 12.5pt-bold weiß, BodyStyle 10pt regular #e6e6e6 lineHeight 1.5.
+
+- **`buildWoDuSeinKoenntest()`** (Page 4, NEU): pageChrome + zentrierte Headline "WO DU SEIN KÖNNTEST" 22pt-bold + zentrierte Sub-Headline "Das ist möglich – mit der richtigen Reihenfolge" 14pt-bold + 3× Alt-Sentence-Pair via `buildAltSentence(idx, yTop)` Helper (rechts-bündige bold aspect bound to `comparison.altSentences[i].aspect` + zentrierte multi-line vision bound to `comparison.altSentences[i].vision`) auf y=63/92/116mm + Tabellen-Sub-Heading "Wo du heute stehst – wo du in 3 Monaten sein könntest:" + `comparisonTable` Block (170x130mm) bound to `comparison.rows` mit 3 Spalten (Problemstelle/Heute/in 3 Monaten), cyan Pill-Header (BRAND_CYAN, radius 6mm, padding 3/4mm), Cell-Style 10pt centered weiß, rowDividerColor #444444.
+
+Test-Audit `m5-smoke.json` (Vasileios Waschbär-Daten: 3 topRisks + 3 altSentences + 7 comparison-rows) angelegt — der echte AI-Agent füllt diese Felder aktuell leer (siehe M1-Gap), für visuelle Verifikation manuell befüllt.
+
+### Gebaute Dateien
+
+```
+NEU:
+  data/audits/m5-smoke.json                   (Test-Audit mit Vasileios Waschbär-Daten: 3 topRisks + 3 altSentences + 7 rows)
+  data/audits/m5-empty.json                   (Edge-Case-Audit: alle M5-Arrays leer, fuer Crash-Test)
+
+MODIFIZIERT:
+  src/lib/editor/page-builders.ts             (buildTopRisks, buildWoDuSeinKoenntest, buildAltSentence Helper, BUILDERS map updated)
+  data/templates/default.json                 (133 Blocks, +13 vs M4)
+  PLAN.md                                     (M5 abgehakt)
+  PROGRESS.md                                 (dieser Eintrag)
+```
+
+### Public Interfaces (Quick-Reference)
+
+```ts
+// page-builders.ts — neue exports/internals
+function buildTopRisks(): Block[]
+  // → 8 Blocks: 5x chrome + headline + subline + topRiskList(binding=topRisks)
+
+function buildWoDuSeinKoenntest(): Block[]
+  // → 14 Blocks: 5x chrome + headline + subheadline
+  //   + 6x alt-sentence (3 aspect+vision pairs at y=63/92/116mm)
+  //   + table-heading + comparisonTable(binding=comparison.rows)
+
+function buildAltSentence(idx: number, yTop: Mm): Block[]
+  // → 2 Blocks per call: aspect (right-aligned bold, w=140) + vision (centered multi-line, w=170)
+  //   bound to comparison.altSentences[idx].aspect/vision via indexed path
+
+// BUILDERS map updates:
+BUILDERS.topRisiken         = buildTopRisks         // war CHROME_ONLY
+BUILDERS.woDuSeinKoenntest  = buildWoDuSeinKoenntest // war CHROME_ONLY
+```
+
+Audit-Bindings: `topRisks` (TopRisk[]), `comparison.altSentences[N].{aspect,vision}` (string), `comparison.rows[N].{problem,today,future}` (string). Indexed path `comparison.altSentences[0].aspect` resolved sauber via `SEGMENT_RE` in `resolve-binding.ts`.
+
+### Design-Entscheidungen
+
+- **Existing topRiskList Block reused**, kein neuer Block-Type fuer "3 nummerierte Risiken-Bloecke" gebaut. Layout-Variation (gap, font-size, color) reicht ueber bestehende `ListItemStyle`-API.
+- **`buildAltSentence(idx, yTop)` Helper statt 6x copy-paste**: 3 Alt-Sentence-Pairs auf Page 4 sind strukturell identisch, nur Index + Y unterscheidet. Helper haelt Frame-Berechnung lokal.
+- **Indexed binding-paths** statt eigenem Listen-Block fuer altSentences: Saubere Trennung Aspect (right-aligned bold) und Vision (centered body) als separate Blocks gibt Designer-Kontrolle ueber Position pro Element. Listen-Block waere monolithisch.
+- **comparisonTable mit `flex: 1` Spalten** (kein fixed `width`): laesst Spalten gleichmaessig 1/3 verteilen. Vasileios-Ref hat ungefaehr gleichmaessige Pills.
+- **Pill-Color = BRAND_CYAN (`#38E1E1`)** statt Vasileios-Original `#08F8FC`: bewusst auf bestehende Brand-Konstante gesetzt, keine Sub-Konstante eingefuehrt. Drift ist subtil. Wenn Vasileios anmerkt → 2-Zeilen-Fix.
+- **Bold-cyan Inline-Emphasis ausgelassen** (z.B. "die [Besucher treiben lässt]"): TextBlock-API unterstuetzt nur einen TextStyle. Rich-Text-Block waere richtige Loesung, aber zu schwer fuer M5-Scope. Markiert als Backlog (M9-Kandidat wenn andere Pages aehnliches brauchen).
+- **Edge-Case `overflow: "shrink"`** beim topRiskList: wenn Vasileios mal 4 statt 3 Risiken braucht, scaled list automatisch.
+
+### Offene Tests / Bekannte Gaps
+
+- **Inspector hat keine spezifischen Felder fuer comparisonTable** (Spalten-Liste, headerPillColor, headerPillRadius, padding): generische Position+Z-Index Felder, keine custom UI. Pre-existing M2-Block-Gap, nicht M5-bedingt. Editieren der Spalten-Header geht aktuell nur via Agent oder direkter JSON-Edit. Kandidat fuer Inspector-Sweep wenn mehr comparisonTables eingefuehrt werden.
+- **Lange Cell-Texte mit Wrap**: in m5-smoke wrappt Row 4 ("Content-Qualitaet Unterseiten") sauber. Nicht systematisch gegen sehr lange Strings (>50 Zeichen pro Zelle) getestet. comparisonTable-View nutzt `wordBreak: "break-word"` und `flex: 1` — sollte halten.
+- **Browser-Editor-Drag-and-Drop in der Canvas** der M5-Bloecke: nicht via /verify-feature getestet (Inspector-Tab klick reichte fuer Persistenz-Beweis). Wuerde /verify-chrome-editor-e2e Skill abdecken — beim naechsten Mal nutzen.
+- **Production-Deep**: blockiert auf BASIC_AUTH_PASS. /api/health 200 reicht als smoke. Erst beim ersten echten Vasileios-Production-Run mit Marlin tiefer testen.
+
+### Gotchas
+
+- **PDF-API ist `/api/generate-pdf`**, nicht `/api/pdf` (mein erster curl-Versuch lieferte HTML-Page statt PDF — Next-Router routed unbekannte Pfade an die Landing-Page). Skill `/render-pdf-preview` nutzt korrekten Pfad.
+- **`pdftoppm` braucht `-png` Flag**, sonst rendert es PPM (Portable Pixmap), das Read-Tool nicht visuell zeigt. Pre-existing skill nutzt `-png`, mein manueller Aufruf nicht.
+- **Cyan-Pill in Vasileios-Ref ist heller als unser BRAND_CYAN**: Pill bg ist `#08F8FC` (sehr saturated, fast neon-cyan) vs unser `#38E1E1` (Standard-Footer-Stripe-Color). Akzeptierter Tradeoff — könnten Pill-Color als zweites Konstante einführen wenn Vasileios das anmerkt.
+- **Bold-cyan Emphasis innerhalb der Aspect-Sentence fehlt** (z.B. "Statt einer Seite die [Besucher treiben lässt]" — letzte Worte sind cyan-bold in Ref). TextBlock unterstützt nur eine Style. Würde rich-text-Block oder zwei-spaltigen Aspect-Block brauchen. Acceptable für M5; könnte in M9 (gleicher Pattern für andere Pages) ein Custom-RichTextBlock eingeführt werden.
+- **chrome-Diff vs Vasileios**: logo + stripes match unter 0.25mm (✓). title_right hat -1.55mm drift (M3-known issue, nicht M5-bedingt).
+
+### Wiederholte manuelle Aktionen / Reibungs-Vorschlaege
+
+**Gestolpert ueber:**
+
+- **PDF-Endpoint-Verwirrung** (`/api/pdf` vs `/api/generate-pdf`) + **`pdftoppm` ohne `-png` Flag**: 2x manuell gestolpert weil ich direkt curl + pdftoppm gerufen habe statt das bestehende `/render-pdf-preview` Skill zu nutzen. Skill loest beide Probleme bereits. Keine neue Automation noetig — Lesson: bei Page-Builder-Verifikation immer Skill aufrufen.
+
+- **Browser-Editor-E2E (Page klicken → Block selektieren → Inspector pruefen → Save → Reload → Disk-Check)** habe ich manuell via `mcp__claude-in-chrome__*` durchgeklickt. Skill `/verify-chrome-editor-e2e` existiert (in CLAUDE.md beschrieben) und automatisiert genau das. Ich habe ihn schlicht uebersehen. Lesson: in /verify-feature Schritt 5 explizit `/verify-chrome-editor-e2e` als Sub-Tool referenzieren.
+
+**Echte neue Reibungspunkte (haben aktuell keine Loesung):**
+
+1. **Custom-Layout-Vermessung in Vasileios-PDF** (Pills, Row-Dividers, Body-Text-Rows, Cyan-Bands an custom y-Range): `/measure-vasileios-page` deckt nur Logo + Header-Text + Footer-Stripes ab. Fuer Pills + Tabellen-Dividers musste ich PIL-Filter mit Cyan-Threshold + Row-Density-Scan from scratch schreiben. Wird in M6-M13 wiederkommen (Status-Icons, Bar-Chart-Bars, Pie-Chart-Slices, Resource-Tile-Icons).
+
+   **Vorschlag**: Skill-Erweiterung `/measure-vasileios-page <pageNum> <element>` um neue Element-Types `pills`, `dividers`, `text-rows`, `cyan-region`. Quelle: [Claude Code Skills Doc](https://docs.claude.com/en/docs/claude-code/skills) — Skills akzeptieren args, koennen Python+PIL ausfuehren wie bestehender Skill auch. Aufwand ~30 Min.
+
+2. **Edge-Case-Audit-Erstellung** (m5-empty.json mit allen relevanten Arrays leer fuer Crash-Test): manuell via Python-Script. Wenn /verify-feature in Zukunft Edge-Cases automatisch testen soll, waere ein Helper sinnvoll.
+
+   **Vorschlag**: Skill `/seed-edge-case-audit <baseAuditId> [milestone]` der ein Base-Audit kopiert und alle Milestone-relevanten Arrays leert (M5: `topRisks`, `comparison.altSentences`, `comparison.rows`; M6: `sections.onpageSeo.findings/actions`, etc). Mapping Milestone→Felder waere im Skill hardcoded. Quelle: gleiche Skills-Doc. Aufwand ~20 Min. Nur sinnvoll ab dem dritten Wiederholen — aktuell 1x, also noch warten.
+
+3. **Test-Audit-Erstellung mit Vasileios-Inhalten pro Milestone** (m5-smoke.json mit den exakten Vasileios-Texten): manuell via Python-Script. Wird in M6-M11 wiederkommen (jede Section hat Vasileios-spezifische Findings/Actions/Costs).
+
+   **Vorschlag**: Skill `/seed-vasileios-audit <auditId> [milestone]` der die Vasileios-Texte aus dem Quell-PDF pro Milestone extrahiert und ins Audit kippt. Quelle PDF-Texte: bereits via pdftoppm-PNGs vermessen, koennte durch pdftotext extrahiert + manuell kuratiert werden. Quelle: gleiche Skills-Doc. Aufwand ~45 Min (Text-Extraktion + Mapping). M6 Kandidat — aktuell 1x, beim 2. Mal Skill bauen.
+
+4. **Tab-Persistenz Editor nach Reload**: Editor reloaded auf Cover (Page 1), nicht auf zuletzt selektierte Page. Macht Persistenz-Tests laenger (immer wieder zu Page 4 navigieren). Pre-existing UX-Detail, keine M5-bedingte Reibung. Kein Skill-Vorschlag — UI-Improvement im Editor selbst.
+
+### Verifikation (verify-feature Hardcore-Run)
+
+- ✓ `tsc --noEmit` clean
+- ✓ `npm run lint` 0 errors (3 pre-existing warnings in scripts/diff-pdf-against-vasileios.ts, nicht von M5)
+- ✓ Luecken-Scan `page-builders.ts`: 0 TODOs/FIXMEs/console.log/Platzhalter
+- ✓ `/api/health` 200, `/api/templates/default` 200, `/api/audit/m5-smoke` 200, `/api/generate-pdf?auditId=m5-smoke` → 1.0 MB 20 pages
+- ✓ Editor `/editor/default?auditId=m5-smoke` lädt: Page 3 zeigt Headline + Subline + 3 nummerierte Risk-Blöcke; Page 4 zeigt Headline + Sub + 3 Alt-Pairs + Tabellen-Heading + 7-row Tabelle mit cyan Pills
+- ✓ Inspector tr-list: X=20 Y=65 W=170 H=210 gap=8 overflow=shrink numbered=true binding=topRisks ✓
+- ✓ Inspector wd-comparison-table: X=20 Y=156 W=170 H=130 z=50 ✓
+- ✓ Persistenz: X 20→22 in Inspector → Save (Button → "Gespeichert") → Disk hat x=22 → reverted
+- ✓ Edge-Cases m5-empty (alle M5-Arrays leer): PDF rendert sauber, Page 3 = Headline + Subline only, Page 4 = Headline + Sub + Tabellen-Heading + leere Pill-Header. KEIN crash, KEIN "undefined", KEIN broken layout.
+- ✓ `hasNextErrorOverlay = false`, keine Console-Errors
+- ✓ chrome-Drift gegen Vasileios-Ref: logo + stripes <0.25mm, title_right -1.55mm (M3-known, nicht M5)
+- ✓ Production `/api/health` 200 (deep blockiert auf BASIC_AUTH)
+
+
 ## 2026-05-01: M4 Cover + Gesamtsituation
 
 ### Was

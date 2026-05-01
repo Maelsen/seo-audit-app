@@ -27,7 +27,7 @@ Detail-Plan: `~/.claude/plans/soft-tickling-iverson.md`
 - [x] M2 Block-Primitives: arrowBulletList + comparisonTable + pieChart implementiert; Smoke-Template `m2-smoke` rendert alle drei korrekt
 - [x] M3 Page-Chrome (Header + Footer Helper) — `pageChrome()` Helper exportiert, in 18 BUILDERS referenziert (alle ausser cover + inhaber), pixel-vermessen gegen Vasileios Page 5; PAGE_HEIGHT 296→297 (real A4) korrigiert
 - [x] M4 Cover + Gesamtsituation — `buildCover()` (Mega-Title mit Cyan-Glow + Wortmarke + Domain + Cover-Screenshot + 3-Spalten-Footer) und `buildGesamtsituation()` (Headline + Diagnose-Text + Sub-Headline + 52mm-Big-Donut + Right-Side-Heading/Paragraph/Empfehlungs-Button + 6 Sub-Donuts 19mm im 4+2 Grid) implementiert. Seed-Skript (.mjs→.ts) ruft jetzt BUILDERS via tsx auf — default.json hat 120 echte Blocks statt leerer Shells. TextBlockView bekam overflow:hidden gegen Frame-Überlauf
-- [ ] M5 Top 3 Risiken + Wo du sein koenntest
+- [x] M5 Top 3 Risiken + Wo du sein koenntest — `buildTopRisks()` (Headline + Subline + topRiskList Block bound to `topRisks`) und `buildWoDuSeinKoenntest()` (centered Headline + Subline + 3× alt-sentence-Pair (rechts-bündige bold aspect / centered vision multi-line) + Tabellen-Heading + 3-Spalten Vergleichstabelle mit cyan Pill-Header) gegen Vasileios Page 3+4 vermessen + chrome-diff <1.5mm
 - [ ] M6 On-Page SEO (2 pages)
 - [ ] M7 UX & Conversion (2 pages)
 - [ ] M8 Seitenstruktur & Content (2 pages)
