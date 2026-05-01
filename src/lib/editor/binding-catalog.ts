@@ -28,6 +28,10 @@ export const BINDING_CATALOG: BindingEntry[] = [
   { path: "sections.onpageSeo.findings", label: "On-Page SEO - Findings (Tabelle)", type: "array" },
   { path: "sections.onpageSeo.actions", label: "On-Page SEO - Aktionen (Pfeil-Bullets)", type: "array" },
   { path: "sections.onpageSeo.closingNote", label: "On-Page SEO - Footer-Note", type: "string" },
+  { path: "sections.onpageSeo.h2h6Frequency", label: "On-Page SEO - H2-H6 Frequency (BarChart)", type: "object" },
+  { path: "sections.onpageSeo.serpPreview.url", label: "On-Page SEO - SERP Preview URL", type: "string" },
+  { path: "sections.onpageSeo.serpPreview.title", label: "On-Page SEO - SERP Preview Title", type: "string" },
+  { path: "sections.onpageSeo.serpPreview.description", label: "On-Page SEO - SERP Preview Description", type: "string" },
 
   // UX & Conversion
   { path: "sections.uxConversion.score", label: "UX & Conversion - Note", type: "grade" },

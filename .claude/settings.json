@@ -7,6 +7,10 @@
           {
             "type": "command",
             "command": ".claude/hooks/tsc-on-schema-edit.sh"
+          },
+          {
+            "type": "command",
+            "command": ".claude/hooks/binding-catalog-consistency.sh"
           }
         ]
       }

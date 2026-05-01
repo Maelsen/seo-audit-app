@@ -22,7 +22,7 @@ Output-Audit wird unter `data/audits/<baseAuditId>-empty-<milestone>.json` gespe
 |---|---|
 | M5 | `topRisks=[]`, `comparison.altSentences=[]`, `comparison.rows=[]` |
 | M6 | `sections.onpageSeo.findings=[]`, `sections.onpageSeo.actions=[]` |
-| M7 | `sections.uxConversion.findings=[]`, `sections.uxConversion.actions=[]` |
+| M7 | `sections.uxConversion.findings=[]`, `sections.uxConversion.actions=[]`, `sections.uxConversion.heading=""`, `sections.uxConversion.text=""`, `sections.uxConversion.costText=""`, `sections.uxConversion.closingNote=""` |
 | M8 | `sections.seitenstrukturContent.findings=[]`, `sections.seitenstrukturContent.actions=[]`, `sections.seitenstrukturContent.comparisonImages=[]` |
 | M9 | `sections.lokalesSeo.findings=[]`, `sections.lokalesSeo.actions=[]`, `sections.lokalesSeo.schemaMarkupImage=""` |
 | M10 | `sections.leistung.findings=[]`, `sections.leistung.actions=[]`, `sections.leistung.resourceCounts={html:0,js:0,css:0,img:0,other:0,total:0}`, `sections.leistung.pageSizeBreakdown={html:0,js:0,css:0,img:0,other:0}`, numerische Felder auf 0 |
@@ -74,7 +74,10 @@ ops = {
         a["comparison"].update({"altSentences": [], "rows": []}),
     ),
     "M6":  lambda a: a["sections"]["onpageSeo"].update({"findings": [], "actions": []}),
-    "M7":  lambda a: a["sections"]["uxConversion"].update({"findings": [], "actions": []}),
+    "M7":  lambda a: a["sections"]["uxConversion"].update({
+        "findings": [], "actions": [],
+        "heading": "", "text": "", "costText": "", "closingNote": "",
+    }),
     "M8":  lambda a: a["sections"]["seitenstrukturContent"].update({
         "findings": [], "actions": [], "comparisonImages": []
     }),
