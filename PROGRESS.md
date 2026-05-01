@@ -105,6 +105,29 @@ Audit-Bindings: `sections.onpageSeo.findings` (`SectionFinding[]` = `{problem, b
 
 3. **`barChart.frame.h` zu klein erkannt erst beim Render** — keine Compile-Time-Validierung. arrowBulletList shrinkt mit overflow-shrink, barChart aber clipped einfach. Würde `BarChartBlock.overflow: "clip" | "shrink"` ähnlich wie arrowBulletList Sinn machen für M10+ mit auto-fit. Backlog-Kandidat — aktuell 1× gestolpert.
 
+4. **PATCH `/api/templates/[id]` Body-Shape silently failed**: Beim verify-feature-Roundtrip-Test habe ich den Body als `{template: ...}` geschickt (so wie GET zurückliefert). Server gab 200 zurück, aber nichts wurde gemerged — weil `PATCH` `Partial<Template>` direkt im Body erwartet, nicht den Wrapper. Server hat unbekannte Top-Level-Keys einfach ignoriert. Nach 5 Min Debug erkannt. Würde durch Zod-Schema-Validate auf incoming-Body abgefangen (400 statt 200 bei unbekannten Keys). Risiko: Agent-Schreibaktionen könnten brechen wenn die nicht streng schema-konform sind. Backlog — aktuell 1× passiert.
+
+### Verify-Feature-Resultat
+
+```
+✓ Code-Health      tsc clean, lint 0 errors
+✓ Luecken-Scan     0 TODOs/FIXMEs/Platzhalter im M6-Code
+✓ Dev-Server       /api/health 200, next-dev pid 17173
+✓ Backend-APIs     4/4 grün (GET template/audit, generate-pdf, PATCH-roundtrip)
+✓ Frontend-UI      Editor lädt, Page-5-Click → 11 Blocks, findingsTable
+                   selektierbar via Pointer-Event auf Overlay-Div, Inspector
+                   zeigt "findingsTable · ops1-findings-table" + korrekte
+                   Position/zIndex, z-Index-Edit + Speichern + Reload
+                   persistiert (50→88→reload zeigt 88), 0 Console-Errors
+✓ Visuelle         pdf-verifier-Subagent: nach 2 fixes (warning glyph "!"→"⚠",
+                   arrow-spacing 4→6) match gegen Vasileios
+✓ Persistenz       PATCH-Roundtrip + Editor-Save+Reload PASS, Disk hat
+                   findingsTable mit allen 19 Schema-Keys
+⚠ Production       Railway /api/health 200, deep-test blockiert auf
+                   BASIC_AUTH_PASS (gleicher Status wie M3-M5)
+✓ Edge-Cases       m6-smoke-empty-M6 rendert sauber, kein crash
+```
+
 ## 2026-05-01: M5 Top 3 Risiken (Page 3) + Wo du sein könntest (Page 4)
 
 ### Was
