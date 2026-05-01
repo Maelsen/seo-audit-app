@@ -141,8 +141,7 @@ function buildCover(): Block[] {
         textAlign: "center",
         lineHeight: 1.0,
         letterSpacing: 1,
-        textShadow:
-          "0 0 8mm #38E1E1, 0 0 4mm #38E1E1, 0 0 2mm rgba(56,225,225,0.8)",
+        textShadow: "1.2mm 1.2mm 0 rgba(0,0,0,0.55)",
         textTransform: "uppercase",
       }),
     },
