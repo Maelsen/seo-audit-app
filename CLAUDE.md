@@ -46,9 +46,13 @@ Niemals in Git. `.env.example` als Template committen, echte Werte in `.env.loca
 
 ## Projekt-Tools
 
-Sechs Automation-Artefakte unter `.claude/`. Alle committed, beim naechsten Session-Start automatisch verfuegbar.
+Zwoelf Automation-Artefakte unter `.claude/` und `scripts/`. Alle committed, beim naechsten Session-Start automatisch verfuegbar.
 
-- **`/verify-app`** — Smoke-Sequenz `tsc --noEmit` + `npm run lint` + Health-Check + Templates-API. Wann nutzen: VOR jedem Commit, VOR jeder "done"-Meldung, nach groesseren Schema-Aenderungen. Definiert in `.claude/skills/verify-app/SKILL.md`.
+- **`/verify-app`** — Smoke-Sequenz `tsc --noEmit` + `npm run lint` + Health-Check + Templates-API. Wann nutzen: VOR jedem Commit, nach groesseren Schema-Aenderungen, als schneller Zwischen-Check. Definiert in `.claude/skills/verify-app/SKILL.md`.
+
+- **`/verify-feature`** — Tiefer als `/verify-app`. Komplette E2E-Verifikation einer gerade gebauten Funktion: Code-Health + Luecken-Scan (TODOs/Platzhalter/console.log) + Backend-APIs + Frontend-UI in Chrome (selber durchklicken!) + Visual + Persistenz + Production. Wann nutzen: VOR jeder "done"-Meldung am Milestone-Ende. Definiert in `.claude/skills/verify-feature/SKILL.md`.
+
+- **`/handoff`** — Lockerer Bericht nach `/verify-feature` was gebaut wurde, was getestet wurde, und ehrlich ob Marlin selber kurz reinschauen sollte (UX/Animationen/Feeling) oder nicht (statisches Layout, API-Persistenz, Compile-Health = Claude reicht). Geschrieben in Marlins Umgangssprache. Wann nutzen: am finalen Milestone-Ende nach gruen-Verify, oder wenn Marlin fragt "wie weit sind wir". Definiert in `.claude/skills/handoff/SKILL.md`.
 
 - **`/render-pdf-preview <auditId> [templateId] [pageRange]`** — Generiert PDF aus laufendem dev-server, rendert Pages als PNGs nach `/tmp/preview-page-NN.png`, gibt Pfade zurueck zum Lesen mit Read-Tool. Wann nutzen: nach Page-Builder-Aenderungen in M3-M13, immer wenn PDF-Output visuell verifiziert werden muss. Defaults: templateId=`default`, pageRange=`1-3`. Definiert in `.claude/skills/render-pdf-preview/SKILL.md`.
 
@@ -56,6 +60,14 @@ Sechs Automation-Artefakte unter `.claude/`. Alle committed, beim naechsten Sess
 
 - **`/visual-diff-against-vasileios <auditId> [templateId] [appPages] [refPages]`** — Wickelt den `pdf-verifier` Subagent in eine deterministische Sequenz. Rendert beide PDFs bei 200 DPI als PNGs in `/tmp/vdiff-{app,ref}-page-*.png`, ruft den Subagent mit klarer Prompt-Vorlage. Wann nutzen: ab M3 nach jedem Page-Builder-Update BEVOR der Builder abgehakt wird, vor erstem Vasileios-Production-Run als finale Visual-Sanity. Definiert in `.claude/skills/visual-diff-against-vasileios/SKILL.md`.
 
-- **`tsc-on-schema-edit` Hook** (auto-aktiv, kein Aufruf) — PostToolUse-Hook der nach Edit/Write auf `src/lib/types.ts`, `src/lib/agent/schema.ts`, `src/lib/agent/prompts.ts`, `src/lib/editor/template-types.ts`, `src/lib/editor/binding-catalog.ts` automatisch `npx tsc --noEmit` ausfuehrt und das Ergebnis als Context zurueckgibt. Wann triggert: automatisch bei jedem Edit auf diese 5 Dateien. Faengt Schema-Bruch sofort. Skript: `.claude/hooks/tsc-on-schema-edit.sh`.
+- **`/measure-vasileios-page <pageNum> [element]`** — Vermisst Logo / Header-Text / Footer-Stripes in `docs/measurements/page-NN.png` per Python+PIL und gibt mm-Bbox + Hex-Color aus. Element ist `logo` | `header-text` | `footer-stripe` | `all`. Wann nutzen: VOR jedem Page-Builder in M4-M13 wenn neue Vasileios-Pages vermessen werden muessen. Spart die Python-Boilerplate. Definiert in `.claude/skills/measure-vasileios-page/SKILL.md`.
+
+- **`/verify-chrome-editor-e2e <templateId> [auditId]`** — Klickt im Chrome-Browser jeden Block eines Templates an, liest dessen Inspector-Werte und vergleicht sie mit der Backend-JSON. Pruefe automatisch: pro Block ✓/✗, Drag-Sanity, Save+Reload-Persistenz, Console-Errors. Wraps die `claude-in-chrome` MCP-Sequenz. Wann nutzen: nach jedem Page-Builder-Update in M4-M13 BEVOR der Builder als "fertig" abgehakt wird. Definiert in `.claude/skills/verify-chrome-editor-e2e/SKILL.md`.
+
+- **`/setup-domain-edge-test <baseAuditId> [templateId]`** — Generiert 3 Test-Audits (kurze/mittel/lange Domain-URLs), rendert pro Variante PDF + Header-Crop, dokumentiert Wrap-Verhalten. Wann nutzen: nach jedem neuen TextBlock der `{domain}` aufloest, oder bei Vermutung dass Domain-Laenge das Layout bricht. Definiert in `.claude/skills/setup-domain-edge-test/SKILL.md`.
+
+- **`scripts/diff-pdf-against-vasileios.ts <auditId> <templateId> <appPage> <refPage>`** — TS-Skript (kein Skill): rendert App-PDF, vergleicht gegen Vasileios-Referenz, gibt mm-Drift-Tabelle aus mit ✓/⚠/✗ Flags. Aufruf via `npx tsx scripts/diff-pdf-against-vasileios.ts m2-smoke m3-chrome 1 5`. Wann nutzen: nach jeder Helper-Anpassung im Page-Builder fuer schnelle Drift-Quantifizierung (5s Output statt Subagent-Prompt schreiben).
+
+- **`tsc-on-schema-edit` Hook** (auto-aktiv, kein Aufruf) — PostToolUse-Hook der nach Edit/Write auf `src/lib/types.ts`, `src/lib/agent/schema.ts`, `src/lib/agent/prompts.ts`, `src/lib/editor/template-types.ts`, `src/lib/editor/binding-catalog.ts`, `src/lib/editor/page-builders.ts` automatisch `npx tsc --noEmit` ausfuehrt und das Ergebnis als Context zurueckgibt. Wann triggert: automatisch bei jedem Edit auf diese 6 Dateien. Faengt Schema-Bruch sofort. Skript: `.claude/hooks/tsc-on-schema-edit.sh`.
 
 - **`pdf-verifier` Subagent** (`subagent_type: "pdf-verifier"`) — Visueller Diff zwischen App-PDF und Vasileios' Referenz-PDF (`SEO AUDIT WASCHBÄR SERVICE.pdf` in `~/Downloads/`). Rendert beide bei 200 DPI, vergleicht Header/Footer/Score-Donuts/Tabellen Position+Style, gibt Drift-Report zurueck. Tools: nur Bash + Read (read-only, modifiziert keinen Code). Wann nutzen: meist via `/visual-diff-against-vasileios` Skill, nicht direkt. Definiert in `.claude/agents/pdf-verifier.md`.

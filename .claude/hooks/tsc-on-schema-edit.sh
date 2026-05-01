@@ -8,6 +8,7 @@
 #   - src/lib/agent/prompts.ts
 #   - src/lib/editor/template-types.ts
 #   - src/lib/editor/binding-catalog.ts
+#   - src/lib/editor/page-builders.ts
 
 set +e
 
@@ -21,7 +22,8 @@ case "$FILE" in
   *src/lib/agent/schema.ts | \
   *src/lib/agent/prompts.ts | \
   *src/lib/editor/template-types.ts | \
-  *src/lib/editor/binding-catalog.ts)
+  *src/lib/editor/binding-catalog.ts | \
+  *src/lib/editor/page-builders.ts)
     PROJECT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
     cd "$PROJECT_DIR" || exit 0
     OUT=$(npx tsc --noEmit 2>&1)
