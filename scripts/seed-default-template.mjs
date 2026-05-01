@@ -38,7 +38,7 @@ function buildPage({ id, name }) {
     name,
     background: "#1a1a1a",
     width: 210,
-    height: 296,
+    height: 297,
     blocks: [],
   };
 }

@@ -51,7 +51,7 @@ function htmlShell(audit: AuditData, body: string): string {
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { background: #1a1a1a; }
   body { font-family: 'Poppins', 'Open Sans', Arial, sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .audit-page { width: 210mm; height: 296mm; overflow: hidden; position: relative; page-break-inside: avoid; break-inside: avoid; page-break-after: always; break-after: page; }
+  .audit-page { width: 210mm; height: 297mm; overflow: hidden; position: relative; page-break-inside: avoid; break-inside: avoid; page-break-after: always; break-after: page; }
   .audit-page:last-child { page-break-after: auto; break-after: auto; }
   @page { size: A4; margin: 0; }
 </style>

@@ -25,7 +25,7 @@ Detail-Plan: `~/.claude/plans/soft-tickling-iverson.md`
 - [x] M0 Vorbereitung: Local-Wipe + PDF-Vermessungs-PNGs (Railway-Volume-Wipe deferred auf M1-Deploy)
 - [x] M1 Schema-Migration + Legacy-Cleanup + M14-Cleanup vorgezogen: usability+social raus; seitenstrukturContent + comparison + phasenplan rein; legacy pdf-template/pages/* + AuditDocument + buildAuditHtml + LegacyPageBlockView geloescht; default.json seedet jetzt 20 leere Page-Shells; PDF-Render-Fixes (networkidle0 → load+fonts.ready, Empty-Page-Anchor)
 - [x] M2 Block-Primitives: arrowBulletList + comparisonTable + pieChart implementiert; Smoke-Template `m2-smoke` rendert alle drei korrekt
-- [ ] M3 Page-Chrome (Header + Footer Helper)
+- [x] M3 Page-Chrome (Header + Footer Helper) — `pageChrome()` Helper exportiert, in 18 BUILDERS referenziert (alle ausser cover + inhaber), pixel-vermessen gegen Vasileios Page 5; PAGE_HEIGHT 296→297 (real A4) korrigiert
 - [ ] M4 Cover + Gesamtsituation
 - [ ] M5 Top 3 Risiken + Wo du sein koenntest
 - [ ] M6 On-Page SEO (2 pages)
