@@ -133,9 +133,40 @@ DATA = {
             },
         },
     },
-    # M7-M13: noch nicht erfasst. Pro Milestone hier ergaenzen wenn der Builder gebaut wird.
-    # Format pro Milestone:
-    #   "M7": { "sections": { "uxConversion": { "findings": [...], "actions": [...], "costText": "..." } } }
+    "M7": {
+        "sections": {
+            "uxConversion": {
+                "score": "C-",
+                "heading": "Die Seite hat gute Zutaten – aber kein Rezept",
+                "text": "Deine Website bietet eine solide Basis – doch ein Besucher entscheidet in den ersten 3 Sekunden ob er bleibt oder geht. Aktuell fehlt der rote Faden der diese Elemente in eine klare Anfrage verwandelt. Das Potenzial ist vorhanden – es wird nur noch nicht genutzt.",
+                "findings": [
+                    {"problem": "Hero-Section",                 "befund": "„Aus Liebe zur Reinheit\" löst keinen Painpoint – kein Grund direkt anzurufen",                  "status": "warning"},
+                    {"problem": "Wording & Positionierung",     "befund": "Beschreibt das Angebot statt Probleme zu lösen",                                                "status": "fail"},
+                    {"problem": "Nutzerführung",                "befund": "Gute Elemente vorhanden aber nicht in einen klaren Funnel eingebettet",                         "status": "fail"},
+                    {"problem": "Google Reviews",               "befund": "Vorhanden aber nur als externer Link – nicht auf der Seite sichtbar",                            "status": "fail"},
+                    {"problem": "Social Proof",                 "befund": "Kein Bewertungs-Widget, keine Kundenstimmen direkt sichtbar",                                    "status": "fail"},
+                    {"problem": "Text- & Button-Ausrichtung",   "befund": "Inkonsistent – wirkt unprofessionell auf Mobile & Desktop",                                      "status": "warning"},
+                    {"problem": "Leistungsseiten",              "befund": "Bilder vorhanden aber keine Beschreibung, keine Painpoints",                                     "status": "fail"},
+                    {"problem": "Prozessbeschreibung",          "befund": "Versteckt auf Unterseite – wertvoller USP den kaum jemand sieht",                                "status": "warning"},
+                    {"problem": "CTA",                          "befund": "Vorhanden aber generisch – „Kostenloses Angebot anfordern\" schafft keine Dringlichkeit",         "status": "warning"},
+                    {"problem": "FAQ",                          "befund": "Identisch auf jeder Seite – nicht seitenspezifisch",                                             "status": "fail"},
+                    {"problem": "Inhabervorstellung",           "befund": "Vorhanden – echter Vertrauensfaktor",                                                            "status": "ok"},
+                    {"problem": "Navigation",                   "befund": "Übersichtlich und klar strukturiert",                                                            "status": "ok"},
+                ],
+                "costText": "Ein Gewerbekunde der auf deiner Startseite landet sucht eine Antwort auf ein konkretes Problem – Reinigungskraft ausgefallen, neues Objekt übernommen, aktueller Anbieter unzuverlässig. Deine Seite sagt ihm nicht dass du genau dieses Problem löst. Sie beschreibt was du machst – aber nicht warum das für ihn relevant ist. Er scrollt, findet nichts das ihn abholt, und ruft beim nächsten an.",
+                "actions": [
+                    {"title": "Hero-Section mit Painpoint-Botschaft ersetzen",                              "detail": "„Aus Liebe zur Reinheit\" – Ihr bärenstarker Servicepartner — Empfehlung: „Zuverlässige Gebäudereinigung im Kreis Warendorf – fester Ansprechpartner, keine Ausfälle, Rückmeldung in 12 Stunden\""},
+                    {"title": "Google Reviews direkt auf der Startseite einbinden – nicht nur als Link"},
+                    {"title": "CTA konkretisieren",                                                          "detail": "Aktuell: „Kostenloses Angebot anfordern\" — Empfehlung: „Jetzt Termin vereinbaren – wir melden uns in 12 Stunden\""},
+                    {"title": "Prozessbeschreibung auf die Startseite holen",                                "detail": "Das ist ein echter Vertrauenshebel der aktuell versteckt ist"},
+                    {"title": "FAQ auf jeder Seite seitenspezifisch gestalten",                              "detail": "Büroreinigung-FAQ: „Wie oft sollte ein Büro gereinigt werden?\", Treppenhausreinigung-FAQ: „Wer ist für die Treppenhausreinigung zuständig – Mieter oder Vermieter?\""},
+                    {"title": "Text- und Button-Ausrichtung auf Mobile & Desktop vereinheitlichen"},
+                ],
+                "closingNote": "Die meisten dieser Änderungen sind redaktionell – kein technischer Aufwand, aber direkter Impact auf Anfragerate.",
+            },
+        },
+    },
+    # M8-M13: noch nicht erfasst. Pro Milestone hier ergaenzen wenn der Builder gebaut wird.
 }
 
 milestones = [MS] if MS != "all" else ["M5","M6","M7","M8","M9","M10","M11","M12","M13"]

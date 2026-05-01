@@ -1047,6 +1047,240 @@ function buildOnPageSeo2(): Block[] {
   ];
 }
 
+// ---------- M7: UX & Conversion (Pages 7+8) ----------
+//
+// Vermessen aus docs/measurements/page-07.png + page-08.png:
+// Standard-Chrome (logo, header, footer-stripe) identisch zu Page 5/6.
+// PAGE 7 (buildUxConversion1): exakter Spiegel von Page 5 — Score-Donut links,
+// gebundene Sub-Headline + Diagnose-Body rechts, "Was wir festgestellt haben" + findingsTable.
+// findingsTable hat 12 Rows (vs 11 in M6) → Frame h=170 statt 165.
+// PAGE 8 (buildUxConversion2): Subset von Page 6 — KEIN SerpPreview/BarChart, KEIN H2-H6-Heading,
+// nur Cost-Heading + Body + Action-Heading + arrowBulletList (6 Pfeil-Items mit Title+Detail) + 1 closingNote.
+
+function buildUxConversion1(): Block[] {
+  return [
+    ...pageChrome(),
+    {
+      id: "uxc1-headline",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "UX & Conversion",
+      frame: { x: 20, y: 36, w: 170, h: 10 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 22,
+        fontWeight: 800,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    {
+      id: "uxc1-score-donut",
+      type: "scoreCircle",
+      binding: { kind: "audit", path: "sections.uxConversion.score" },
+      frame: { x: 17, y: 51, w: 37, h: 37 },
+      zIndex: 50,
+      size: 37,
+      strokeWidth: 5,
+      labelStyle: textStyle({
+        fontSize: 24,
+        fontWeight: 800,
+        color: "#ffffff",
+        textAlign: "center",
+        lineHeight: 1,
+      }),
+    },
+    {
+      id: "uxc1-section-heading",
+      type: "text",
+      binding: { kind: "audit", path: "sections.uxConversion.heading" },
+      frame: { x: 65, y: 50, w: 130, h: 8 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 13,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.3,
+      }),
+    },
+    {
+      id: "uxc1-section-text",
+      type: "text",
+      binding: { kind: "audit", path: "sections.uxConversion.text" },
+      frame: { x: 65, y: 58, w: 130, h: 28 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 10,
+        fontWeight: 400,
+        color: "#e6e6e6",
+        textAlign: "left",
+        lineHeight: 1.5,
+      }),
+    },
+    {
+      id: "uxc1-findings-heading",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "Was wir festgestellt haben",
+      frame: { x: 20, y: 93, w: 170, h: 7 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 13,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    {
+      id: "uxc1-findings-table",
+      type: "findingsTable",
+      binding: { kind: "audit", path: "sections.uxConversion.findings" },
+      frame: { x: 20, y: 103, w: 170, h: 175 },
+      zIndex: 50,
+      problemFieldPath: "problem",
+      befundFieldPath: "befund",
+      statusFieldPath: "status",
+      problemColumnWidth: 50,
+      statusColumnWidth: 22,
+      headerStyle: textStyle({
+        fontSize: 11,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+      headerUnderlineColor: BRAND_CYAN,
+      headerUnderlineThickness: 0.4,
+      headerPaddingBottom: 2,
+      problemStyle: textStyle({
+        fontSize: 9.5,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.4,
+      }),
+      befundStyle: textStyle({
+        fontSize: 9.5,
+        fontWeight: 400,
+        color: "#cfcfcf",
+        textAlign: "left",
+        lineHeight: 1.4,
+      }),
+      rowDividerColor: "#444444",
+      rowVerticalPadding: 3,
+      statusIconSize: 5,
+    },
+  ];
+}
+
+function buildUxConversion2(): Block[] {
+  return [
+    ...pageChrome(),
+    {
+      id: "uxc2-headline",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "UX & Conversion",
+      frame: { x: 20, y: 36, w: 170, h: 10 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 22,
+        fontWeight: 800,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    {
+      id: "uxc2-cost-heading",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "Was das konkret kostet:",
+      frame: { x: 20, y: 48, w: 170, h: 7 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 14,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    {
+      id: "uxc2-cost-text",
+      type: "text",
+      binding: { kind: "audit", path: "sections.uxConversion.costText" },
+      frame: { x: 20, y: 58, w: 175, h: 38 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 10.5,
+        fontWeight: 400,
+        color: "#e6e6e6",
+        textAlign: "left",
+        lineHeight: 1.5,
+      }),
+    },
+    {
+      id: "uxc2-actions-heading",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "Was dagegen zu tun ist",
+      frame: { x: 20, y: 105, w: 170, h: 7 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 14,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    {
+      id: "uxc2-actions",
+      type: "arrowBulletList",
+      binding: { kind: "audit", path: "sections.uxConversion.actions" },
+      frame: { x: 20, y: 115, w: 170, h: 152 },
+      zIndex: 50,
+      itemGap: 6,
+      arrowColor: BRAND_CYAN,
+      arrowSize: 5,
+      arrowGap: 6,
+      titleStyle: textStyle({
+        fontSize: 10.5,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.3,
+      }),
+      detailStyle: textStyle({
+        fontSize: 9.5,
+        fontWeight: 400,
+        color: "#cfcfcf",
+        textAlign: "left",
+        lineHeight: 1.4,
+      }),
+      overflow: "shrink",
+    },
+    {
+      id: "uxc2-closing-note",
+      type: "text",
+      binding: { kind: "audit", path: "sections.uxConversion.closingNote" },
+      frame: { x: 20, y: 275, w: 170, h: 12 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 10.5,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.4,
+      }),
+    },
+  ];
+}
+
 // ---------- Page-Key registry ----------
 
 export type PageKey =
@@ -1084,8 +1318,8 @@ export const BUILDERS: Record<PageKey, () => Block[]> = {
   woDuSeinKoenntest: buildWoDuSeinKoenntest,
   onPageSeo1: buildOnPageSeo1,
   onPageSeo2: buildOnPageSeo2,
-  uxConversion1: CHROME_ONLY_BUILDER,
-  uxConversion2: CHROME_ONLY_BUILDER,
+  uxConversion1: buildUxConversion1,
+  uxConversion2: buildUxConversion2,
   seitenstrukturContent1: CHROME_ONLY_BUILDER,
   seitenstrukturContent2: CHROME_ONLY_BUILDER,
   lokalesSeo1: CHROME_ONLY_BUILDER,

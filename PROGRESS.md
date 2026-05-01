@@ -2,7 +2,77 @@
 
 Was gebaut wurde, welche Vertraege/Typen entstanden, welche Gotchas auftraten.
 
-## 2026-05-01: M6 On-Page SEO (Page 5+6)
+## 2026-05-01: M7 UX & Conversion (Page 7+8)
+
+### Was
+
+Pages 7 und 8 von Vasileios' 20-Seiten-Layout — UX & Conversion Ergebnisse + "Was das konkret kostet". Subset von M6's Pattern: gleicher Score-Donut+findingsTable-Aufbau auf Page 1, aber Page 2 OHNE SerpPreview/BarChart/H2-H6-Heading.
+
+- **`buildUxConversion1()`** (Page 7): pageChrome + Headline "UX & Conversion" 22pt-bold left + ScoreCircle (37mm, bound to `sections.uxConversion.score`) + Sub-Headline rechts (bound to `sections.uxConversion.heading`) + Diagnose-Body (bound to `sections.uxConversion.text`) + Sub-Heading "Was wir festgestellt haben" + findingsTable bound to `sections.uxConversion.findings` mit 3 Spalten (Problem 50mm / Befund flex-1 / Status 22mm), Frame h=175mm fuer 12 Rows (vs 165mm in M6 fuer 11 Rows). Reused `findingsTable`-Block aus M6, kein Schema-Change.
+
+- **`buildUxConversion2()`** (Page 8): pageChrome + Headline (wiederholt) + Sub-Heading "Was das konkret kostet:" + costText-Body (5 lines, frame h=38) + Sub-Heading "Was dagegen zu tun ist" + arrowBulletList bound to `sections.uxConversion.actions` (6 Items mit fett-Title + body-Detail, frame h=152, overflow:shrink) + closingNote bound to `sections.uxConversion.closingNote` ("Die meisten dieser Aenderungen sind redaktionell..."). KEIN SerpPreview, KEIN BarChart, nur 1 Footer-Note (vs 2 in M6).
+
+Default-Template jetzt **162 Blocks** (+12 vs M6's 150). Vasileios-Smoke-Audit `vasileios-m7.json` mit 12 findings (Hero-Section/Wording/Nutzerfuehrung/Google Reviews/Social Proof/Text-Button/Leistungsseiten/Prozessbeschreibung/CTA/FAQ/Inhabervorstellung/Navigation, 5x fail / 4x warning / 2x ok plus 1) + 6 actions + closingNote rendert visuell nah am Original.
+
+### Gebaute Dateien
+
+```
+GEAENDERT:
+  src/lib/editor/page-builders.ts
+    + buildUxConversion1() function (Page 7)
+    + buildUxConversion2() function (Page 8)
+    BUILDERS map: uxConversion1/uxConversion2 → echte Builder (statt CHROME_ONLY)
+  .claude/skills/seed-vasileios-audit/SKILL.md
+    + DATA["M7"] mit allen Vasileios-Texten
+
+GENERIERT (gitignored / data/):
+  data/templates/default.json (162 Blocks)
+  data/audits/vasileios-m7.json
+  data/audits/vasileios-m7-empty.json (Empty-State-Test)
+
+UNVERAENDERT:
+  src/lib/types.ts — UxConversionSection = SectionBase deckt alles (kein Schema-Change)
+  Block-Schemas — alle vorhandenen Block-Types ausreichend
+```
+
+### Vertraege/Typen
+
+```ts
+// src/lib/editor/page-builders.ts
+function buildUxConversion1(): Block[]   // 11 Blocks: pageChrome (5) + 6 inhalt
+function buildUxConversion2(): Block[]   // 11 Blocks: pageChrome (5) + 6 inhalt
+
+// Bindings (Page 7):
+//   sections.uxConversion.score      → scoreCircle
+//   sections.uxConversion.heading    → text (Sub-Headline)
+//   sections.uxConversion.text       → text (Diagnose-Body)
+//   sections.uxConversion.findings   → findingsTable
+
+// Bindings (Page 8):
+//   sections.uxConversion.costText    → text (Body unter "Was das konkret kostet:")
+//   sections.uxConversion.actions     → arrowBulletList (Title + Detail pro Item)
+//   sections.uxConversion.closingNote → text (Footer-Note)
+```
+
+### Design-Entscheidungen
+
+- **findingsTable mit 12 Rows ohne overflow-Prop:** `findingsTable` hat keinen `overflow:"shrink"` (vs `arrowBulletList`/`barChart`). Stattdessen Frame h=175mm gross genug fuer 12 Rows × ~12.5mm = 150mm + Header. Wenn ein Audit > 12 Rows liefert, werden die ueberschuessigen abgeschnitten — designed Trade-off.
+- **costText-Frame h=38mm:** Vasileios Page 8 Body hat 5 Zeilen vs M6's 4 → 8mm mehr Hoehe als M6.
+- **closingNote als bound TextBlock:** Single-Line-Footer-Note ist im Schema als `closingNote?: string` optional. TextBlock-Binding auf den Pfad: wenn leer → leer gerendert (kein Crash). Style: white-bold (vs M6's ungebundene white-regular Static-Notes).
+- **Schema unveraendert:** UxConversionSection = SectionBase. Score-Donut, Sub-Headline, Body, Findings, costText, Actions, closingNote — alles im Base-Type. Ein Win — kein Schema-Migration noetig.
+
+### Empty-State-Test
+
+`vasileios-m7-empty.json` (alle uxConversion-Strings leer, findings/actions = []):
+- Page 7: Kein Crash, Score-Donut zeigt graceful "C-" Fallback, Header "Was wir festgestellt haben" + Table-Header sichtbar, leere Tabelle.
+- Page 8: Kein Crash, Headline + Sub-Headings sichtbar, leere Body-Frames, keine arrowBullets gerendert, kein closingNote-Text.
+
+### Wiederholte manuelle Aktionen
+
+- **`pdftoppm -png -r 150 -f N -l N`** zum Inspizieren von Pages — bereits durch `/render-pdf-preview`-Skill abgedeckt, Skill nutze ich aktiv.
+- **JSON-Patching von Audits zum Empty-State-Test** — ich habe inline Python geschrieben statt `/seed-edge-case-audit M7` zu nutzen weil das Skill auf andere Section-Felder fokussiert ist (topRisks, comparison.rows). Vorschlag fuer naechstes Mal: das Skill um `M7: leere uxConversion.findings + actions + closingNote` ergaenzen.
+
+
 
 ### Was
 
