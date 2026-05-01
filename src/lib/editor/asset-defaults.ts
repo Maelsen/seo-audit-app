@@ -30,7 +30,7 @@ export const DEFAULT_PRIORITY_ASSETS: TemplatePriorityAssets = {
 
 export const DEFAULT_STATUS_ASSETS: TemplateStatusAssets = {
   ok: { symbol: "\u2713", color: "#22c55e" },
-  warning: { symbol: "!", color: "#f97316" },
+  warning: { symbol: "⚠", color: "#FBBF24" },
   fail: { symbol: "\u2715", color: "#ef4444" },
   info: { symbol: "i", color: "#38E1E1" },
 };

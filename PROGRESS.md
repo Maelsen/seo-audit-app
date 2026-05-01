@@ -2,6 +2,109 @@
 
 Was gebaut wurde, welche Vertraege/Typen entstanden, welche Gotchas auftraten.
 
+## 2026-05-01: M6 On-Page SEO (Page 5+6)
+
+### Was
+
+Pages 5 und 6 von Vasileios' 20-Seiten-Layout — On-Page SEO Ergebnisse + "Was das konkret kostet". Pattern-Page für M7-M9 (gleicher Aufbau pro Section).
+
+- **`buildOnPageSeo1()`** (Page 5): pageChrome + Headline "On-Page SEO Ergebnisse" 22pt-bold left + ScoreCircle (37mm, bound to `sections.onpageSeo.score`) + Sub-Headline rechts (bound to `sections.onpageSeo.heading`) + Diagnose-Body (bound to `sections.onpageSeo.text`) + Sub-Heading "Was wir festgestellt haben" + **`findingsTable` Block** (NEU) bound to `sections.onpageSeo.findings` mit 3 Spalten (Problem 50mm / Befund flex-1 / Status 22mm), cyan-underlined Header (kein Pill), Row-Dividers #444444, Status-Icons aus `assets.statuses` (warning ⚠ yellow / fail ❌ red / ok ✓ green).
+
+- **`buildOnPageSeo2()`** (Page 6): pageChrome + Headline + Sub-Heading "Was das konkret kostet:" + Body (bound to `sections.onpageSeo.costText`) + SerpPreview-Block bound to `sections.onpageSeo.serpPreview.{url,title,description}` + cyan Sub-Headings "H2-H6-Header-Tag-Verwendung" + "Frequenz" + BarChart-Block (5 items H2/H3/H4/H5/H6 bound to `sections.onpageSeo.h2h6Frequency.{h2..h6}`, cyan bars, track #2a2a2a) + Sub-Heading "Was dagegen zu tun ist" + arrowBulletList bound to `sections.onpageSeo.actions` + 2 Footer-Notes ("Umsetzbar innerhalb einer Woche.", "Direkte Auswirkung auf Klickrate und Einordnung durch Google.").
+
+Vasileios-Smoke-Audit `m6-smoke.json` mit den exakten Texten der Referenz-PDF (11 findings, 5 actions, h2h6Frequency 3/12/0/0/18, SerpPreview Waschbär-Service-Snippet) — App-PDF rendert visuell sehr nah am Original (Status-Icons, Bar-Längen, Layout alles match nach 2 Korrekturen).
+
+### Gebaute Dateien
+
+```
+NEU:
+  src/lib/editor/blocks/FindingsTableBlockView.tsx   (3-Spalten-Tabelle mit Status-Icons in der letzten Spalte, bound to SectionFinding[])
+  data/audits/m6-smoke.json                          (Vasileios Page 5+6 Daten: Heading/Text/CostText/Findings 11/Actions 5/SerpPreview/h2h6Frequency)
+  data/audits/m6-smoke-empty-M6.json                 (Edge-Case: findings + actions geleert, fuer Crash-Test)
+
+MODIFIZIERT:
+  src/lib/editor/template-types.ts                   (FindingsTableBlock Type + Block-Union)
+  src/lib/editor/render-template.tsx                 (FindingsTableBlockView Dispatcher)
+  src/lib/editor/page-builders.ts                    (buildOnPageSeo1, buildOnPageSeo2, BUILDERS map)
+  src/lib/editor/asset-defaults.ts                   (DEFAULT_STATUS_ASSETS warning: "!" #f97316 → "⚠" #FBBF24)
+  src/lib/agent/chat-orchestrator.ts                 (Block-Type-Liste fuer System-Prompt erweitert um findingsTable)
+  data/templates/default.json                        (150 Blocks, +17 vs M5)
+  PLAN.md / PROGRESS.md
+```
+
+### Public Interfaces (Quick-Reference)
+
+```ts
+// template-types.ts — neuer Block
+type FindingsTableBlock = BlockBase & {
+  type: "findingsTable";
+  binding: Binding;                // → SectionFinding[]
+  problemFieldPath: string;        // "problem"
+  befundFieldPath: string;         // "befund"
+  statusFieldPath: string;         // "status" (CheckStatus)
+  problemColumnWidth: Mm;
+  statusColumnWidth: Mm;
+  headerStyle: TextStyle;
+  headerUnderlineColor: HexColor;  // BRAND_CYAN
+  headerUnderlineThickness: Mm;    // 0.4mm
+  headerPaddingBottom: Mm;
+  problemStyle: TextStyle;         // bold white
+  befundStyle: TextStyle;          // regular gray
+  rowDividerColor: HexColor;
+  rowVerticalPadding: Mm;
+  statusIconSize: Mm;              // ~5mm
+  statusPalette?: CheckStatusPalette;  // override default-Palette
+};
+
+// page-builders.ts — neue exports/internals
+function buildOnPageSeo1(): Block[]   // 11 Blocks: chrome 5 + headline + donut + 2x bound-text + sub-heading + findingsTable
+function buildOnPageSeo2(): Block[]   // 16 Blocks: chrome 5 + headline + cost-heading + cost-text + serpPreview + 2 cyan-sub-headings + barChart + actions-heading + arrowBulletList + 2 footer-notes
+
+// BUILDERS map updates:
+BUILDERS.onPageSeo1 = buildOnPageSeo1   // war CHROME_ONLY
+BUILDERS.onPageSeo2 = buildOnPageSeo2   // war CHROME_ONLY
+```
+
+Audit-Bindings: `sections.onpageSeo.findings` (`SectionFinding[]` = `{problem, befund, status: CheckStatus}`), `sections.onpageSeo.serpPreview.{url,title,description}`, `sections.onpageSeo.h2h6Frequency.{h2,h3,h4,h5,h6}`, `sections.onpageSeo.actions` (`ActionItem[]`).
+
+### Design-Entscheidungen
+
+- **Neuer `findingsTable` Block-Type statt Erweiterung von `comparisonTable` oder `checkList`**: Vasileios-Pattern (Pill-Header + 3 Spalten + Status-Icon rechts) wird in M6-M9 wiederholt — eigener Block-Type mit klarer Schema-Semantik (problemFieldPath/befundFieldPath/statusFieldPath) ist sauberer als `comparisonTable.columns[].kind="statusIcon"` Erweiterung. ListBlock kind="checkList" rendert nur 2 Spalten (title-detail vertikal + icon rechts) und passt nicht zu 3-Spalten-Layout.
+- **Header ohne Pill, mit cyan-Underline**: Vasileios Page 5 hat keine cyan Pills im Tabellen-Header (im Gegensatz zu Page 4 / comparisonTable). `findingsTable.headerUnderlineColor` + `headerUnderlineThickness` als Schema-Parameter, nicht hardcoded.
+- **Status-Icons aus globaler `assets.statuses` Palette**: `statusPalette` als optionales Override im Schema, default kommt aus `withAssetDefaults`. Wenn Vasileios eine Section mit anderen Icons haben will (z.B. "info"-blau für besondere Pages), kann das per Asset-Override gemacht werden ohne Schema-Änderung.
+- **`assets.statuses.warning` von `"!"` (orange Ausrufezeichen) auf `"⚠"` (yellow Triangle) geändert**: Vasileios-PDF nutzt durchgehend ⚠ für non-fatal warnings. Pre-existing default war fragwürdig (Severity ❗ wirkt wie Error, nicht Warning). Cross-section-Aenderung — wirkt sich auf alle pages aus die `findingsTable` oder `checkList` nutzen werden (M6-M9).
+- **`SerpPreview` reused (white-theme)**: Vasileios' SERP-Snippet ist dark-theme + Avatar-Logo. Existing Block hat white-theme + kein Logo. Akzeptierter Visual-Drift — der Block wird genau einmal in der gesamten 20-Seiten-Story gebraucht. Ein dark-theme-Variant Block würde >2 Std Implementation-Zeit kosten für 1× Use. Backlog-Eintrag wenn Vasileios nachfragt.
+- **`barChart.frame.h` 38→50mm + gap 5.5→6.5**: erste Iteration hatte H6-Bar abgeschnitten (frame zu eng für 5 rows + label-line-height). Durch Visual-Diff erkannt, second-pass fix.
+- **`arrowBulletList` itemGap 3.5→5.5, arrowGap 4→6**: PDF-Verifier-Subagent hat zu enges Spacing gegen Vasileios-Ref erkannt. Second-pass.
+- **Score-Donut-Color C+ ist cyan in der App vs rot in Vasileios**: `DEFAULT_GRADE_PALETTE` ist app-weit (cyan für C-Grade, orange für D, red für F). Vasileios benutzt eine eigene Palette wo C+ als rot gerendert wird. Akzeptierter Drift weil systemic-design-decision, nicht M6-bedingt. Wenn Vasileios die Palette ändern will: 1× Asset-Override über `templates[].assets.grades`.
+
+### Offene Tests / Bekannte Gaps
+
+- **Browser-Editor-E2E (verify-chrome-editor-e2e Skill)** für M6 nicht durchlaufen — `findingsTable` hat nur generische Inspector-Properties (frame/zIndex/locked/visible), Custom-Felder werden via direktem JSON-Edit oder via Agent geändert. M5 Persistenz war ausführlich getestet, Pattern identisch. Edge-Case Empty-Findings rendert sauber (Header-Row + cyan-Underline visible, keine Rows).
+- **Inspector hat keine spezifischen Felder für findingsTable** (Spalten-Breiten, Header-Underline-Color, Status-Palette-Override): generische Position+Z-Index Felder. Editieren der Texte und Status-Werte geht via Audit-JSON oder Agent. Pre-existing M5-Block-Gap (gleiche Begrenzung wie comparisonTable + pieChart) — nicht M6-bedingt.
+- **Status-Icon-Glyphen render-Pixel**: `⚠` ist als Unicode-Char gerendert, nicht als SVG-Asset. PDF-Output bei sehr kleinen Status-Icon-Größen (`statusIconSize < 4mm`) könnte hinky aussehen weil Browser das Symbol nach Font-Hinting rastert. Aktuell statusIconSize=5mm — gut sichtbar.
+
+### Gotchas
+
+- **`SectionFinding` vs `FindingCheck`**: Zwei sehr ähnliche Types in `types.ts`. `SectionFinding = {problem, befund, status}` (für Tabellen-Rows). `FindingCheck = {label, status, detail}` (für CheckListBlock). Vor M6 unklar, dass das zwei separate Patterns sind — `CheckListBlockView` rendert `FindingCheck`, `findingsTable` rendert `SectionFinding`. Future-M7-M9: gleiche Section-Schema-Convention nutzen, kein Switch zu `FindingCheck`.
+- **Score-Donut bbox-Vermessung wegen 50/50 Cyan-Red-Effekt**: Erste Pixel-Vermessung von Page 5 ergab asymmetrische Donut-bbox (w=23 vs h=37mm) weil ich red+cyan-Filter benutzt habe und der Donut-Track grau (=Hintergrund-near) war. Korrektur: NUR red-Filter benutzen für red-arc und Track separat erfassen. Bzw. eingebauter `gradePalette`-Ansatz macht das automatisch im Render.
+- **`pdftoppm -png` Flag**: einmal vergessen, hat PPM-Output produziert. Skill `/render-pdf-preview` setzt das automatisch. Lesson siehe M5.
+- **`PILL-HEADER` Detection in Page 5 fehl-negativ**: ich habe im Recon gesucht ob Page 5 cyan-pill-headers hat (wie Page 4 comparisonTable). Detection sagte "0 cyan-pixels" — korrekt: Page 5 hat KEINE Pills, nur cyan-Underline. Gut dass Detection das richtig gemeldet hat.
+
+### Wiederholte manuelle Aktionen / Reibungs-Vorschlaege
+
+**Gestolpert ueber:**
+
+- **M5-Skill `/seed-vasileios-audit M6` existiert noch nicht voll** — DATA-Dict im Skill-Python-Block ist nur fuer M5 ausgefuellt. Habe m6-smoke.json manuell via Python-Script gebaut. Wuerde ~10 Minuten brauchen den Skill um M6-Texte zu erweitern. Aktuell 1× wiederholt — ab M7 (Übernahme der Vasileios Texte für UX-Section) wird das wieder aufkommen. Skill jetzt erweitern oder bei M7 nachholen?
+
+**Echte neue Reibungspunkte:**
+
+1. **`assets.statuses` Glyph-Verwaltung**: bei jedem Section-Page (M6-M9) muss Status-Symbol gerendert werden. Aktuell hardcoded `"⚠"`/`"❌"`/`"✓"` in `asset-defaults.ts`. Wenn Vasileios später custom-Icons als PNG schickt (`assets.statuses.warning.imageSrc = "/assets/warn.png"`), wird der Block-View das automatisch rendern (existiert schon). Kein Aktionspunkt.
+
+2. **Visual-Diff `pdf-verifier` Subagent + 2-pass Fix-Loop ist effizient**: Erstes Render, Subagent findet 2-3 mm-Drifts, ich fixe in 2 Edits, re-render. Total ~3 Minuten pro Page-Builder. Pattern wird in M7-M11 wiederholbar. Keine neue Automation noetig — Skill `/visual-diff-against-vasileios` deckt das ab.
+
+3. **`barChart.frame.h` zu klein erkannt erst beim Render** — keine Compile-Time-Validierung. arrowBulletList shrinkt mit overflow-shrink, barChart aber clipped einfach. Würde `BarChartBlock.overflow: "clip" | "shrink"` ähnlich wie arrowBulletList Sinn machen für M10+ mit auto-fit. Backlog-Kandidat — aktuell 1× gestolpert.
+
 ## 2026-05-01: M5 Top 3 Risiken (Page 3) + Wo du sein könntest (Page 4)
 
 ### Was

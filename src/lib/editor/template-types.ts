@@ -270,6 +270,29 @@ export type PieChartBlock = BlockBase & {
   sliceLabelOffset: Mm;
 };
 
+// 3-Spalten-Tabelle mit Status-Icons in der letzten Spalte (Vasileios Page 5+).
+// Bound to SectionFinding[] ({problem, befund, status}).
+// Header: kein Pill, Text-Header mit Cyan-Underline.
+export type FindingsTableBlock = BlockBase & {
+  type: "findingsTable";
+  binding: Binding;
+  problemFieldPath: string; // "problem"
+  befundFieldPath: string; // "befund"
+  statusFieldPath: string; // "status"
+  problemColumnWidth: Mm;
+  statusColumnWidth: Mm;
+  headerStyle: TextStyle;
+  headerUnderlineColor: HexColor;
+  headerUnderlineThickness: Mm;
+  headerPaddingBottom: Mm;
+  problemStyle: TextStyle;
+  befundStyle: TextStyle;
+  rowDividerColor: HexColor;
+  rowVerticalPadding: Mm;
+  statusIconSize: Mm;
+  statusPalette?: CheckStatusPalette;
+};
+
 export type Block =
   | TextBlock
   | ImageBlock
@@ -285,7 +308,8 @@ export type Block =
   | SerpPreviewBlock
   | ArrowBulletListBlock
   | ComparisonTableBlock
-  | PieChartBlock;
+  | PieChartBlock
+  | FindingsTableBlock;
 
 export type BlockType = Block["type"];
 

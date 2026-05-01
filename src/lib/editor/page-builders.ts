@@ -689,6 +689,363 @@ function buildAltSentence(idx: number, yTop: Mm): Block[] {
   ];
 }
 
+// ---------- M6: On-Page SEO (Pages 5+6) ----------
+//
+// Vermessen aus docs/measurements/page-05.png + page-06.png:
+// PAGE 5 (buildOnPageSeo1):
+// - Headline "On-Page SEO Ergebnisse": y[40.86, 45.68], h ~5mm, ~22pt bold left-aligned
+// - Score-Donut: ring-bbox x[21, 58] y[51, 88], ~37mm Durchmesser, center ~ x37/y70
+// - Sub-Headline "Technisch vorhanden – aber nicht optimal genutzt": y[51.90, 54.82], right-side
+// - Diagnose body (3 lines): y[59, 78] right-side
+// - Sub-Heading "Was wir festgestellt haben": y[95.17, 98.72]
+// - Findings-Tabelle: Header y[106-109] (text only, kein Pill, mit cyan-underline);
+//   11 Rows mit Dividers bei y_mm 122.19 / 134.63 / 147.06 / 159.75 / 173.08 / 186.02 / 198.45 /
+//   211.14 / 224.47 / 237.15 / 250.35 (gap ~12.5mm, last row goes to ~263)
+// - Status-Icons rechts in x ~165-185mm: warning ⚠️ / fail ❌ / ok ✓
+//
+// PAGE 6 (buildOnPageSeo2):
+// - Headline (gleich wie 5): y[38.70, 43.52]
+// - Sub-Heading "Was das konkret kostet:": y[50.12, 53.67]
+// - Body text 4 lines: y[59.89, 78.42]
+// - SERP-Snippet card: x[21, 139] y[92, 132], h ~40mm, w ~120mm
+// - Sub-Heading "H2-H6-Header-Tag-Verwendung" / "Frequenz": y ~135 (cyan)
+// - Bar-Chart H2-H6: 5 rows, y ~143-180, lange cyan bar bei H6
+// - Sub-Heading "Was dagegen zu tun ist": y ~196
+// - ArrowBulletList: 5 items y ~204-265
+// - Footer "Umsetzbar innerhalb einer Woche.": y ~274
+// - Footer "Direkte Auswirkung auf Klickrate und Einordnung durch Google.": y ~280
+
+function buildOnPageSeo1(): Block[] {
+  return [
+    ...pageChrome(),
+    // Headline
+    {
+      id: "ops1-headline",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "On-Page SEO Ergebnisse",
+      frame: { x: 20, y: 36, w: 170, h: 10 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 22,
+        fontWeight: 800,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    // Score-Donut (links, grade-color comes from grade-Palette)
+    {
+      id: "ops1-score-donut",
+      type: "scoreCircle",
+      binding: { kind: "audit", path: "sections.onpageSeo.score" },
+      frame: { x: 17, y: 51, w: 37, h: 37 },
+      zIndex: 50,
+      size: 37,
+      strokeWidth: 5,
+      labelStyle: textStyle({
+        fontSize: 24,
+        fontWeight: 800,
+        color: "#ffffff",
+        textAlign: "center",
+        lineHeight: 1,
+      }),
+    },
+    // Right-side sub-headline (bound)
+    {
+      id: "ops1-section-heading",
+      type: "text",
+      binding: { kind: "audit", path: "sections.onpageSeo.heading" },
+      frame: { x: 65, y: 50, w: 130, h: 8 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 13,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.3,
+      }),
+    },
+    // Right-side diagnose body
+    {
+      id: "ops1-section-text",
+      type: "text",
+      binding: { kind: "audit", path: "sections.onpageSeo.text" },
+      frame: { x: 65, y: 58, w: 130, h: 28 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 10,
+        fontWeight: 400,
+        color: "#e6e6e6",
+        textAlign: "left",
+        lineHeight: 1.5,
+      }),
+    },
+    // Sub-Heading "Was wir festgestellt haben"
+    {
+      id: "ops1-findings-heading",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "Was wir festgestellt haben",
+      frame: { x: 20, y: 93, w: 170, h: 7 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 13,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    // Findings-Table (Problem | Befund | Status mit Status-Icons)
+    {
+      id: "ops1-findings-table",
+      type: "findingsTable",
+      binding: { kind: "audit", path: "sections.onpageSeo.findings" },
+      frame: { x: 20, y: 103, w: 170, h: 165 },
+      zIndex: 50,
+      problemFieldPath: "problem",
+      befundFieldPath: "befund",
+      statusFieldPath: "status",
+      problemColumnWidth: 50,
+      statusColumnWidth: 22,
+      headerStyle: textStyle({
+        fontSize: 11,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+      headerUnderlineColor: BRAND_CYAN,
+      headerUnderlineThickness: 0.4,
+      headerPaddingBottom: 2,
+      problemStyle: textStyle({
+        fontSize: 9.5,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.4,
+      }),
+      befundStyle: textStyle({
+        fontSize: 9.5,
+        fontWeight: 400,
+        color: "#cfcfcf",
+        textAlign: "left",
+        lineHeight: 1.4,
+      }),
+      rowDividerColor: "#444444",
+      rowVerticalPadding: 3,
+      statusIconSize: 5,
+    },
+  ];
+}
+
+function buildOnPageSeo2(): Block[] {
+  return [
+    ...pageChrome(),
+    // Headline (gleich Page 5)
+    {
+      id: "ops2-headline",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "On-Page SEO Ergebnisse",
+      frame: { x: 20, y: 36, w: 170, h: 10 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 22,
+        fontWeight: 800,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    // Sub-Heading "Was das konkret kostet:"
+    {
+      id: "ops2-cost-heading",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "Was das konkret kostet:",
+      frame: { x: 20, y: 48, w: 170, h: 7 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 14,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    // Cost body text
+    {
+      id: "ops2-cost-text",
+      type: "text",
+      binding: { kind: "audit", path: "sections.onpageSeo.costText" },
+      frame: { x: 20, y: 58, w: 175, h: 30 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 10.5,
+        fontWeight: 400,
+        color: "#e6e6e6",
+        textAlign: "left",
+        lineHeight: 1.5,
+      }),
+    },
+    // SERP-Snippet
+    {
+      id: "ops2-serp",
+      type: "serpPreview",
+      urlBinding: { kind: "audit", path: "sections.onpageSeo.serpPreview.url" },
+      titleBinding: { kind: "audit", path: "sections.onpageSeo.serpPreview.title" },
+      descriptionBinding: {
+        kind: "audit",
+        path: "sections.onpageSeo.serpPreview.description",
+      },
+      frame: { x: 20, y: 92, w: 120, h: 38 },
+      zIndex: 50,
+    },
+    // Sub-Heading "H2-H6-Header-Tag-Verwendung" (cyan)
+    {
+      id: "ops2-bar-heading",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "H2-H6-Header-Tag-Verwendung",
+      frame: { x: 20, y: 138, w: 100, h: 6 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 11,
+        fontWeight: 700,
+        color: BRAND_CYAN,
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    // Sub-Heading "Frequenz" (cyan)
+    {
+      id: "ops2-bar-freq-heading",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "Frequenz",
+      frame: { x: 100, y: 138, w: 50, h: 6 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 11,
+        fontWeight: 700,
+        color: BRAND_CYAN,
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    // Bar-Chart H2-H6
+    {
+      id: "ops2-bar-chart",
+      type: "barChart",
+      binding: { kind: "audit", path: "sections.onpageSeo.h2h6Frequency" },
+      items: [
+        { label: "H2", fieldPath: "h2" },
+        { label: "H3", fieldPath: "h3" },
+        { label: "H4", fieldPath: "h4" },
+        { label: "H5", fieldPath: "h5" },
+        { label: "H6", fieldPath: "h6" },
+      ],
+      barColor: BRAND_CYAN,
+      trackColor: "#2a2a2a",
+      labelStyle: textStyle({
+        fontSize: 10,
+        fontWeight: 400,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+      valueStyle: textStyle({
+        fontSize: 10,
+        fontWeight: 600,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+      frame: { x: 20, y: 145, w: 170, h: 50 },
+      zIndex: 50,
+      barHeight: 2.2,
+      gap: 6.5,
+    },
+    // Sub-Heading "Was dagegen zu tun ist"
+    {
+      id: "ops2-actions-heading",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "Was dagegen zu tun ist",
+      frame: { x: 20, y: 195, w: 170, h: 7 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 14,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    // Action-Items (Pfeil-Bullets)
+    {
+      id: "ops2-actions",
+      type: "arrowBulletList",
+      binding: { kind: "audit", path: "sections.onpageSeo.actions" },
+      frame: { x: 20, y: 204, w: 170, h: 68 },
+      zIndex: 50,
+      itemGap: 5.5,
+      arrowColor: BRAND_CYAN,
+      arrowSize: 5,
+      arrowGap: 6,
+      titleStyle: textStyle({
+        fontSize: 10.5,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.3,
+      }),
+      detailStyle: textStyle({
+        fontSize: 9.5,
+        fontWeight: 400,
+        color: "#cfcfcf",
+        textAlign: "left",
+        lineHeight: 1.4,
+      }),
+      overflow: "shrink",
+    },
+    // Footer note 1
+    {
+      id: "ops2-footer-note-1",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "Umsetzbar innerhalb einer Woche.",
+      frame: { x: 20, y: 273, w: 170, h: 5 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 10.5,
+        fontWeight: 400,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    // Footer note 2
+    {
+      id: "ops2-footer-note-2",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "Direkte Auswirkung auf Klickrate und Einordnung durch Google.",
+      frame: { x: 20, y: 279, w: 170, h: 5 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 10.5,
+        fontWeight: 400,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+  ];
+}
+
 // ---------- Page-Key registry ----------
 
 export type PageKey =
@@ -724,8 +1081,8 @@ export const BUILDERS: Record<PageKey, () => Block[]> = {
   gesamtsituation: buildGesamtsituation,
   topRisiken: buildTopRisks,
   woDuSeinKoenntest: buildWoDuSeinKoenntest,
-  onPageSeo1: CHROME_ONLY_BUILDER,
-  onPageSeo2: CHROME_ONLY_BUILDER,
+  onPageSeo1: buildOnPageSeo1,
+  onPageSeo2: buildOnPageSeo2,
   uxConversion1: CHROME_ONLY_BUILDER,
   uxConversion2: CHROME_ONLY_BUILDER,
   seitenstrukturContent1: CHROME_ONLY_BUILDER,

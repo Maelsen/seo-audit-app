@@ -24,6 +24,7 @@ import { SerpPreviewBlockView } from "./blocks/SerpPreviewBlockView";
 import { ArrowBulletListBlockView } from "./blocks/ArrowBulletListBlockView";
 import { ComparisonTableBlockView } from "./blocks/ComparisonTableBlockView";
 import { PieChartBlockView } from "./blocks/PieChartBlockView";
+import { FindingsTableBlockView } from "./blocks/FindingsTableBlockView";
 
 type Props = {
   template: Template;
@@ -108,6 +109,8 @@ export function BlockRenderer({ block, audit }: BlockProps): ReactElement | null
       return <ComparisonTableBlockView block={block} audit={audit} />;
     case "pieChart":
       return <PieChartBlockView block={block} audit={audit} />;
+    case "findingsTable":
+      return <FindingsTableBlockView block={block} audit={audit} />;
     default:
       return <PlaceholderView block={block} />;
   }
