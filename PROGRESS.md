@@ -2,6 +2,159 @@
 
 Was gebaut wurde, welche Vertraege/Typen entstanden, welche Gotchas auftraten.
 
+## 2026-05-01: M4 Cover + Gesamtsituation
+
+### Was
+
+Erste zwei echten Section-Pages aus Vasileios' 20-Seiten-Layout sind als Block-Builder implementiert:
+
+- **`buildCover()`** (Page 1): brandDecoration kind:"logo" Wortmarke (70x22mm, top-center) + Mega-Title "SEO-AUDIT" 64pt-bold mit Cyan-Glow textShadow + "für Ihre Website" Subline + computed-binding `domain` URL in cyan + image-Block fuer `screenshots.cover` (160x110mm zentriert) + 3-Spalten-Footer ("info@artisticavenue.de | www.artisticavenue.de | +49 (0) 179 3213 445") + Standard-Footer-Stripes.
+
+- **`buildGesamtsituation()`** (Page 2): pageChrome() + Headline "Gesamtsituation & Diagnose" 22pt-bold + audit-bound `diagnosisText` (10.5pt, lineHeight 1.5) + Sub-Headline "Audit-Ergebnisse für {domain}" 18pt-bold (2 Zeilen) + Big-ScoreCircle 52mm Diameter (overall-grade) + Right-side-Heading audit-bound `overallHeading` 13pt-bold + Right-Paragraph audit-bound `introText` 9.5pt + roter Empfehlungs-Button (50x8.5mm, fill #FF5757) mit Text "Empfehlungen: {audit.recommendations.length}" + 6 Sub-ScoreCircles 19mm Diameter im 4+2-Grid mit bold-Labels darunter.
+
+Der Seed-Pfad wurde umgebaut: das alte JS-Skript `seed-default-template.mjs` ist durch `seed-default-template.ts` ersetzt, das via tsx die `BUILDERS`-Map aus `page-builders.ts` aufruft. `default.json` hat jetzt 120 echte Blocks (zwei volle Pages + 18 Standard-Chrome-Pages) statt 20 leerer Shells.
+
+### Gebaute Dateien
+
+```
+NEU:
+  scripts/seed-default-template.ts            (TS-Variante, importiert BUILDERS aus page-builders.ts)
+
+MODIFIZIERT:
+  src/lib/editor/page-builders.ts             (buildCover, buildGesamtsituation, footerStripes Helper, RED_BUTTON konstante, BUILDERS map)
+  src/lib/editor/blocks/TextBlockView.tsx     (overflow:hidden — verhindert Text-Frame-Ueberlauf)
+  scripts/seed-default-template.mjs           (geloescht)
+  package.json                                (start:railway: node ...mjs → tsx ...ts)
+  PLAN.md                                     (M4 abgehakt + M4.1 Backlog)
+  PROGRESS.md                                 (dieser Eintrag)
+
+REGENERIERT:
+  data/templates/default.json                 (120 Blocks statt 20 leere Shells)
+```
+
+### Vertraege/Typen
+
+```ts
+// page-builders.ts (bestehende Exports + neue)
+export const RED_BUTTON = "#FF5757";
+
+// BUILDERS map: cover und gesamtsituation referenzieren jetzt echte Builder
+const BUILDERS: Record<PageKey, () => Block[]> = {
+  cover: buildCover,
+  gesamtsituation: buildGesamtsituation,
+  // ... rest CHROME_ONLY_BUILDER (M5+)
+};
+```
+
+Audit-Bindings die der Builder nutzt: `screenshots.cover` (image), `url` (computed:domain), `overallScore` (grade), `overallHeading` (string), `introText` (string), `diagnosisText` (string), `recommendations` (text-template `{audit.recommendations.length}`), `sections.{onpageSeo,uxConversion,seitenstrukturContent,lokalesSeo,leistung,links}.score` (grade).
+
+### Verifikation
+
+**Smoke + Compile:** `tsc --noEmit` clean, `npm run lint` clean (3 unrelated warnings aus M3-gen-Skript), `GET /api/health` 200, PDF rendert in 2-3s.
+
+**Layout-Drift gegen Vasileios** (pdf-verifier subagent gegen Pages 1+2 der Referenz):
+
+| Element | Status | Drift |
+|---|---|---|
+| Cover: Logo Pos+Size | ✓ | <1mm |
+| Cover: SEO-AUDIT Title + Cyan-Glow | ✓ | matched |
+| Cover: Subline + cyan domain | ✓ | <1mm |
+| Cover: 3-Spalten-Footer | ✓ | aligned |
+| Cover: Footer-Stripes | ✓ | identisch zu pageChrome |
+| Cover: **Monitor-Bezel** | ✗ | **fehlt** — derzeit Screenshot-Image mit borderRadius:4. M4.1 Backlog |
+| Gesamtsituation: pageChrome | ✓ | identisch zu Page 5 |
+| Gesamtsituation: Headline 22pt | ✓ | <1mm |
+| Gesamtsituation: Diagnose-Body | ✓ | layout-mässig |
+| Gesamtsituation: Sub-Headline 2-Zeilen | ✓ | matched |
+| Gesamtsituation: Big-Donut 52mm | ✓ | initial 60mm war zu gross — gefixt |
+| Gesamtsituation: Right-Side Block | ✓ | aligned mit Donut-Top |
+| Gesamtsituation: Empfehlungs-Button | ✓ | rot, recommendations.length funktioniert |
+| Gesamtsituation: 6 Sub-Donuts 19mm | ✓ | initial 17mm war zu klein — gefixt |
+| Gesamtsituation: Sub-Donut-Labels bold | ✓ | weight 600→700 nach Subagent-Diff |
+
+Echtes Test-Audit (`adc273ac...`, www.homeraum-immobilien.de) rendert mit Cover-Screenshot, allen 6 Sub-Donut-Grades, Empfehlungs-Counter "19", domain-binding aus URL.
+
+### Design-Entscheidungen
+
+- **Cover ohne Monitor-Bezel als M4-Scope** — der Bezel + Stand ist visuell hübsch aber asset-aufwendig (entweder PNG-Overlay oder eigener SVG-Block-Type). Aktueller Render mit borderRadius:4 wirkt sauber genug fuer einen ersten Vasileios-Run. M4.1-Backlog haelt es auf der Liste.
+- **3-Spalten-Footer hardcoded mit Vasileios' Kontaktdaten** — aktuell static text "info@artisticavenue.de", "www.artisticavenue.de", "+49 (0) 179 3213 445". Kein Audit-Binding noetig, weil das immer Vasileios' Brand-Footer ist (nicht audit-spezifisch).
+- **Empfehlungs-Counter via text-template `{audit.recommendations.length}`** — nutzt das existing `applyTextTemplate` aus `resolve-binding.ts` (regex `\{audit\.([^}]+)\}` resolved den Pfad). Kein neues binding-kind noetig. Funktioniert auch fuer beliebige zukuenftige Counter (z.B. `{audit.topRisks.length}`).
+- **`textStyle()` Helper als Default-Builder** — alle TextBlocks im Cover/Gesamtsituation gehen durch ein `textStyle({...overrides})`-Pattern. Konsistente Defaults (Poppins, weiss, lineHeight 1.5), per-block-overrides nur fuer das was abweicht. Reduziert Boilerplate ggue. M3.
+- **`footerStripes(idPrefix)` als shared Helper** — sowohl Cover als auch pageChrome rufen ihn auf. Das Cover hat eigenes Top-Layout (kein Logo TL, kein Header-Text TR), aber identische Footer-Stripes. Helper extrahiert nur die zwei Shape-Blocks, kein duplicate-Code zwischen den zwei Page-Variants.
+- **TextBlockView overflow:hidden** — bisheriger TextBlock erlaubte Text der ueber den Frame hinaus fliesst. Bei M4 sichtbar, weil Right-Paragraph (audit-bound `introText` ~5 Zeilen) ueber den Empfehlungs-Button fiel. Globaler Fix, hat keine sonstigen Konsequenzen — alle Text-Frames sollten ihre Bounds respektieren. Bei zu langen Inhalten sieht man jetzt Cutoff statt Visual-Bug.
+- **Sub-Donut-Diameter 19mm + Labels bold** — Subagent-Diff hat initial 17mm zu klein und Labels regular zu duenn gemeldet. Iteration auf 19mm + weight 700 matcht Vasileios' Gewicht.
+- **Big-Donut-Diameter 52mm (vorher 60mm)** — Subagent-Diff hat 60mm als ~10mm zu gross gemeldet. Auf 52mm korrigiert + strokeWidth 6→5.5 fuer proportionalere Linie.
+- **`scripts/seed-default-template.mjs` → `.ts`** — der alte JS-Seed konnte BUILDERS nicht aufrufen (Module-Mismatch zwischen ESM-mjs und TS-ESM-Imports). Umstellung auf tsx-Aufruf. `package.json` `start:railway` script entsprechend angepasst.
+
+### Gotchas
+
+- **Cover-Screenshot fehlt bei `m2-smoke` Audit** — `screenshots.cover` ist null bei Mock-Audits ohne Upload-Flow. Initial-Render zeigte leeren Frame. Workaround: gegen echtes Audit (`adc273ac...`) rendern, das hat Cover/Mobile/Tablet-Screenshots aus dem PageSpeed-Pipeline. Bei Vasileios-Production-Run wird es immer befuellt sein, weil der Upload-Flow Screenshots vor dem Save erzeugt.
+- **lange Domains im pageChrome-Header** — `chrome-url` Subline mit `für www.{domain}` wraps bei domains > 25 chars auf 2 Lines. fontSize auf 8pt reduziert (von 9pt), gibt etwas mehr Headroom. Bei sehr langen Domains > 30 chars trotzdem moeglich. Akzeptiert — ist M3-Edge-Case-Limitation.
+- **kein PageKey ↔ page-id Mapping vorher** — `seed-default-template.mjs` nutzte kebab-case page-ids ("top-risiken", "ux-conversion-1"), `BUILDERS`-Map nutzt camelCase PageKey ("topRisiken", "uxConversion1"). Der TS-Seed hat jetzt eine explizite `PAGES`-Liste mit `{id, key, name}` die mappt. Beim Adden neuer Pages immer in beide Maps schauen.
+- **textShadow als CSS-Property** — TextStyle hatte schon `textShadow?: string` als optionales Field, aber bisher ungenutzt. Glow-Effekt fuer Cover-Title via "0 0 8mm #38E1E1, 0 0 4mm #38E1E1, 0 0 2mm rgba(56,225,225,0.8)". CSS rendert in Chromium sauber. Fontsize-abhaengige Glow-Skalierung (z.B. relativ zu fontSize) waere robuster aber overkill fuer M4.
+- **`tsc-on-schema-edit` hook hat ausgeloest** beim Edit auf `template-types.ts` — clean, kein Schema-Bruch durch M4.
+
+### Public Interfaces (Quick-Reference)
+
+```ts
+import {
+  pageChrome,           // Standard-Chrome (logo + header-text + footer)
+  buildCover,           // M4 Page 1
+  buildGesamtsituation, // M4 Page 2
+  BUILDERS,             // Record<PageKey, () => Block[]>
+  PAGE_WIDTH_MM, PAGE_HEIGHT_MM, BRAND_CYAN, RED_BUTTON,
+} from "@/lib/editor/page-builders";
+
+// Run from a script:
+import { BUILDERS } from "@/lib/editor/page-builders";
+const blocks = BUILDERS["gesamtsituation"]();    // 32 Blocks fuer Page 2
+```
+
+### Editor-UX-Limitations (kein M4-Bug, dokumentiert)
+
+- **Block-Inspector hat keine Custom-UI fuer scoreCircle** — wenn Vasileios den Big-Donut oder Sub-Donut anklickt, sieht er nur das Default-Inspector-Panel (Frame, Layer, Duplizieren/Loeschen). Properties wie `size`, `strokeWidth`, `labelStyle.fontSize` muessen via JSON-Edit oder AI-Agent geaendert werden. Konsistent mit barChart/gauge/etc.
+- **Empfehlungs-Counter nutzt Template-Substitution, nicht echtes Binding** — `{audit.recommendations.length}` ist text-template, nicht im binding-catalog. Fuer Editor-User wirkt es wie "static text" — sie koennen `Empfehlungen:` editieren, aber wenn sie das `{audit.recommendations.length}` versehentlich ueberschreiben verschwindet die Zahl. Akzeptabel: AI-Agent kann es immer wiederherstellen.
+
+### Offene Tests / Bekannte Gaps
+
+- **Chrome-Editor E2E nicht durchgeklickt** fuer M4-Pages — `/verify-chrome-editor-e2e default` waere die naechste Stufe. Lokal hat tsc+lint+health+pdf-render alles gepasst, aber Block-Selektion + Inspector-Werte vs JSON-Werte + Save+Reload-Persistenz wurden nicht 1:1 verifiziert. Niedrige Risiko-Erwartung weil Block-Types alle aus M2/M3 stammen, nur die Frames+Bindings sind neu.
+- **Production-hinter-Auth nicht getestet** — gleiche Linie wie M1-M3. Bei naechstem Vasileios-Run mit Marlin zusammen.
+- **Visual-Diff nur gegen homeraum-immobilien.de** — andere Audit-Daten (kuerzere/laengere introText, andere Grades, missing screenshots.cover) nicht durchgespielt. Fallback-Verhalten beim missing Cover-Screenshot ist getestet (m2-smoke), zeigt leeren Frame. Bei Vasileios-Real-Audit immer gefuellt.
+- **Cover-Monitor-Bezel** — als M4.1 im Backlog. Aktueller Render funktioniert ohne, ist aber visuell duenner als Vasileios.
+
+### Wiederholte manuelle Aktionen / Friction-Points
+
+In M4 mehrfach gemacht:
+
+| Aktion | Wie oft | Pain |
+|---|---|---|
+| Python-Pixel-Vermessung von Vasileios PNGs (Logo-Bbox, Donut-Center, Sub-Donut-Cluster, Color-Sample) inkl. iterative Heuristik-Anpassung weil M3-Skill nicht alle M4-Element-Types abdeckt | 4x | mittel-hoch |
+| `npx tsx scripts/seed-default-template.ts && curl PDF + pdftoppm + Read PNG` Iteration nach jeder Builder-Anpassung | 6x | mittel |
+| pdf-verifier Subagent fuer App-vs-Vasileios-Diff aufrufen mit Punch-list-Prompt | 1x | mittel |
+| TextBlock-Frame-Overlap diagnostizieren (introText fliesst ueber Empfehlungs-Button) — manuelles Bild-Lesen + textStyle-Anpassung + Re-Render | 3x | niedrig-mittel |
+
+### Vorschlaege fuer Automatisierung (Quellen, nichts installiert)
+
+**1. Erweiterung des `/measure-vasileios-page`-Skills um neue Element-Types** — aktuell unterstuetzt logo, header-text, footer-stripe. Fuer M4 brauchten wir zusaetzlich: big-donut (cyan-arc center+radius), sub-donut-cluster (4-grid + 2-grid Detection mit Color-Identification), red-button-bbox, title-with-glow (Bbox + textShadow-detect). Erweiterung in `.claude/skills/measure-vasileios-page/SKILL.md`: `element` accepts `donut <colorHint>`, `button <colorHint>`, `title-glow`. Wuerde in M5-M13 jedes Mal ~3-5min sparen wenn neue komplexe Pages vermessen werden muessen.
+- Quelle: bestehender Skill + Python-PIL-Logik
+
+**2. Helper-Skript `scripts/render-and-diff.ts <auditId> <appPage> <refPage>`** — kombiniert Re-Seed + curl + pdftoppm + pdf-verifier-Subagent-Aufruf in einem CLI-Befehl. Aktuell 5 separate Tool-Calls in Sequenz, die alle "Re-Render und gegen Vasileios checken". Wuerde in M5-M13 nach jedem Builder-Update die Diff-Iteration in 30s liefern.
+- Wrapper um `scripts/diff-pdf-against-vasileios.ts` + Subagent-Aufruf. Kein neues Tool, nur ein internes Skript.
+
+**3. Skill `/build-page <pageKey>`** — Boilerplate-Generator fuer neue Page-Builders. Args: pageKey (z.B. "topRisiken"). Skill-Body: liest aktuelle BUILDERS map, schreibt `function build<PageKey>(): Block[] { return [...pageChrome(), /* TODO */]; }` und ersetzt CHROME_ONLY_BUILDER in BUILDERS map. Spart in M5-M13 das Boilerplate jedes Mal von Hand zu schreiben.
+- Quelle: [Claude Code Skills Doc](https://docs.claude.com/en/docs/claude-code/skills)
+
+**4. Hook `lint-on-builders-edit`** — analog zu `tsc-on-schema-edit`: PostToolUse-Hook der bei Edit auf `page-builders.ts` automatisch `npm run lint` ausfuehrt. Aktuell faengt der existing tsc-Hook bereits Type-Bruch ab, aber Lint-Issues (z.B. unused vars in Builder-Helpers) bleiben unbemerkt bis zum naechsten manuellen Lint-Run.
+- Quelle: bestehender Hook-Mechanismus + Erweiterung des existing Skripts
+
+**Empfehlung priorisiert:**
+
+a) **Erweiterung `/measure-vasileios-page` um donut-Detection** — heute war das der primary Friction-Point. Sub-Donuts mit Color-Cluster zu finden ist Boilerplate, der Skill kennt schon den PNG-Pfad und PX-zu-mm-Konversion.
+
+b) **`scripts/render-and-diff.ts`** — wraps die 5-Tool-Sequenz in einem Befehl. Zahlt sich in M5-M13 jeweils 1-2min pro Iteration aus.
+
+c) (3) und (4) sind nice-to-have aber niedrige Prio.
+
 ## 2026-04-30: M3 Page-Chrome (Header + Footer Helper)
 
 ### Was

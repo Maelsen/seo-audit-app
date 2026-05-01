@@ -23,6 +23,7 @@ export function TextBlockView({ block, audit }: Props): ReactElement {
         ...textStyleToCss(block.style),
         whiteSpace: "pre-wrap",
         wordBreak: "break-word",
+        overflow: "hidden",
       }}
     >
       {text}
