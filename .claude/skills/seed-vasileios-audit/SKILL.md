@@ -19,199 +19,55 @@ Format: `<auditId> [milestone]`.
 | Milestone | Daten enthalten | Quelle |
 |---|---|---|
 | M5 | `topRisks` (3), `comparison.altSentences` (3), `comparison.rows` (7) | Vasileios SEO AUDIT WASCHBÄR SERVICE.pdf, Pages 3-4 |
-| M6-M13 | TODO — Daten ergaenzen wenn der Milestone gebaut wird | dito |
+| M6 | `sections.onpageSeo.*` (heading/text/findings(11)/costText/actions(5)/serpPreview/h2h6Frequency) | Pages 5-6 |
+| M7 | `sections.uxConversion.*` (heading/text/findings(12)/costText/actions(6)/closingNote) | Pages 7-8 |
+| M8 | `sections.seitenstrukturContent.*` (heading/text/findings(8)/costText/actions(4)/closingNote) | Pages 9-10 |
+| M9-M13 | TODO — Daten ergaenzen wenn der Milestone gebaut wird | dito |
 
-Wenn ein nicht-implementierter Milestone angefragt wird: Skill warnt + ueberspringt, statt zu crashen.
+Wenn ein nicht-implementierter Milestone angefragt wird: Skript warnt + ueberspringt, statt zu crashen.
 
 ## Schritte
 
 ### 1. Voraussetzungen
 
 ```bash
-AUDIT_ID="$1"; MILESTONE="${2:-all}"
-test -n "$AUDIT_ID" || { echo "auditId fehlt"; exit 1; }
-case "$MILESTONE" in
-  M5|M6|M7|M8|M9|M10|M11|M12|M13|all) ;;
-  *) echo "milestone muss eines von M5-M13 oder all sein, war: $MILESTONE"; exit 1;;
-esac
-# Base-Audit laden — wir nehmen m2-smoke als Geruest (hat alle Section-Shells)
 test -f data/audits/m2-smoke.json || { echo "FEHLT: data/audits/m2-smoke.json"; exit 1; }
+test -f scripts/seed-vasileios-audit.ts || { echo "FEHLT: scripts/seed-vasileios-audit.ts"; exit 1; }
 ```
 
-### 2. Audit aus m2-smoke ableiten + Vasileios-Texte einkippen
+### 2. Skript aufrufen
 
 ```bash
-AUDIT_ID="$1" MILESTONE="${2:-all}" python3 <<'PY'
-import json, os, copy
-
-AID = os.environ["AUDIT_ID"]
-MS = os.environ["MILESTONE"]
-
-src = json.load(open("data/audits/m2-smoke.json"))
-a = copy.deepcopy(src)
-a["id"] = AID
-a["url"] = "https://www.waschbaer-service.de"
-a["projectName"] = "Waschbär Service"
-
-# Milestone-Daten
-DATA = {
-    "M5": {
-        "topRisks": [
-            {
-                "title": "Die Seite führt Besucher nicht – sie lässt sie treiben",
-                "description": "Wer auf eure Startseite kommt sieht zuerst einen Cookie-Banner der das halbe Display einnimmt, dann allgemeine Informationen – aber keinen klaren Grund anzurufen. Kein auffälliger Button, keine Telefonnummer im sichtbaren Bereich, keine Bewertungen beim ersten Eindruck. Der Traffic ist da. Die Anfragen bleiben aus."
-            },
-            {
-                "title": "Google vertraut deiner Seite kaum",
-                "description": "3 Backlinks von 2 Domains. Kein lokales Schema-Markup. Kein Identity-Schema. Google Reviews sind vorhanden aber werden nicht auf der Website eingebunden – nur ein externer Link führt zum GBP. Das bedeutet: Google sieht eine Seite ohne externe Bestätigung, ohne strukturierte Daten und ohne klares Autoritätssignal. In umkämpften Suchanfragen verlierst du damit gegen Wettbewerber die diese Basics gesetzt haben – unabhängig davon wie gut dein Service ist."
-            },
-            {
-                "title": "Dein Content ist überall, aber nirgendwo stark genug",
-                "description": "Stadtseiten existieren, aber sie sind reines Keyword-Stuffing ohne echten Mehrwert für den Leser. Die Dienstleistungsseiten haben keine Painpoints, keine konkreten Beispiele, kein spezifisches FAQ. Das gleiche FAQ steht auf jeder einzelnen Seite. Google erkennt Duplicate Content und stuft diese Seiten entsprechend niedrig ein. Du hast die Struktur, aber nicht die Substanz."
-            },
-        ],
-        "comparison": {
-            "heading": "Wo du heute stehst – wo du in 3 Monaten sein könntest",
-            "altSentences": [
-                {
-                    "aspect": "Statt einer Seite die Besucher treiben lässt",
-                    "vision": "Eine Hero-Section mit einer Kernbotschaft die einen Painpoint trifft – „Zuverlässige Gebäudereinigung in Warendorf – ohne Ausfälle, ohne Erklärungsaufwand, mit festem Ansprechpartner.\" Darunter direkt Social Proof und ein CTA der Verbindlichkeit schafft."
-                },
-                {
-                    "aspect": "Statt einer Seite der Google kaum vertraut",
-                    "vision": "Schema-Markup gesetzt, Reviews direkt auf der Startseite eingebunden, erste Backlinks aus lokalen Quellen aufgebaut. Google ordnet dich eindeutig ein und zeigt dich häufiger."
-                },
-                {
-                    "aspect": "Statt Stadtseiten die wie Keyword-Stuffing klingen",
-                    "vision": "Jede Stadtseite spricht ein konkretes Problem an, hat ein eigenes seitenspezifisches FAQ und gibt Google genug Substanz zum Ranken. Gleiches gilt für alle Dienstleistungsseiten."
-                },
-            ],
-            "rows": [
-                {"problem": "Nutzerführung Startseite",       "today": "Unklar, kein roter Faden", "future": "Klarer Funnel mit Ziel"},
-                {"problem": "Lokale Rankings",                "today": "Vereinzelt",               "future": "Stabil Top 5 in der Region"},
-                {"problem": "Domain-Autorität",               "today": "Minimal",                  "future": "Erste externe Signale"},
-                {"problem": "Content-Qualität Unterseiten",   "today": "Dünn & austauschbar",      "future": "Spezifisch & rankingfähig"},
-                {"problem": "Google Reviews sichtbar",        "today": "Nur externer Link",        "future": "Direkt auf der Startseite"},
-                {"problem": "Stadtseiten-Qualität",           "today": "Keyword-Stuffing",         "future": "Echte Landingpages"},
-                {"problem": "Mobile Ladezeit",                "today": "13 Sekunden",              "future": "Unter 3 Sekunden"},
-            ],
-        },
-    },
-    "M6": {
-        "sections": {
-            "onpageSeo": {
-                "score": "C+",
-                "heading": "Technisch vorhanden – aber nicht optimal genutzt",
-                "text": "Die Grundlagen stimmen: SSL, Sitemap, robots.txt und Canonical-Tags sind gesetzt. Das Problem liegt eine Ebene tiefer – Google kann deine Seite lesen, aber nicht richtig einordnen.",
-                "findings": [
-                    {"problem": "Title-Tag Länge",       "befund": "62 Zeichen – wird in Suchergebnissen abgeschnitten",                  "status": "warning"},
-                    {"problem": "H1-Tags",                "befund": "Auf 29 Seiten mehrfach vorhanden – sollte einzigartig sein",          "status": "warning"},
-                    {"problem": "Duplicate H1",           "befund": "17 Seiten mit identischen H1-Tags",                                   "status": "fail"},
-                    {"problem": "Keyword-Verteilung",     "befund": "Ziel-Keywords erscheinen zu selten in H2/H3",                         "status": "warning"},
-                    {"problem": "Identity-Schema",        "befund": "Fehlt komplett (Google kann Unternehmen nicht eindeutig zuordnen)",   "status": "fail"},
-                    {"problem": "Alt-Texte",              "befund": "1 von 12 Bildern ohne Alt-Text",                                      "status": "warning"},
-                    {"problem": "Wortanzahl Startseite",  "befund": "~420 Wörter – unter dem Minimum für rankingfähige Seiten",            "status": "warning"},
-                    {"problem": "SSL / HTTPS",            "befund": "Aktiv und korrekt weitergeleitet",                                    "status": "ok"},
-                    {"problem": "robots.txt",             "befund": "Vorhanden",                                                           "status": "ok"},
-                    {"problem": "Canonical-Tag",          "befund": "Korrekt gesetzt",                                                     "status": "ok"},
-                    {"problem": "Sitemap",                "befund": "Vorhanden und zugänglich",                                            "status": "ok"},
-                ],
-                "costText": "Dein Title-Tag wird in den Suchergebnissen abgeschnitten – potenzielle Kunden sehen nicht den vollständigen Namen deines Unternehmens. Auf 17 Seiten steht derselbe H1-Tag – Google weiß nicht welche Seite für welches Keyword relevant ist. Und ohne Identity-Schema kann kein KI-System dein Unternehmen zuverlässig empfehlen wenn jemand fragt „welcher Reinigungsdienst in (Region) ist gut?“",
-                "actions": [
-                    {"title": "Title-Tag auf maximal 60 Zeichen kürzen",                                            "detail": "Empfehlung: „Gebäudereinigung Warendorf – Waschbär Service“ (46 Zeichen)"},
-                    {"title": "Einzigartigen H1 für jede Seite setzen – Seitenthema klar benennen"},
-                    {"title": "Ziel-Keywords gezielt in H2 und H3 einbauen (gesunde Header Struktur bauen)",        "detail": "Beispiel Büroreinigung-Seite: Statt „Unsere Leistungen“ → „Büroreinigung Warendorf – was ist enthalten?“"},
-                    {"title": "Identity-Schema implementieren",                                                     "detail": "Damit Google und KI-Systeme dein Unternehmen eindeutig zuordnen"},
-                    {"title": "Alt-Text für fehlendes Bild nachtragen"},
-                ],
-                "serpPreview": {
-                    "title": "Waschbär Gebäudereinigung | Ihre Reinigungsfirma aus ...",
-                    "url": "https://waschbaer-service.de",
-                    "description": "Gebäudereinigung in Warendorf ✓ Top Service ✓ Sauberkeit für Gewerbe, Büro & Privat ✓ Ihre bärenstarke Reinigungsfirma. — Jetzt anfragen.",
-                },
-                "h2h6Frequency": {"h2": 3, "h3": 12, "h4": 0, "h5": 0, "h6": 18},
-            },
-        },
-    },
-    "M7": {
-        "sections": {
-            "uxConversion": {
-                "score": "C-",
-                "heading": "Die Seite hat gute Zutaten – aber kein Rezept",
-                "text": "Deine Website bietet eine solide Basis – doch ein Besucher entscheidet in den ersten 3 Sekunden ob er bleibt oder geht. Aktuell fehlt der rote Faden der diese Elemente in eine klare Anfrage verwandelt. Das Potenzial ist vorhanden – es wird nur noch nicht genutzt.",
-                "findings": [
-                    {"problem": "Hero-Section",                 "befund": "„Aus Liebe zur Reinheit\" löst keinen Painpoint – kein Grund direkt anzurufen",                  "status": "warning"},
-                    {"problem": "Wording & Positionierung",     "befund": "Beschreibt das Angebot statt Probleme zu lösen",                                                "status": "fail"},
-                    {"problem": "Nutzerführung",                "befund": "Gute Elemente vorhanden aber nicht in einen klaren Funnel eingebettet",                         "status": "fail"},
-                    {"problem": "Google Reviews",               "befund": "Vorhanden aber nur als externer Link – nicht auf der Seite sichtbar",                            "status": "fail"},
-                    {"problem": "Social Proof",                 "befund": "Kein Bewertungs-Widget, keine Kundenstimmen direkt sichtbar",                                    "status": "fail"},
-                    {"problem": "Text- & Button-Ausrichtung",   "befund": "Inkonsistent – wirkt unprofessionell auf Mobile & Desktop",                                      "status": "warning"},
-                    {"problem": "Leistungsseiten",              "befund": "Bilder vorhanden aber keine Beschreibung, keine Painpoints",                                     "status": "fail"},
-                    {"problem": "Prozessbeschreibung",          "befund": "Versteckt auf Unterseite – wertvoller USP den kaum jemand sieht",                                "status": "warning"},
-                    {"problem": "CTA",                          "befund": "Vorhanden aber generisch – „Kostenloses Angebot anfordern\" schafft keine Dringlichkeit",         "status": "warning"},
-                    {"problem": "FAQ",                          "befund": "Identisch auf jeder Seite – nicht seitenspezifisch",                                             "status": "fail"},
-                    {"problem": "Inhabervorstellung",           "befund": "Vorhanden – echter Vertrauensfaktor",                                                            "status": "ok"},
-                    {"problem": "Navigation",                   "befund": "Übersichtlich und klar strukturiert",                                                            "status": "ok"},
-                ],
-                "costText": "Ein Gewerbekunde der auf deiner Startseite landet sucht eine Antwort auf ein konkretes Problem – Reinigungskraft ausgefallen, neues Objekt übernommen, aktueller Anbieter unzuverlässig. Deine Seite sagt ihm nicht dass du genau dieses Problem löst. Sie beschreibt was du machst – aber nicht warum das für ihn relevant ist. Er scrollt, findet nichts das ihn abholt, und ruft beim nächsten an.",
-                "actions": [
-                    {"title": "Hero-Section mit Painpoint-Botschaft ersetzen",                              "detail": "„Aus Liebe zur Reinheit\" – Ihr bärenstarker Servicepartner — Empfehlung: „Zuverlässige Gebäudereinigung im Kreis Warendorf – fester Ansprechpartner, keine Ausfälle, Rückmeldung in 12 Stunden\""},
-                    {"title": "Google Reviews direkt auf der Startseite einbinden – nicht nur als Link"},
-                    {"title": "CTA konkretisieren",                                                          "detail": "Aktuell: „Kostenloses Angebot anfordern\" — Empfehlung: „Jetzt Termin vereinbaren – wir melden uns in 12 Stunden\""},
-                    {"title": "Prozessbeschreibung auf die Startseite holen",                                "detail": "Das ist ein echter Vertrauenshebel der aktuell versteckt ist"},
-                    {"title": "FAQ auf jeder Seite seitenspezifisch gestalten",                              "detail": "Büroreinigung-FAQ: „Wie oft sollte ein Büro gereinigt werden?\", Treppenhausreinigung-FAQ: „Wer ist für die Treppenhausreinigung zuständig – Mieter oder Vermieter?\""},
-                    {"title": "Text- und Button-Ausrichtung auf Mobile & Desktop vereinheitlichen"},
-                ],
-                "closingNote": "Die meisten dieser Änderungen sind redaktionell – kein technischer Aufwand, aber direkter Impact auf Anfragerate.",
-            },
-        },
-    },
-    # M8-M13: noch nicht erfasst. Pro Milestone hier ergaenzen wenn der Builder gebaut wird.
-}
-
-milestones = [MS] if MS != "all" else ["M5","M6","M7","M8","M9","M10","M11","M12","M13"]
-applied = []
-skipped = []
-for m in milestones:
-    if m not in DATA:
-        skipped.append(m)
-        continue
-    # Deep merge data into audit
-    def deep_merge(dst, src):
-        for k, v in src.items():
-            if isinstance(v, dict) and isinstance(dst.get(k), dict):
-                deep_merge(dst[k], v)
-            else:
-                dst[k] = v
-    deep_merge(a, DATA[m])
-    applied.append(m)
-
-out_path = f"data/audits/{AID}.json"
-json.dump(a, open(out_path, "w"), ensure_ascii=False, indent=2)
-print(f"Wrote {out_path}")
-print(f"Applied milestones: {', '.join(applied) if applied else '(none)'}")
-if skipped:
-    print(f"Skipped (no data yet): {', '.join(skipped)}")
-PY
+npx tsx scripts/seed-vasileios-audit.ts <auditId> [milestone]
 ```
 
-### 3. Smoke-Render
+Beispiel:
 
 ```bash
-AUDIT_ID="$1"
-curl -sS -o "/tmp/${AUDIT_ID}.pdf" \
-  "http://localhost:3000/api/generate-pdf?auditId=${AUDIT_ID}&templateId=default" \
+npx tsx scripts/seed-vasileios-audit.ts vasileios-m8 M8
+```
+
+Output:
+
+```
+Wrote /…/data/audits/vasileios-m8.json
+Applied milestones: M8
+```
+
+Bei `all` ohne implementierte M9-M13:
+
+```
+Wrote /…/data/audits/vasileios-full.json
+Applied milestones: M5, M6, M7, M8
+Skipped (no data yet): M9, M10, M11, M12, M13
+```
+
+### 3. Smoke-Render (optional)
+
+```bash
+curl -sS -o "/tmp/<auditId>.pdf" \
+  "http://localhost:3000/api/generate-pdf?auditId=<auditId>&templateId=default" \
   -w "PDF: HTTP %{http_code} %{size_download} bytes\n"
-```
-
-### 4. Output
-
-```
-seed-vasileios-audit:
-  output:    data/audits/vasileios-m5.json
-  applied:   M5
-  skipped:   (none)
-  smoke:     PDF 200, 1018 KB
 ```
 
 ## Wann nutzen
@@ -220,15 +76,18 @@ seed-vasileios-audit:
 - Wenn `/verify-feature` ein Audit mit Vasileios-Inhalten braucht (statt m2-smoke das zufaellige Texte hat)
 - Beim Page-Builder-Bau, sobald die Empty-Variante (`/seed-edge-case-audit`) durch ist und die Real-Daten-Variante getestet werden soll
 
-## Wie M6-M13 ergaenzt werden
+## Wie M9-M13 ergaenzt werden
 
 Wenn der naechste Milestone gebaut wird:
 
 1. Vasileios-Texte aus dem Quell-PDF (`docs/measurements/page-NN.png` visuell ablesen oder per `pdftotext` extrahieren)
-2. Im DATA-Dict im Python-Block oben einen neuen Key fuer den Milestone hinzufuegen
+2. In `scripts/seed-vasileios-audit.ts` im `DATA` Object einen neuen Key fuer den Milestone hinzufuegen
 3. Nested struktur entsprechend dem AuditData-Type halten (siehe `src/lib/types.ts`)
-4. Skill committen — beim naechsten Mal wird der Milestone aus `all` mit beruecksichtigt
+4. Skript-Aenderung committen — beim naechsten Mal wird der Milestone aus `all` mit beruecksichtigt
+5. Tabelle oben in dieser SKILL.md ebenfalls um eine Zeile ergaenzen
 
 ## Hinweis
 
-Der Skill nutzt m2-smoke als Geruest. Wenn m2-smoke geloescht wird oder schema-incompatible wird: Voraussetzung-Step schlaegt fehl mit klarer Meldung. Optional koennte stattdessen ein "blank scaffold" gebaut werden, aber m2-smoke hat alle Section-Shells und ist stabil seit M2.
+Das Skript nutzt `data/audits/m2-smoke.json` als Geruest. Wenn m2-smoke geloescht wird oder schema-incompatible wird: Voraussetzung-Step schlaegt fehl mit klarer Meldung. Optional koennte stattdessen ein "blank scaffold" gebaut werden, aber m2-smoke hat alle Section-Shells und ist stabil seit M2.
+
+Reibungspunkt vor dem Refactor (M8): Der Skill hatte einen Inline-Python-Block mit `AUDIT_ID="$1"` — der Skill-Args-Resolver loeste `$1` aber nicht zuverlaessig auf, sodass der Aufruf `vasileios-m8 M8` als `AUDIT_ID="M8"` ankam. Mit `process.argv` im TS-Skript ist das deterministisch.

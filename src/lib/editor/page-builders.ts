@@ -1281,6 +1281,272 @@ function buildUxConversion2(): Block[] {
   ];
 }
 
+// ---------- M8: Seitenstruktur & Content (Pages 9+10) ----------
+//
+// Vermessen aus docs/measurements/page-09.png + page-10.png:
+// PAGE 9 (buildSeitenstrukturContent1): exakter Spiegel von Page 5/7 — Score-Donut links,
+// gebundene Sub-Headline + Diagnose-Body rechts, "Was wir festgestellt haben" + findingsTable.
+// findingsTable hat 8 Rows (vs 12 in M7, 11 in M6) → Frame h=130 (kompakter, da unteres Page-Drittel
+// in Vasileios' Original leer bleibt).
+// PAGE 10 (buildSeitenstrukturContent2): Cost-Heading + costText + 3 Beispiel-Screenshot-Stubs
+// (2 oben side-by-side ~24mm, 1 cyan-Banner unten ~50mm) + arrowBulletList (4 Pfeil-Items) +
+// closingNote. Image-Slots als statische ImageBlocks ohne staticSrc → ImageBlockView rendert
+// dashed-cyan Placeholder. Vasileios kann später per Editor Pfade reinziehen.
+
+function buildSeitenstrukturContent1(): Block[] {
+  return [
+    ...pageChrome(),
+    {
+      id: "ssc1-headline",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "Seitenstruktur & Content",
+      frame: { x: 20, y: 36, w: 170, h: 10 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 22,
+        fontWeight: 800,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    {
+      id: "ssc1-score-donut",
+      type: "scoreCircle",
+      binding: { kind: "audit", path: "sections.seitenstrukturContent.score" },
+      frame: { x: 17, y: 51, w: 37, h: 37 },
+      zIndex: 50,
+      size: 37,
+      strokeWidth: 5,
+      labelStyle: textStyle({
+        fontSize: 24,
+        fontWeight: 800,
+        color: "#ffffff",
+        textAlign: "center",
+        lineHeight: 1,
+      }),
+    },
+    {
+      id: "ssc1-section-heading",
+      type: "text",
+      binding: { kind: "audit", path: "sections.seitenstrukturContent.heading" },
+      frame: { x: 65, y: 50, w: 130, h: 8 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 13,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.3,
+      }),
+    },
+    {
+      id: "ssc1-section-text",
+      type: "text",
+      binding: { kind: "audit", path: "sections.seitenstrukturContent.text" },
+      frame: { x: 65, y: 58, w: 130, h: 28 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 10,
+        fontWeight: 400,
+        color: "#e6e6e6",
+        textAlign: "left",
+        lineHeight: 1.5,
+      }),
+    },
+    {
+      id: "ssc1-findings-heading",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "Was wir festgestellt haben",
+      frame: { x: 20, y: 93, w: 170, h: 7 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 13,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    {
+      id: "ssc1-findings-table",
+      type: "findingsTable",
+      binding: { kind: "audit", path: "sections.seitenstrukturContent.findings" },
+      frame: { x: 20, y: 103, w: 170, h: 130 },
+      zIndex: 50,
+      problemFieldPath: "problem",
+      befundFieldPath: "befund",
+      statusFieldPath: "status",
+      problemColumnWidth: 50,
+      statusColumnWidth: 22,
+      headerStyle: textStyle({
+        fontSize: 11,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+      headerUnderlineColor: BRAND_CYAN,
+      headerUnderlineThickness: 0.4,
+      headerPaddingBottom: 2,
+      problemStyle: textStyle({
+        fontSize: 9.5,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.4,
+      }),
+      befundStyle: textStyle({
+        fontSize: 9.5,
+        fontWeight: 400,
+        color: "#cfcfcf",
+        textAlign: "left",
+        lineHeight: 1.4,
+      }),
+      rowDividerColor: "#444444",
+      rowVerticalPadding: 3,
+      statusIconSize: 5,
+    },
+  ];
+}
+
+function buildSeitenstrukturContent2(): Block[] {
+  return [
+    ...pageChrome(),
+    {
+      id: "ssc2-headline",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "Seitenstruktur & Content",
+      frame: { x: 20, y: 36, w: 170, h: 10 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 22,
+        fontWeight: 800,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    {
+      id: "ssc2-cost-heading",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "Was das konkret kostet:",
+      frame: { x: 20, y: 48, w: 170, h: 7 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 14,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    {
+      id: "ssc2-cost-text",
+      type: "text",
+      binding: { kind: "audit", path: "sections.seitenstrukturContent.costText" },
+      frame: { x: 20, y: 58, w: 175, h: 42 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 10.5,
+        fontWeight: 400,
+        color: "#e6e6e6",
+        textAlign: "left",
+        lineHeight: 1.5,
+      }),
+    },
+    // Image-Stub A (links, dark card "Typische Herausforderungen")
+    {
+      id: "ssc2-image-a",
+      type: "image",
+      binding: { kind: "static" },
+      frame: { x: 20, y: 104, w: 80, h: 24 },
+      zIndex: 50,
+      objectFit: "cover",
+      borderRadius: 1.5,
+    },
+    // Image-Stub B (rechts, Foto Reinigungskraft)
+    {
+      id: "ssc2-image-b",
+      type: "image",
+      binding: { kind: "static" },
+      frame: { x: 105, y: 104, w: 85, h: 24 },
+      zIndex: 50,
+      objectFit: "cover",
+      borderRadius: 1.5,
+    },
+    // Image-Stub C (cyan-Banner "Unser Serviceversprechen auf einen Blick")
+    {
+      id: "ssc2-image-c",
+      type: "image",
+      binding: { kind: "static" },
+      frame: { x: 20, y: 132, w: 170, h: 50 },
+      zIndex: 50,
+      objectFit: "cover",
+      borderRadius: 1.5,
+    },
+    {
+      id: "ssc2-actions-heading",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "Was dagegen zu tun ist",
+      frame: { x: 20, y: 187, w: 170, h: 7 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 14,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    {
+      id: "ssc2-actions",
+      type: "arrowBulletList",
+      binding: { kind: "audit", path: "sections.seitenstrukturContent.actions" },
+      frame: { x: 20, y: 196, w: 170, h: 75 },
+      zIndex: 50,
+      itemGap: 5,
+      arrowColor: BRAND_CYAN,
+      arrowSize: 5,
+      arrowGap: 6,
+      titleStyle: textStyle({
+        fontSize: 10.5,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.3,
+      }),
+      detailStyle: textStyle({
+        fontSize: 9.5,
+        fontWeight: 400,
+        color: "#cfcfcf",
+        textAlign: "left",
+        lineHeight: 1.4,
+      }),
+      overflow: "shrink",
+    },
+    {
+      id: "ssc2-closing-note",
+      type: "text",
+      binding: { kind: "audit", path: "sections.seitenstrukturContent.closingNote" },
+      frame: { x: 20, y: 275, w: 170, h: 12 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 10.5,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "center",
+        lineHeight: 1.4,
+      }),
+    },
+  ];
+}
+
 // ---------- Page-Key registry ----------
 
 export type PageKey =
@@ -1320,8 +1586,8 @@ export const BUILDERS: Record<PageKey, () => Block[]> = {
   onPageSeo2: buildOnPageSeo2,
   uxConversion1: buildUxConversion1,
   uxConversion2: buildUxConversion2,
-  seitenstrukturContent1: CHROME_ONLY_BUILDER,
-  seitenstrukturContent2: CHROME_ONLY_BUILDER,
+  seitenstrukturContent1: buildSeitenstrukturContent1,
+  seitenstrukturContent2: buildSeitenstrukturContent2,
   lokalesSeo1: CHROME_ONLY_BUILDER,
   lokalesSeo2: CHROME_ONLY_BUILDER,
   performance1: CHROME_ONLY_BUILDER,

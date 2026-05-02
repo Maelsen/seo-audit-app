@@ -1,6 +1,6 @@
 ---
 name: measure-vasileios-page
-description: Vermisst Elemente in Vasileios' Referenz-PDF-Pages (docs/measurements/page-NN.png) per Python+PIL und gibt mm-Bboxes + Hex-Colors aus. Wraps die wiederholte Pixel-Analyse-Sequenz aus M3. Args - pageNum [element] [yMin] [yMax]. element ist eines von logo, header-text, footer-stripe, text-rows, pills, dividers, cyan-region, all (Default all). yMin/yMax in mm grenzen Scan ein (nur fuer text-rows/pills/dividers/cyan-region).
+description: Vermisst Elemente in Vasileios' Referenz-PDF-Pages (docs/measurements/page-NN.png) per Python+PIL und gibt mm-Bboxes + Hex-Colors aus. Wraps die wiederholte Pixel-Analyse-Sequenz aus M3. Args - pageNum [element] [yMin] [yMax]. element ist eines von logo, header-text, footer-stripe, text-rows, pills, dividers, cyan-region, image-regions, all (Default all). yMin/yMax in mm grenzen Scan ein (nur fuer text-rows/pills/dividers/cyan-region/image-regions).
 ---
 
 # measure-vasileios-page
@@ -12,8 +12,8 @@ Vermisst Layout-Elemente in Vasileios' Referenz-PDF auf mm-genau, ohne dass man 
 Format: `<pageNum> [element] [yMin] [yMax]`.
 
 - `pageNum`: 1-20, mappt auf `docs/measurements/page-NN.png`
-- `element` (optional, Default `all`): `logo` | `header-text` | `footer-stripe` | `text-rows` | `pills` | `dividers` | `cyan-region` | `all`
-- `yMin`, `yMax`: optional in mm. Nur fuer `text-rows` | `pills` | `dividers` | `cyan-region` — grenzt den Scan-Bereich ein. Default ist Page-Mid-Range (35mm bis 285mm) damit Chrome ausgeblendet bleibt.
+- `element` (optional, Default `all`): `logo` | `header-text` | `footer-stripe` | `text-rows` | `pills` | `dividers` | `cyan-region` | `image-regions` | `all`
+- `yMin`, `yMax`: optional in mm. Nur fuer `text-rows` | `pills` | `dividers` | `cyan-region` | `image-regions` — grenzt den Scan-Bereich ein. Default ist Page-Mid-Range (35mm bis 285mm) damit Chrome ausgeblendet bleibt.
 
 Beispiele:
 - `5` → Standard-Chrome auf Page 5 (logo + header-text + footer-stripe)
@@ -22,6 +22,7 @@ Beispiele:
 - `4 dividers 165 285` → horizontale gray Row-Dividers im Tabellen-Bereich
 - `3 text-rows 65 230` → alle white-text-Rows im Body-Bereich (fuer Risk-Title/Body-Y-Positionen)
 - `4 cyan-region 285 297` → cyan Bereiche im Footer (Stripes-Detection als Cross-Check)
+- `10 image-regions 95 190` → Image-Slots auf Page 10 (zwei dunkle cards oben + cyan-Banner unten)
 
 ## Was wird vermessen
 
@@ -34,6 +35,7 @@ Beispiele:
 | `pills` | cyan-density-Scan (R<150, G>180, B>180) per col-group im yMin/yMax-Bereich | je Pill: x-Range + y-Range in mm + Color-Sample |
 | `dividers` | horizontale gray-line-Detection (R==G==B, 50<R<180, >800px wide) | y-Position pro Divider in mm |
 | `cyan-region` | cyan-density (R<100, G>200, B>200) per row im yMin/yMax | y-Range jeder Cyan-Region + height + Color-Sample |
+| `image-regions` | dark-card-Detection: rechteckige Bereiche mit konsistentem mid-luma-Background (50<R+G+B/3<150, low color-variance) und scharfer Kanten-Abgrenzung gegen page-bg (<60). Erkennt nebeneinanderliegende Image-Slots wie auf Page 10 (zwei dark cards links/rechts + cyan-Banner unten). | je Region: x-Range + y-Range + w/h in mm + bg-Color-Sample |
 | `all` | alle Standard-Chrome (logo + header-text + footer-stripe) | kombinierter Output, kein Custom-Layout |
 
 Alle Werte in mm bei A4 (1mm = 7.874px @ 200dpi). Page-Width 210mm, Height 297mm.
@@ -49,7 +51,7 @@ test -f "$PNG" || { echo "FEHLT: $PNG"; exit 1; }
 python3 -c "from PIL import Image" 2>/dev/null || { echo "Python-PIL fehlt"; exit 1; }
 # numpy nur fuer Custom-Layout-Elements noetig
 case "$ELEMENT" in
-  text-rows|pills|dividers|cyan-region)
+  text-rows|pills|dividers|cyan-region|image-regions)
     python3 -c "import numpy" 2>/dev/null || { echo "FEHLT numpy: pip install numpy"; exit 1; }
     ;;
 esac
@@ -320,6 +322,79 @@ def measure_cyan_region():
         })
     return out
 
+def measure_image_regions():
+    """Detect rectangular dark-card / image-slot regions: contiguous areas
+    where the average luminance is mid-gray (clearly above page-bg ~46) but
+    not full white, and the bbox aspect-ratio is rectangle-like.
+
+    Heuristik:
+      1. Build mask of pixels with bg_threshold < lum < highlight_threshold
+         (i.e. neither page-bg nor pure-white text).
+      2. Within yMin/yMax band, compute per-row x-extent of mask.
+      3. Group consecutive rows where mask-density > min_width_px into bands.
+      4. Per band, find horizontal x-runs at the band-mid-y (split into
+         multiple side-by-side regions if there are gaps > 30px).
+      5. Output bbox per region in mm + bg-color sample.
+    """
+    import numpy as np
+    arr = np.array(img)
+    y0 = max(0, from_mm(Y_MIN_MM))
+    y1 = min(H, from_mm(Y_MAX_MM))
+    region = arr[y0:y1, :, :]
+    lum = region.mean(axis=2)
+    # mask of non-bg pixels (image-card content): excludes page-bg AND pure
+    # white text. Vasileios' page-bg ist ~38 luma, dark cards beginnen bei ~50.
+    mask = (lum > 49) & (lum < 220)
+    row_density = mask.sum(axis=1)
+    # band-detection: rows where >=200px of mask present (substantial card)
+    bands = []
+    in_run, start = False, None
+    for i, d in enumerate(row_density):
+        if d > 200:
+            if not in_run: start, in_run = i, True
+        else:
+            if in_run:
+                bands.append((start, i - 1))
+                in_run = False
+    if in_run:
+        bands.append((start, len(row_density) - 1))
+    # Filter very thin bands (< ~5mm)
+    min_band_h_px = from_mm(5)
+    bands = [(s, e) for (s, e) in bands if (e - s) >= min_band_h_px]
+    out = []
+    for (s, e) in bands:
+        # Find horizontal x-runs at mid-y of band
+        mid_y = (s + e) // 2
+        cols = np.where(mask[mid_y])[0]
+        if len(cols) == 0:
+            continue
+        # Split into runs separated by gaps > 30px
+        groups = np.split(cols, np.where(np.diff(cols) > 30)[0] + 1)
+        for g in groups:
+            if len(g) < from_mm(15):  # ignore < 15mm wide
+                continue
+            x_min, x_max = int(g[0]), int(g[-1])
+            # Refine y-range per region: scan a column inside the region
+            x_sample = (x_min + x_max) // 2
+            col_mask = mask[:, x_sample]
+            col_ys = np.where(col_mask)[0]
+            # Restrict to ys within current band ± a bit
+            within = [y for y in col_ys if s - 5 <= y <= e + 5]
+            if not within:
+                y_min_local, y_max_local = s, e
+            else:
+                y_min_local, y_max_local = min(within), max(within)
+            # bg color sample
+            r, g_, b_ = px[x_sample, y0 + (y_min_local + y_max_local) // 2]
+            out.append({
+                "x_mm": (to_mm(x_min), to_mm(x_max)),
+                "y_mm": (to_mm(y0 + y_min_local), to_mm(y0 + y_max_local)),
+                "w_mm": to_mm(x_max - x_min + 1),
+                "h_mm": to_mm(y_max_local - y_min_local + 1),
+                "bg_color": f"#{r:02x}{g_:02x}{b_:02x}",
+            })
+    return out
+
 def fmt(v):
     if isinstance(v, tuple):
         if v[0] is None: return "(none)"
@@ -405,6 +480,15 @@ if ELEMENT == "cyan-region":
         print("  no cyan regions found")
     for i, r in enumerate(rs):
         print(f"  region {i+1}: y[{r['y_mm'][0]:.2f}, {r['y_mm'][1]:.2f}] h={r['h_mm']:.2f}mm color={r['color_sample']}")
+    print()
+
+if ELEMENT == "image-regions":
+    rs = measure_image_regions()
+    print(f"IMAGE-REGIONS (y_mm {Y_MIN_MM:.0f}-{Y_MAX_MM:.0f}):")
+    if not rs:
+        print("  no image-card regions found")
+    for i, r in enumerate(rs):
+        print(f"  region {i+1}: x[{r['x_mm'][0]:.2f}, {r['x_mm'][1]:.2f}] y[{r['y_mm'][0]:.2f}, {r['y_mm'][1]:.2f}] w={r['w_mm']:.2f}mm h={r['h_mm']:.2f}mm bg={r['bg_color']}")
     print()
 PY
 ```

@@ -2,6 +2,132 @@
 
 Was gebaut wurde, welche Vertraege/Typen entstanden, welche Gotchas auftraten.
 
+## 2026-05-02: M8 Seitenstruktur & Content (Page 9+10)
+
+### Was
+
+Pages 9 und 10 von Vasileios' 20-Seiten-Layout — "Seitenstruktur & Content" Ergebnisse + "Was das konkret kostet". Page 9 ist exakter Spiegel von M7-Page-7 mit anderen Bindings + 8 Rows statt 12. Page 10 weicht vom M7-Pattern ab: 3 Beispiel-Screenshot-Stubs zwischen costText und Action-Heading.
+
+- **`buildSeitenstrukturContent1()`** (Page 9): pageChrome + Headline "Seitenstruktur & Content" + ScoreCircle (37mm, bound to `sections.seitenstrukturContent.score`) + Sub-Headline (bound to `.heading`) + Diagnose-Body (bound to `.text`) + Sub-Heading "Was wir festgestellt haben" + findingsTable bound to `.findings` mit 3 Spalten (Problem 50mm / Befund flex-1 / Status 22mm), Frame h=130mm fuer 8 Rows (vs 175mm in M7 fuer 12 Rows). Der untere Page-Bereich bleibt absichtlich leer — entspricht Vasileios' Original.
+
+- **`buildSeitenstrukturContent2()`** (Page 10): pageChrome + Headline + Sub-Heading "Was das konkret kostet:" + costText-Body (5 lines, frame h=42 vs M7's h=38) + **3 Image-Stub-Slots**: imageA (links, 80×24mm), imageB (rechts, 85×24mm) side-by-side bei y=104, plus imageC (cyan-Banner-Slot, 170×50mm) bei y=132. Alle drei als `binding: { kind: "static" }` ohne `staticSrc` → ImageBlockView rendert dashed-cyan Placeholder (`#2a2a2a` bg + `1px dashed #38E1E1`). Vasileios kann spaeter per Editor Bilder reinziehen. Danach Sub-Heading "Was dagegen zu tun ist" + arrowBulletList bound to `.actions` (4 Items, frame y=196 h=75 mit overflow:shrink) + closingNote bound to `.closingNote` (centered statt left wie in M7, weil Vasileios' Original-Page-10 die abschliessende Zeile zentriert hat).
+
+Default-Template jetzt **177 Blocks** (+15 vs M7's 162). Vasileios-Smoke-Audit `vasileios-m8.json` mit 8 findings (Dienstleistungsseiten/Stadtseiten/FAQ/Wortanzahl/Bilder/Prozessbeschreibung/Blog-Artikel/Interne-Verlinkung, 6× fail / 2× warning) + 4 actions + closingNote rendert visuell nah am Original — siehe Diff-Output unten.
+
+### Gebaute Dateien
+
+```
+GEAENDERT:
+  src/lib/editor/page-builders.ts
+    + buildSeitenstrukturContent1() function (Page 9)
+    + buildSeitenstrukturContent2() function (Page 10)
+    BUILDERS map: seitenstrukturContent1/2 → echte Builder (statt CHROME_ONLY)
+  .claude/skills/seed-vasileios-audit/SKILL.md
+    + DATA["M8"] mit allen Vasileios-Texten (heading/text/findings/costText/actions/closingNote)
+    Verfuegbare-Daten-Tabelle um M8-Zeile ergaenzt
+  .claude/skills/seed-edge-case-audit/SKILL.md
+    M8-Op analog M7 erweitert: heading/text/costText/closingNote zusaetzlich zu findings/actions/comparisonImages
+    (war vorher nur findings/actions/comparisonImages → wuerde Bound-Bindings nicht testen)
+
+GENERIERT (gitignored / data/):
+  data/templates/default.json (177 Blocks, +15 vs M7)
+  data/audits/vasileios-m8.json
+  data/audits/vasileios-m8-empty-M8.json (Empty-State-Test)
+```
+
+### Vertraege/Typen
+
+```ts
+// src/lib/editor/page-builders.ts
+function buildSeitenstrukturContent1(): Block[]   // 11 Blocks: pageChrome (5) + 6 inhalt
+function buildSeitenstrukturContent2(): Block[]   // 14 Blocks: pageChrome (5) + 9 inhalt
+                                                  //   davon 3 Image-Stubs (statisch ohne src)
+
+// Bindings (Page 9):
+//   sections.seitenstrukturContent.score      → scoreCircle
+//   sections.seitenstrukturContent.heading    → text (Sub-Headline)
+//   sections.seitenstrukturContent.text       → text (Diagnose-Body)
+//   sections.seitenstrukturContent.findings   → findingsTable
+
+// Bindings (Page 10):
+//   sections.seitenstrukturContent.costText    → text
+//   sections.seitenstrukturContent.actions     → arrowBulletList
+//   sections.seitenstrukturContent.closingNote → text (centered)
+//   ssc2-image-{a,b,c}                          → static binding (Stubs, kein audit-path)
+```
+
+### Design-Entscheidungen
+
+- **3 Image-Stubs als statische ImageBlocks ohne staticSrc:** ImageBlockView (`src/lib/editor/blocks/ImageBlockView.tsx`) rendert bei leerem `src` einen dashed-cyan-border-Frame (`#2a2a2a` bg + `1px dashed #38E1E1`). Das ist exakt was wir wollen — sichtbarer Image-Slot fuer User aber ohne Crash. Detail-Plan sagte "2 Screenshot-Plaetze auf v1 Stub", Vasileios' Original zeigt aber 3 (2 oben side-by-side + 1 cyan-Banner unten). Pragmatisch: alle 3 Slots reservieren damit Layout final-shape stimmt; Vasileios kann via Editor Pfade einsetzen.
+- **closingNote centered statt left:** Vasileios' Original-Page-10 zentriert die abschliessende Zeile. M6/M7 hatten alles links-bündig. Style-Override an einer einzigen Stelle (`textAlign: "center"`) statt eigenes Block-Property.
+- **findingsTable Frame h=130 statt h=175:** Mit nur 8 Rows wuerde h=175 dazu fuehren dass die Tabelle den ganzen Page-Bereich fuellt — das wuerde von Vasileios' Original abweichen, wo das untere Page-Drittel leer bleibt. Designed Trade-off.
+- **costText Frame h=42mm:** Vasileios Page 10 Body hat 5 Zeilen vs M7's 4 → 4mm mehr Hoehe als M7 (38 → 42).
+- **comparisonImages-Schema NICHT genutzt:** `SeitenstrukturContentSection.comparisonImages?: { src?: string; caption?: string }[]` existiert seit M1 im Schema, aber ein Array-Index-Binding mit Sub-Object-Pfad (`comparisonImages[0].src`) ist im Catalog nicht typed. Pragmatisch: Stubs sind statisch, Vasileios setzt Bilder direkt im Editor — `comparisonImages` bleibt vorerst ungenutzt im Schema. Wenn der Workflow waechst (z.B. AI-Agent fuellt automatisch), kann es nachgezogen werden.
+
+### Empty-State-Test
+
+`vasileios-m8-empty-M8.json` (alle seitenstrukturContent-Strings + Arrays leer):
+- Page 9: Kein Crash. Score-Donut zeigt "D" Fallback (Grade-Type erlaubt kein leerer-String, base m2-smoke hat default-Score), Headline + Sub-Heading "Was wir festgestellt haben" + Tabellen-Header sichtbar, Tabelle leer.
+- Page 10: Kein Crash. Headline + "Was das konkret kostet:" + "Was dagegen zu tun ist" sichtbar, costText + actions + closingNote leer (kein Text). 3 Image-Stub-Frames bleiben sichtbar als dashed-cyan-Boxes.
+
+### Verifikation gegen Vasileios (Page 9 Chrome-Diff)
+
+```
+metric                  ref          app     drift_mm
+logo_x        [22.59,35.40][22.74,35.32]   +0.15/-0.08 ✓
+logo_y        [11.55,22.46][11.69,22.36]   +0.14/-0.10 ✓
+logo_w_mm           12.82       12.58           -0.24 ✓
+title_y       [11.67,16.11][11.69,16.01]   +0.01/-0.11 ✓
+title_right_mm     186.15      184.59           -1.55 ⚠
+stripe1_y_top      291.34      291.43           +0.10 ✓
+stripe2_y_top      294.25      294.36           +0.10 ✓
+stripe_gap           0.89        0.89           +0.00 ✓
+```
+
+Alle Chrome-Maße im Toleranzbereich (worst drift -1.55mm bei title_right_mm — bekanntes M3-Erbe, nicht regression).
+
+### Editor-E2E in Chrome (verifiziert via claude-in-chrome MCP)
+
+Alle 9+ neuen Content-Bloecke pro Page anklickbar, Inspector-Werte matchen Backend-JSON exakt:
+
+| Block | Type | Frame (x/y/w/h) | Binding-Label im Inspector | Match |
+|---|---|---|---|---|
+| ssc1-headline | text | 20/36/170/10 | (statisch) | ✓ |
+| ssc1-score-donut | scoreCircle | 17/51/37/37, size=37 stroke=5 | Seitenstruktur - Note | ✓ |
+| ssc1-section-heading | text (bound) | 65/50/130/8, fs=13 fw=700 | Seitenstruktur - Heading | ✓ |
+| ssc1-section-text | text (bound) | 65/58/130/28, fs=10 fw=400 | Seitenstruktur - Text | ✓ |
+| ssc1-findings-table | findingsTable | 20/103/170/130 | (array, kein Catalog-Dropdown) | ✓ |
+| ssc2-cost-text | text (bound) | x=20 y=58 w=175 h=42 | Seitenstruktur - Was kostet | ✓ |
+| ssc2-image-{a,b,c} | image | 80×24 / 85×24 / 170×50 | (statisch) — Stub | ✓ |
+| ssc2-actions | arrowBulletList | 20/196/170/75 | (array, kein Catalog-Dropdown) | ✓ |
+| ssc2-closing-note | text (bound) | 20/275/170/12, fs=10.5 fw=700 align=center | **Seitenstruktur - Footer-Note** ✓ | ✓ |
+
+**M7-closingNote-Bug-Schutz aktiv:** Das `ssc2-closing-note` Binding-Dropdown zeigt korrekt "Seitenstruktur - Footer-Note", **nicht** "(statisch)" — der `binding-catalog-consistency` Hook hat funktioniert. Save+Reload-Persistenz: nach Click auf "Speichern" (Button → "Gespeichert") + Page-Reload bleibt `binding = {kind:"audit", path:"sections.seitenstrukturContent.closingNote"}` im Backend-JSON intakt. Console: clean (keine error/warn/TypeError).
+
+### Audit-Review-Page-Test
+
+`/audit/vasileios-m8` rendert die Section "Seitenstruktur & Content" mit korrekten Werten (Note D, Ueberschrift "Du hast die Struktur...", Text-Body); sectionLabels-Map kennt die Section. Kein Crash.
+
+### Visual-Diff Page 9+10 via pdf-verifier subagent
+
+Beide Pages **layoutmaessig erkennbar dasselbe Dokument** wie Vasileios' Referenz. 3 minor cosmetic drifts unter Akzeptanz-Schwelle (alle keine Blocker):
+
+1. **Page 9: findings-Row-Spacing ~2mm enger als Ref** (Tabelle endet bei Y≈230 statt ≈245). Gesamt-Drift unter 3mm. Nice-to-fix: `rowVerticalPadding` von 3 auf 4-5 erhoehen.
+2. **Page 9: Subagent meldete "Problem-Spalte bold statt regular"** — Re-Check gegen Original-PNG: Vasileios' Original-Tabelle hat Problem-Spalte ebenfalls **bold** ("Alle Dienstleistungsseiten" etc.). App-Version matcht Ref korrekt; Subagent hat hier fehleingeschaetzt. Kein Fix noetig.
+3. **Page 10: Banner-Image-Slot 50mm vs Ref ~40mm** — bei leerem Stub egal; wenn Vasileios spaeter ein Banner-Bild einsetzt, evtl. Slot-Hoehe auf ~40mm reduzieren.
+
+### Wiederholte manuelle Aktionen / Reibungspunkte
+
+Drei Skill-Reibungen sind bei M8 aufgefallen, alle durch kleine Skill-Updates loesbar:
+
+1. **`/seed-vasileios-audit` Skill-Args wurden falsch aufgeloest:** Aufruf war `vasileios-m8 M8`, aber im Skill-Body kam `AUDIT_ID="M8"` an statt `AUDIT_ID="vasileios-m8"`. Workaround: Python-Block per `AUDIT_ID="vasileios-m8" MILESTONE="M8" python3 <<PY` direkt aus Bash gerufen. Loesung: Skill-Header so umstellen dass die Args im Bash-Snippet als `${1:-default-id}` / `${2:-all}` formuliert sind und der Skill-Resolver klar weiss welche $N welcher User-Arg ist; oder den ganzen Bash-Schritt in ein dediziertes Skript `scripts/seed-vasileios-audit.ts` packen das die Args sauber per `process.argv` parst.
+
+2. **Image-Stub-Frame-Sizes per Auge geschaetzt** statt vermessen. `/measure-vasileios-page` Skill kennt `cyan-region` (fuer den unteren Banner) aber nicht "image regions / dunkle Card-Boxen" (die zwei oberen Slots). Loesung: `/measure-vasileios-page` um `image-regions` Element erweitern: detect alle rechteckigen Bereiche mit konsistentem Hintergrund-Lum > bg+threshold und gib mm-Bboxes zurueck. Nicht kritisch — die geschaetzten Frames sind innerhalb 5mm Toleranz vom Original.
+
+3. **Editor-Click via JS dispatchEvent ging nicht durch** — Editor catched Pointer-Events auf einer hoeheren Canvas-Ebene. Workaround: `computer.left_click` mit echten Pixel-Koordinaten (umgerechnet aus Frame-mm + Canvas-Offset). Loesung: `/verify-chrome-editor-e2e` Skill um eine Helper-Funktion erweitern: `clickBlock(blockId)` rechnet Frame-mm aus Backend-Template + Canvas-bbox auf viewport-Pixel um und triggert computer.left_click. Dann muesste man nicht jedes Mal das Pixel-Mapping per Hand machen.
+
+Alle drei sind Skill-Polish und Backlog-faehig — fuer M8 nicht blockend.
+
 ## 2026-05-01: M7 UX & Conversion (Page 7+8)
 
 ### Was

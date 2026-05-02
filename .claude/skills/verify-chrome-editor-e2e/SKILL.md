@@ -68,31 +68,68 @@ Erster Sanity-Check aus dem Screenshot:
 
 ### 3. Pro Block: anklicken + Inspector lesen
 
-Fuer jeden Block aus Schritt 1 (gleiche Page):
+**Robuster Pfad: clickBlock-Helper** — dispatchEvent oder synthetic clicks gehen am Editor-Pointer-Layer vorbei. Stabil ist nur `computer.left_click` mit echten Pixel-Koordinaten. Der Helper unten liest aus dem DOM die Viewport-Pixel-Mitte des Block-Frames + scrollt ihn in den View und gibt `{x, y}` zurueck — die du dann an `computer.left_click` reichst:
 
-a) Block-ID mit `find` lokalisieren:
-
-```
-mcp__claude-in-chrome__find query="block with id ${BLOCK_ID}" tabId=...
-```
-
-Falls `find` nichts findet: Block ist evtl nicht in den Click-Layer; dann via `read_page filter=interactive` die Block-Overlays auflisten und passende ref-id raussuchen, oder via Coordinates aus dem Screenshot klicken.
-
-b) Block-Center-Click:
-
-```
-mcp__claude-in-chrome__computer action=left_click ref="${BLOCK_REF}" tabId=...
-```
-
-(Alternativ: per Koordinaten — Frame.x + w/2 in mm umrechnen auf Canvas-Pixel via mm/px-Verhaeltnis. Canvas ist typisch ~210mm bei ~750px breit. Aber `find` ist robuster.)
-
-c) Inspector-Werte lesen:
-
-```
-mcp__claude-in-chrome__read_page filter=interactive tabId=...
+```javascript
+// In claude-in-chrome javascript_tool ausfuehren — gibt JSON {ok, x, y, page, frame_mm}
+((blockId) => {
+  const el = document.querySelector(`[data-block-id="${blockId}"]`);
+  if (!el) return JSON.stringify({ok: false, reason: "block not in DOM (wrong page?)"});
+  // Scroll into view falls noetig (block evtl unter dem Fold)
+  el.scrollIntoView({block: "center", inline: "center", behavior: "instant"});
+  const r = el.getBoundingClientRect();
+  // Wenn Block 0-size hat (degenerate frame), als Fehler melden
+  if (r.width < 2 || r.height < 2) return JSON.stringify({ok: false, reason: `degenerate frame ${r.width}x${r.height}`});
+  return JSON.stringify({
+    ok: true,
+    x: Math.round(r.left + r.width / 2),
+    y: Math.round(r.top + r.height / 2),
+    width: Math.round(r.width),
+    height: Math.round(r.height),
+  });
+})("ssc1-section-heading")
 ```
 
-Suche im Output nach Inputs mit values fuer X, Y, W, H, z-Index, type-label, id-label. Vergleiche gegen Erwartung aus Schritt 1.
+Dann `computer.left_click` an diesen Pixel-Koordinaten:
+
+```
+mcp__claude-in-chrome__computer action=left_click coordinate=[x, y] tabId=...
+```
+
+Per `browser_batch` kannst du den javascript_tool Read + den Click in einem Round-Trip machen (Helper liefert Koords, Click nutzt sie als Vorgabe). Wenn `block not in DOM` zurueckkommt: erst die richtige Page in der Sidebar selektieren (Click auf Page-Button), dann erneut Helper aufrufen.
+
+**Alternative `find`-Pfad (wenn der Block-Type sichtbaren Text hat):**
+
+```
+mcp__claude-in-chrome__find query="text containing 'Seitenstruktur & Content'" tabId=...
+mcp__claude-in-chrome__computer action=left_click ref="${REF}" tabId=...
+```
+
+`find` ist gut fuer Buttons / Headlines mit eindeutigem Text. Fuer leere Frames (Image-Stubs, gebundene Bloecke ohne sichtbaren Text) braucht es den clickBlock-Helper.
+
+c) Inspector-Werte lesen — schnell per JS aus dem rechten Panel:
+
+```javascript
+new Promise(r => setTimeout(r, 250)).then(() => {
+  const p = Array.from(document.querySelectorAll('div')).find(
+    d => d.offsetWidth > 280 && d.offsetWidth < 350 && d.offsetHeight > 400
+         && (d.innerText || '').includes('POSITION')
+  );
+  if (!p) return JSON.stringify({ok: false, reason: "inspector not visible"});
+  const txt = p.innerText || '';
+  // "<type> · <blockId>" header — z.B. "text · ssc1-section-heading"
+  const blockMatch = txt.match(/(\w+) · ([\w-]+)/);
+  // Selected option pro <select> (font, weight, align, binding-label)
+  const selects = Array.from(p.querySelectorAll('select')).map(
+    s => s.options[s.selectedIndex]?.textContent
+  );
+  return JSON.stringify({ok: true, blockHeader: blockMatch?.[0], selects});
+})
+```
+
+Output-Beispiel: `{"ok":true,"blockHeader":"text · ssc1-section-heading","selects":["Poppins","700","left","Seitenstruktur - Heading"]}`. Vergleiche gegen Erwartung aus Schritt 1.
+
+**Kritisch fuer Binding-Pruefung:** Der LETZTE Eintrag in `selects` ist das Binding-Label. Falls dort `(statisch)` steht obwohl der Builder ein audit-Binding setzt, ist es der M7-closingNote-Bug — Catalog-Eintrag fehlt in `binding-catalog.ts`. Der `binding-catalog-consistency` PostToolUse-Hook faengt das normalerweise schon zur Edit-Time, aber dieser E2E-Check ist die zweite Verteidigungslinie.
 
 d) Block-spezifische Felder:
 - `text`: TEXT-Field mit staticText, fontSize, fontWeight, color, textAlign, lineHeight
