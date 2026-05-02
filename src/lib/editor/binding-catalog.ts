@@ -59,6 +59,8 @@ export const BINDING_CATALOG: BindingEntry[] = [
   { path: "sections.lokalesSeo.findings", label: "Lokales SEO - Findings (Tabelle)", type: "array" },
   { path: "sections.lokalesSeo.actions", label: "Lokales SEO - Aktionen", type: "array" },
   { path: "sections.lokalesSeo.closingNote", label: "Lokales SEO - Footer-Note", type: "string" },
+  { path: "sections.lokalesSeo.schemaMarkupImage", label: "Lokales SEO - Schema-Markup-Bild", type: "image" },
+  { path: "sections.lokalesSeo.schemaMarkupCaption", label: "Lokales SEO - Schema-Markup-Caption", type: "string" },
 
   // Performance & Technisches (intern: leistung)
   { path: "sections.leistung.score", label: "Performance - Note", type: "grade" },

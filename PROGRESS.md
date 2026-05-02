@@ -2,6 +2,108 @@
 
 Was gebaut wurde, welche Vertraege/Typen entstanden, welche Gotchas auftraten.
 
+## 2026-05-02: M9 Lokales SEO (Page 11+12)
+
+### Was
+
+Pages 11 und 12 — "Lokales SEO" Ergebnisse + "Was das konkret kostet". Page 11 ist exakter Spiegel von M8 Page 9 (gleicher findingsTable-Frame h=130 fuer 8 Rows). Page 12 weicht vom M8-Pattern ab: KEINE Image-Stub-Slots oberhalb der Actions, dafuer am Page-Ende ein **bound** Schema-Markup-Image (90×60mm) + italic Caption rechts daneben.
+
+- **`buildLokalesSeo1()`** (Page 11): pageChrome + Headline "Lokales SEO" + ScoreCircle 37mm bound to `sections.lokalesSeo.score` + Sub-Headline bound to `.heading` + Diagnose-Body bound to `.text` + "Was wir festgestellt haben" + findingsTable bound to `.findings` (Frame h=130, 8 Rows, problem/befund/status mit Status-Icons fail/warning/ok).
+
+- **`buildLokalesSeo2()`** (Page 12): pageChrome + Headline + "Was das konkret kostet:" + costText bound to `.costText` (Frame h=50, 6 Zeilen) + "Was dagegen zu tun ist" + arrowBulletList bound to `.actions` (5 Pfeil-Items, overflow:shrink) + closingNote bound to `.closingNote` (centered, 2 Zeilen) + Schema-Markup-Image bound to `.schemaMarkupImage` (Frame x=20 y=228 w=90 h=60, objectFit:contain) + Caption bound to `.schemaMarkupCaption` (italic 10pt, x=115 y=235 w=75 h=8).
+
+Default-Template jetzt **191 Blocks** (+14 vs M8). Vasileios-Smoke-Audit `vasileios-m9.json` mit 8 Findings (3× fail / 2× warning / 3× ok), 5 Actions, ausfuehrlicher costText, centered closingNote und schemaMarkupCaption.
+
+### Gebaute Dateien
+
+```
+GEAENDERT:
+  src/lib/editor/page-builders.ts
+    + buildLokalesSeo1() Function (Page 11)
+    + buildLokalesSeo2() Function (Page 12)
+    BUILDERS map: lokalesSeo1/2 → echte Builder (statt CHROME_ONLY)
+  src/lib/editor/binding-catalog.ts
+    + sections.lokalesSeo.schemaMarkupImage (type: image)
+    + sections.lokalesSeo.schemaMarkupCaption (type: string)
+  scripts/seed-vasileios-audit.ts
+    + DATA["M9"] mit Vasileios-Texten (heading/text/findings/costText/actions/closingNote/schemaMarkupCaption)
+  .claude/skills/seed-edge-case-audit/SKILL.md
+    M9-Op vollstaendig (heading/text/costText/closingNote + schemaMarkupImage/Caption) — vorher nur findings/actions/schemaMarkupImage
+
+GENERIERT (gitignored / data/):
+  data/templates/default.json (191 Blocks, +14 vs M8)
+  data/audits/vasileios-m9.json
+  data/audits/vasileios-m9-empty-M9.json (Empty-State-Test)
+```
+
+### Vertraege/Typen
+
+```ts
+// src/lib/editor/page-builders.ts
+function buildLokalesSeo1(): Block[]   // 11 Blocks: pageChrome (5) + 6 inhalt
+function buildLokalesSeo2(): Block[]   // 13 Blocks: pageChrome (5) + 8 inhalt (2 davon image+caption)
+
+// Bindings (Page 11):
+//   sections.lokalesSeo.score      → scoreCircle
+//   sections.lokalesSeo.heading    → text (Sub-Headline)
+//   sections.lokalesSeo.text       → text (Diagnose-Body)
+//   sections.lokalesSeo.findings   → findingsTable
+
+// Bindings (Page 12):
+//   sections.lokalesSeo.costText           → text
+//   sections.lokalesSeo.actions            → arrowBulletList
+//   sections.lokalesSeo.closingNote        → text (centered)
+//   sections.lokalesSeo.schemaMarkupImage  → image (objectFit:contain)
+//   sections.lokalesSeo.schemaMarkupCaption → text (italic)
+```
+
+### Design-Entscheidungen
+
+- **Schema-Markup-Image als bound ImageBlock statt 3 statische Stubs (M8-Pattern):** Schema (`LokalesSeoSection.schemaMarkupImage?: string` + `.schemaMarkupCaption?: string`) existiert seit M1 — also direkt nutzen statt mit `binding: { kind: "static" }` zu arbeiten. ImageBlockView rendert dashed-cyan Placeholder bei leerem `src` automatisch, also weder Crash noch eigene Stub-Logik noetig. Vasileios kann via Editor-Inspector den Pfad zur Schema-Markup-Code-Screenshot setzen.
+- **Image-Frame 90×60mm + objectFit:contain (statt cover wie in M8):** Code-Block-Screenshot ist meist ein hochformatiges Bild mit fixem Aspect-Ratio — `cover` wuerde croppen, `contain` zentriert es im Frame.
+- **Caption italic 10pt, rechts vom Image positioniert:** Vasileios' Original zeigt "So sieht ein Schema-Markup aus" leicht rechts neben dem Image, etwa auf 1/3-Hoehe des Bildes ausgerichtet. Frame y=235 (Image y=228, also 7mm offset) trifft das ungefaehr.
+- **closingNote 2-zeilig centered:** Layout zeigt 2 vollstaendige Zeilen Text — Frame h=12 und lineHeight 1.4 reichen.
+- **costText Frame h=50 (vs M7's h=38, M8's h=42):** Vasileios Page 12 Body hat 6 Zeilen — mehr als die anderen Cost-Pages.
+
+### Empty-State-Test
+
+`vasileios-m9-empty-M9.json` (alle lokalesSeo-Strings + Arrays leer, schemaMarkupImage="", schemaMarkupCaption=""):
+- Page 11: Kein Crash. Score-Donut zeigt "C" Fallback (base m2-smoke hat default-Score), Headline + "Was wir festgestellt haben" + Tabellen-Header (Problem/Befund/Status mit cyan underline) sichtbar, Tabelle leer.
+- Page 12: Kein Crash. Headline + "Was das konkret kostet:" + "Was dagegen zu tun ist" sichtbar, costText/actions/closingNote/Caption leer (kein Text). Schema-Markup-Image-Frame bleibt sichtbar als dashed-cyan Box (90×60mm).
+
+### Verifikation gegen Vasileios (Chrome-Diff)
+
+Page 11 + Page 12 — beide Pages, identisches Chrome-Drift-Profil:
+```
+metric                  ref          app     drift_mm
+logo_x        [22.59,35.40][22.74,35.32]   +0.15/-0.08 ✓
+logo_y        [11.55,22.46][11.69,22.36]   +0.14/-0.10 ✓
+logo_w_mm           12.82       12.58           -0.24 ✓
+title_y       [11.67,16.11][11.69,16.01]   +0.01/-0.11 ✓
+title_right_mm     186.15      184.59           -1.55 ⚠
+stripe1_y_top      291.34      291.43           +0.10 ✓
+stripe2_y_top      294.25      294.36           +0.10 ✓
+stripe_gap           0.89        0.89           +0.00 ✓
+```
+
+Alle Chrome-Maße im Toleranzbereich (worst -1.55mm bei title_right_mm — bekanntes M3-Erbe, nicht regression).
+
+### Visuelle Page-11-Inspektion
+
+Layout-Shape, Spaltenbreiten und Status-Icons matchen Vasileios' Original. Score-Donut-Outline-Color in der App ist cyan (Brand-Default), in Vasileios' Original lila — das ist die Grade-Asset-Farbzuordnung fuer "C" und nicht Builder-relevant. Falls Vasileios die Farbzuordnung anpasst, geschieht das ueber `data/templates/default.json → assets.grades.C.color`, nicht im Page-Builder.
+
+### Visuelle Page-12-Inspektion
+
+Reihenfolge cost → actions → closingNote → image+caption matcht Vasileios Page 12 exakt. Image-Stub am unteren Page-Drittel ist 90×60mm dashed-cyan-Placeholder bis Vasileios den Schema-Markup-Code-Screenshot via Editor-Inspector einfuegt. Caption "So sieht ein Schema-Markup aus" italic, korrekt rechts neben dem Image.
+
+### binding-catalog-consistency Hook
+
+Nach Edit auf `page-builders.ts` clean: alle 8 audit-Pfade in den 2 Buildern (score, heading, text, findings, costText, actions, closingNote, schemaMarkupImage, schemaMarkupCaption) sind jetzt im Catalog. Kein silent persistence-killer wie M7's closingNote-Bug.
+
+### Reibungspunkte
+
+Keine neuen — die 3 in M8 dokumentierten Skill-Polish-Punkte (Args-Resolver fuer seed-vasileios-audit, image-regions Vermessung, clickBlock Helper) sind in M8 selbst geloest worden und in M9 nicht mehr aufgetreten. seed-vasileios-audit lief deterministisch via `process.argv`.
+
 ## 2026-05-02: M8 Seitenstruktur & Content (Page 9+10)
 
 ### Was

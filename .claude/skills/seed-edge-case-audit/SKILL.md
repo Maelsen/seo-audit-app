@@ -24,7 +24,7 @@ Output-Audit wird unter `data/audits/<baseAuditId>-empty-<milestone>.json` gespe
 | M6 | `sections.onpageSeo.findings=[]`, `sections.onpageSeo.actions=[]` |
 | M7 | `sections.uxConversion.findings=[]`, `sections.uxConversion.actions=[]`, `sections.uxConversion.heading=""`, `sections.uxConversion.text=""`, `sections.uxConversion.costText=""`, `sections.uxConversion.closingNote=""` |
 | M8 | `sections.seitenstrukturContent.findings=[]`, `sections.seitenstrukturContent.actions=[]`, `sections.seitenstrukturContent.comparisonImages=[]`, `sections.seitenstrukturContent.heading=""`, `sections.seitenstrukturContent.text=""`, `sections.seitenstrukturContent.costText=""`, `sections.seitenstrukturContent.closingNote=""` |
-| M9 | `sections.lokalesSeo.findings=[]`, `sections.lokalesSeo.actions=[]`, `sections.lokalesSeo.schemaMarkupImage=""` |
+| M9 | `sections.lokalesSeo.findings=[]`, `sections.lokalesSeo.actions=[]`, `sections.lokalesSeo.heading=""`, `sections.lokalesSeo.text=""`, `sections.lokalesSeo.costText=""`, `sections.lokalesSeo.closingNote=""`, `sections.lokalesSeo.schemaMarkupImage=""`, `sections.lokalesSeo.schemaMarkupCaption=""` |
 | M10 | `sections.leistung.findings=[]`, `sections.leistung.actions=[]`, `sections.leistung.resourceCounts={html:0,js:0,css:0,img:0,other:0,total:0}`, `sections.leistung.pageSizeBreakdown={html:0,js:0,css:0,img:0,other:0}`, numerische Felder auf 0 |
 | M11 | `sections.links.findings=[]`, `sections.links.actions=[]`, alle numerischen Links-Felder auf 0 |
 | M12 | `phasenplan.phase1.entries=[]`, `phasenplan.phase2.entries=[]`, `phasenplan.phase3.entries=[]` |
@@ -83,7 +83,9 @@ ops = {
         "heading": "", "text": "", "costText": "", "closingNote": "",
     }),
     "M9":  lambda a: a["sections"]["lokalesSeo"].update({
-        "findings": [], "actions": [], "schemaMarkupImage": ""
+        "findings": [], "actions": [],
+        "heading": "", "text": "", "costText": "", "closingNote": "",
+        "schemaMarkupImage": "", "schemaMarkupCaption": "",
     }),
     "M10": lambda a: a["sections"]["leistung"].update({
         "findings": [], "actions": [],

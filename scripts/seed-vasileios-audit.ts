@@ -171,7 +171,37 @@ const DATA: Partial<Record<Milestone, DataPatch>> = {
       },
     },
   },
-  // M9-M13: noch nicht erfasst. Pro Milestone hier ergaenzen wenn der Builder gebaut wird.
+  M9: {
+    sections: {
+      lokalesSeo: {
+        score: "C",
+        heading: "Für Warendorf bereits sichtbar – im Umland noch viel Potenzial",
+        text: "Für „Gebäudereinigung Warendorf\" rankst du bereits auf Platz 2 – das ist eine starke Ausgangsbasis. Der nächste Hebel liegt im Kreis Warendorf: Münster, Telgte, Sassenberg, Ahlen. Genau dort suchen Gewerbetreibende und Hausverwaltungen – und dort bist du aktuell kaum sichtbar.",
+        findings: [
+          { problem: "Lokales Schema-Markup", befund: "Fehlt komplett – stärkstes Signal für lokale Suche", status: "fail" },
+          { problem: "Identity-Schema", befund: "Fehlt – Google kann Unternehmen nicht eindeutig zuordnen", status: "fail" },
+          { problem: "Google Reviews auf Website", befund: "Nur externer Link – keine direkte Einbindung", status: "fail" },
+          { problem: "Stadtseiten Qualität", befund: "Vorhanden aber zu dünn für echte Rankings im Umland", status: "warning" },
+          { problem: "Google Business-Profil", befund: "Vorhanden und verknüpft", status: "ok" },
+          { problem: "NAP-Daten", befund: "Name, Adresse, Telefon konsistent", status: "ok" },
+          { problem: "HWK-Mitgliedschaft", befund: "Vorhanden – wird aber nicht prominent kommuniziert", status: "warning" },
+          { problem: "Regionale Keywords", befund: "In Title-Tag und Meta-Description vorhanden", status: "ok" },
+        ],
+        costText:
+          "Platz 2 für Warendorf ist gut – aber Warendorf hat 38.000 Einwohner. Münster hat 320.000. Telgte, Sassenberg und Ahlen zusammen nochmal gut 80.000. Wer in diesen Städten nach einem Reinigungsdienst sucht findet dich aktuell kaum – obwohl du dort aktiv arbeitest und das Einzugsgebiet auf der Website steht. Ohne lokales Schema-Markup und ohne ausgearbeitete Stadtseiten verschenkst du den größten Wachstumshebel den du hast.",
+        actions: [
+          { title: "Lokales Schema-Markup implementieren – stärkstes technisches Signal für Google Maps" },
+          { title: "Google Reviews direkt auf der Startseite einbinden", detail: "Nicht als Link – als sichtbares Widget mit Sternebewertung" },
+          { title: "HWK-Mitgliedschaft prominent auf der Startseite platzieren", detail: "Das ist ein Vertrauenssignal das Wettbewerber ohne Mitgliedschaft nicht haben" },
+          { title: "Stadtseiten für Münster, Telgte und Sassenberg inhaltlich ausbauen", detail: "Diese drei haben das höchste Suchvolumen im Einzugsgebiet" },
+          { title: "Google Business-Profil mit allen Leistungen, Fotos und Posts befüllen" },
+        ],
+        closingNote: "Schema-Markup und Reviews sind in einem Tag umsetzbar. Stadtseiten-Ausbau ist der größte langfristige Hebel für Wachstum außerhalb von Warendorf.",
+        schemaMarkupCaption: "So sieht ein Schema-Markup aus",
+      },
+    },
+  },
+  // M10-M13: noch nicht erfasst. Pro Milestone hier ergaenzen wenn der Builder gebaut wird.
 };
 
 const ALL_MILESTONES: Milestone[] = ["M5", "M6", "M7", "M8", "M9", "M10", "M11", "M12", "M13"];
