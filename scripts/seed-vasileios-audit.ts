@@ -311,7 +311,45 @@ const DATA: Partial<Record<Milestone, DataPatch>> = {
       afterPhase3: "Nach Phase 3: Erste Rankings für Umland-Keywords, messbar mehr organischer Traffic, Domain-Autorität wächst kontinuierlich.",
     },
   },
-  // M13: noch nicht erfasst. Pro Milestone hier ergaenzen wenn der Builder gebaut wird.
+  M13: {
+    summary: {
+      heading: "Zusammenfassung & nächster Schritt",
+      subline: "Das sind die 3 Dinge die dich gerade Anfragen kosten",
+      topIssues: [
+        {
+          headline: "Die Seite führt Besucher nicht – sie lässt sie treiben",
+          body: "Gute Elemente sind vorhanden aber nicht in einen klaren Funnel eingebettet. Kein Painpoint wird angesprochen, kein roter Faden führt zur Anfrage.",
+        },
+        {
+          headline: "Google vertraut deiner Seite kaum",
+          body: "Spam-Links schaden der Domain-Autorität, Schema-Markup fehlt, Reviews werden nicht genutzt. Google hat keinen Grund dich außerhalb von Warendorf bevorzugt zu zeigen.",
+        },
+        {
+          headline: "Dein Content ist überall – aber nirgendwo stark genug",
+          body: "Stadtseiten und Dienstleistungsseiten existieren aber sind zu dünn und zu ähnlich um für relevante Keywords zu ranken.",
+        },
+      ],
+      closingHeadline: "Das ist lösbar",
+      closingSubline: "und zwar schneller als du denkst.",
+      closingBody:
+        "Du hast jetzt gesehen wo deine Website Anfragen verliert. Die gute Nachricht: Alles davon ist lösbar – mit einer klaren Reihenfolge und ohne unnötigen Aufwand.",
+      ctaCyan: "Der nächste Schritt liegt bei dir.",
+      ctaBold: "Lass uns das gemeinsam angehen!",
+    },
+    inhaber: {
+      thankYou: "Vielen Dank für Ihre Zeit!",
+      body: "Sie haben jetzt schwarz auf weiß wo Ihre Website Anfragen verliert – und was dagegen zu tun ist. Die meisten unserer Kunden sehen die ersten messbaren Verbesserungen innerhalb von 14 Tagen nach Umsetzung der ersten Maßnahmen.\n\nDer nächste Schritt liegt bei Ihnen.",
+      outroItalic:
+        "Websites die gefunden werden.\nBesucher die anfragen.\nErgebnisse die messbar sind.",
+      ps: "PS: Bei Fragen stehe ich jederzeit direkt zur Verfügung – kein Ticketsystem, kein Umweg.",
+      name: "Vasilis Mavridis",
+      role: "Inhaber von Artistic Avenue",
+      photo: "/assets/vasilis.png",
+      phone: "+49 179 3213 445",
+      email: "info@artisticavenue.de",
+      website: "www.artisticavenue.de",
+    },
+  },
 };
 
 const ALL_MILESTONES: Milestone[] = ["M5", "M6", "M7", "M8", "M9", "M10", "M11", "M12", "M13"];

@@ -141,6 +141,35 @@ export type PhasenplanSection = {
   afterPhase3: string;
 };
 
+export type SummaryItem = {
+  headline: string;
+  body: string;
+};
+
+export type SummarySection = {
+  heading: string;
+  subline: string;
+  topIssues: SummaryItem[];
+  closingHeadline: string;
+  closingSubline: string;
+  closingBody: string;
+  ctaCyan: string;
+  ctaBold: string;
+};
+
+export type InhaberSection = {
+  thankYou: string;
+  body: string;
+  outroItalic: string;
+  ps: string;
+  name: string;
+  role: string;
+  photo?: string;
+  phone: string;
+  email: string;
+  website: string;
+};
+
 export type AuditData = {
   id: string;
   createdAt: string;
@@ -162,6 +191,8 @@ export type AuditData = {
   topRisks: TopRisk[];
   comparison: ComparisonSection;
   phasenplan: PhasenplanSection;
+  summary: SummarySection;
+  inhaber: InhaberSection;
   recommendations: Recommendation[];
   screenshots: {
     cover?: string;

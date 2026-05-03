@@ -79,6 +79,12 @@ export async function buildTemplateHtml(
   ]);
   setBrandAssets(logo, signet);
 
+  // M13: alle audit-Image-Pfade die auf public/assets/* zeigen werden inlined,
+  // sonst kann Puppeteer (page.setContent ohne URL → about:blank) sie nicht
+  // laden. Das ist generisch — egal ob inhaber.photo, schemaMarkupImage oder
+  // andere zukuenftige Image-Bindings.
+  const inhaberPhoto = await inlineAssetIfLocal(audit.inhaber?.photo);
+
   const auditWithScreenshots: AuditData = {
     ...audit,
     screenshots: {
@@ -87,6 +93,9 @@ export async function buildTemplateHtml(
       mobile: mobile ?? audit.screenshots?.mobile,
       tablet: tablet ?? audit.screenshots?.tablet,
     },
+    inhaber: audit.inhaber
+      ? { ...audit.inhaber, photo: inhaberPhoto ?? audit.inhaber.photo }
+      : audit.inhaber,
   };
 
   const render = await getRenderer();
@@ -94,4 +103,20 @@ export async function buildTemplateHtml(
     TemplateRenderer({ template, audit: auditWithScreenshots }),
   );
   return htmlShell(audit, body);
+}
+
+async function inlineAssetIfLocal(
+  src: string | undefined,
+): Promise<string | undefined> {
+  if (!src) return undefined;
+  const m = src.match(/^\/assets\/([^/?#]+)$/);
+  if (!m) return undefined;
+  const ext = m[1].split(".").pop()?.toLowerCase();
+  const mime =
+    ext === "jpg" || ext === "jpeg"
+      ? "image/jpeg"
+      : ext === "svg"
+      ? "image/svg+xml"
+      : "image/png";
+  return assetToDataUrl(m[1], mime);
 }

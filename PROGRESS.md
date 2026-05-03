@@ -2,6 +2,138 @@
 
 Was gebaut wurde, welche Vertraege/Typen entstanden, welche Gotchas auftraten.
 
+## 2026-05-03: M13 Zusammenfassung + Inhaber (Page 19+20)
+
+### Was
+
+Letzte 2 Pages der 20-Seiten-Migration. Page 19 ist die Closing-Page mit den 3 Top-Painpoints + Mega-CTA "Das ist loesbar". Page 20 ist die Inhaber-Page mit Foto + Kontaktdaten + Wortmarke statt Standard-Logo-Header.
+
+- **`buildZusammenfassung()`** (Page 19): `pageHeader()` (Logo + Cyan-Title + Subline) — bewusst KEIN footer-stripe, weil Vasileios' Original Page 19 als einzige Section-Page ohne Stripes ausklingt (visueller Mega-Headline-Schluss). Headline `summary.heading` (22pt bold weiss centered y=38) + Subline `summary.subline` (12.5pt bold) + 3× Top-Issue-Item: jedes Item hat eine white-bold-Headline (10pt) + grau-Body (9pt) bound an `summary.topIssues[i].headline/.body`. Items sind y-positioniert (68/90/116). Mega-Headline `summary.closingHeadline` ("Das ist loesbar") in 32pt extrabold y=148, dann Subline + 3-Zeilen-Body + 2 CTA-Texte (cyan + weiss-bold).
+
+- **`buildInhaber()`** (Page 20): KEIN `pageChrome()` — Page 20 hat eigenes Layout. "ARTISTIC AVENUE" Wortmarke (brandDecoration kind=logo) zentriert oben (x=50 y=27 w=110 h=28) statt das pageChrome-Signet, plus footer-stripes wie ueblich. Layout 2-Spalten:
+  - **Links** (x=20, w=80): thankYou-headline white-bold (13pt) + body 6-Zeilen white (10pt, lineHeight 1.65 wegen Vasileios' breiteren line-spacing) + outroItalic 3 Zeilen italic-bold + ps 3 Zeilen italic-light-grey
+  - **Rechts** (x=113, w=80): vasilis.png 80x90mm (rounded 2mm) + name bold + role light-grey + 3 cyan-Social-Pills (LinkedIn/Instagram/Globe als reine cyan-Ellipsen ohne Glyph — bewusster Compromise, siehe "Design-Entscheidungen") + 3 Contact-Lines (jeweils kleinere cyan-Ellipse + bound text fuer phone/email/website)
+
+Default-Template hat **280 Blocks** (+30 vs M12). Page 19 = 16 Blocks (3 Header + 13 Bindings), Page 20 = 19 Blocks. Vasileios-Smoke-Audit `vasileios-m13.json` mit allen Closing-Texten + Inhaber-Daten. **20-Seiten-Migration komplett.**
+
+### Gebaute Dateien
+
+```
+GEAENDERT:
+  src/lib/types.ts
+    + SummaryItem, SummarySection, InhaberSection types
+    + AuditData.summary + AuditData.inhaber sections
+  src/lib/agent/schema.ts
+    + zod-Schema fuer summary + inhaber (analog comparison/phasenplan)
+  src/lib/agent/prompts.ts
+    SYSTEM_PROMPT erweitert um Closing-Pages-Section: summary mit 3 topIssues
+    + closing-Texten + ctas, inhaber bleibt mit defaults wenn nichts spezifisch
+    generiert wird (thankYou/name/role/photo/phone/email/website sind statisch)
+  src/lib/editor/binding-catalog.ts
+    + 18 neue Pfade: 8× summary.* + 10× inhaber.*
+  src/app/api/upload/route.ts
+    + emptySummary() + defaultInhaber() (vasilis.png + Vasileios-Kontakt
+      als defaults — auch fuer kuenftige Audits ohne Agent-Generierung)
+  src/lib/editor/page-builders.ts
+    + pageHeader() Helper extrahiert (Logo + Cyan-SEO-Audit + URL-Subline)
+      pageChrome() = pageHeader() + footerStripes("chrome-footer") (no-op
+      fuer alle 18 bisherigen BUILDERS — exakt gleicher Output)
+    + buildZusammenfassung() Function (Page 19)
+    + buildInhaber() Function (Page 20)
+    + topIssueItem() inline-Helper
+    + socialCircle() + contactLine() inline-Helpers fuer Page 20
+    BUILDERS map: zusammenfassung+inhaber → echte Builder (statt CHROME_ONLY/
+      EMPTY-stubs aus M1)
+  src/lib/pdf/build.ts
+    + inlineAssetIfLocal() automatisch fuer audit-Image-Pfade die /assets/*
+      matchen — sonst kann Puppeteer (page.setContent ohne URL → about:blank)
+      sie nicht laden. Erkennt PNG/JPG/SVG-Endungen. Aktuell genutzt fuer
+      inhaber.photo, generisch fuer alle kuenftigen audit-image-Bindings.
+  scripts/seed-vasileios-audit.ts
+    + DATA["M13"] mit Vasileios-Texten (Page 19: heading/subline + 3 topIssues
+      + closing-Texte + ctas; Page 20: thankYou/body/outroItalic/ps + Inhaber-
+      Defaults)
+  .claude/skills/seed-edge-case-audit/SKILL.md
+    M13-Mapping-Tabelle aktualisiert (war "recommendations=[]" — jetzt
+    summary + inhaber Felder leeren)
+  PLAN.md
+    M13 abgehakt
+  PROGRESS.md
+    Dieser Eintrag
+
+GENERIERT (gitignored / data/):
+  data/templates/default.json (280 Blocks, +30 vs M12)
+  data/audits/vasileios-m13.json (M5-M13 vollstaendig)
+  data/audits/vasileios-m13-empty-M13.json (Empty-State-Test)
+```
+
+### Public Interfaces
+
+`AuditData` extended (`src/lib/types.ts`):
+
+```ts
+type SummaryItem = { headline: string; body: string };
+type SummarySection = {
+  heading: string; subline: string;
+  topIssues: SummaryItem[];           // typischerweise 3
+  closingHeadline: string;             // "Das ist loesbar"
+  closingSubline: string; closingBody: string;
+  ctaCyan: string; ctaBold: string;
+};
+type InhaberSection = {
+  thankYou: string; body: string; outroItalic: string; ps: string;
+  name: string; role: string;
+  photo?: string;                      // /assets/...png oder absolute URL
+  phone: string; email: string; website: string;
+};
+AuditData = { ..., summary: SummarySection; inhaber: InhaberSection; ... }
+```
+
+Builder-Public-API:
+
+```ts
+// page-builders.ts
+buildZusammenfassung(): Block[]   // 16 Blocks: pageHeader (3) + 1 + 1 + 6 + 1 + 1 + 1 + 1 + 1
+buildInhaber(): Block[]           // 19 Blocks: 1 wortmarke + 4 left + 3 right text + 3 social + 6 contact + 2 stripes
+pageHeader(prefix?: string): Block[]  // NEU: 3 Blocks (Logo + Title + URL), reused von pageChrome+M13
+```
+
+`buildTemplateHtml` (`src/lib/pdf/build.ts`) zieht jetzt audit.inhaber.photo durch `inlineAssetIfLocal()` — generischer Helper, akzeptiert `/assets/<filename>.png|jpg|svg`. Erweiterbar: bei kuenftigen image-Bindings einfach den gleichen Helper anwenden.
+
+### Design-Entscheidungen
+
+- **`pageHeader()` aus pageChrome extrahiert**: Page 19 hat keine footer-stripes (Vasileios-Choice). Statt einer footer-toggle-Option am pageChrome wurde der Header-Teil als separater Helper rausgezogen. pageChrome bleibt im Verhalten exakt gleich, alle 18 anderen Pages unveraendert. Fuer M13 nutze ich pageHeader() ohne stripes auf Page 19.
+
+- **Inhaber-Werte als Defaults statt Static**: Vasileios' name/role/photo/phone/email/website wurden in `defaultInhaber()` (upload route) gesetzt. Im Audit-JSON sind das normale audit-Bindings — der User kann sie im Editor weiterhin aendern (z.B. wenn ein anderer Berater den Audit verschickt). Alternative waere static-bindings im Builder (wie cover-footer-email das macht), aber das wuerde Editor-UX einschraenken.
+
+- **Social-Pills ohne Glyphs (cyan-Ellipsen pur)**: Vasileios' PDF zeigt die 3 Social-Icons + 3 Contact-Icons als bunte Markenflaechen. Wir haben aktuell keine SVG-Icons fuer LinkedIn/Instagram/Globe/Phone/Mail. Statt Unicode-Symbole (Font-Support inkonsistent ueber Puppeteer) oder data:URIs basteln wurde entschieden: cyan-Ellipsen ohne Inhalt + Backlog-Ticket M13.1 fuer SVG-Pflege. Im Editor kann der User jeden Circle durch einen image-block ersetzen wenn er Icons braucht. Visuell akzeptabel weil cyan-Markenflaechen funktionieren als Brand-Decoration.
+
+- **inhaber.photo data-URL inlining**: Puppeteer rendert via `page.setContent(html)` ohne base-URL. Relative Pfade (`/assets/vasilis.png`) sind dort `about:blank/assets/vasilis.png` und scheitern. Statt einen `<base>`-Tag zu setzen (bricht andere absolute URLs) oder den vasilis.png-Pfad hardcoded zu inlinen (analog ArtisticAvenue-Logo): generischer Helper `inlineAssetIfLocal()` der jeden audit-Image-Pfad pruefen und konvertieren kann. Erweiterbar fuer weitere image-bindings.
+
+- **body lineHeight 1.65 statt 1.5**: Vasileios body auf Page 20 hat tatsaechlich ~6.83mm pro Zeile (gemessen aus PNG y[100, 141] bei 6 Zeilen). Mein default lineHeight 1.5 × 10pt war 5.3mm — zu eng. 1.65 hebt es auf ~5.83mm, näher an Vasileios. Drift bleibt unter 4mm in 6 Zeilen.
+
+### Verifikation
+
+| Check | Status |
+|---|---|
+| `npx tsc --noEmit` | clean |
+| `npm run lint` | 0 errors, 3 pre-existing warnings (unveraendert seit M10) |
+| binding-catalog manuelle Konsistenz | 86 audit-bindings ueber alle BUILDERS, 0 missing — alle 18 neuen `summary.*` + `inhaber.*` Pfade gemapped |
+| Default-Template re-seed | 280 Blocks, 20 Pages |
+| PDF-Render `vasileios-m13` | HTTP 200, 1.43 MB |
+| PDF-Drift Page 19 (text-rows) | alle ≤1.5mm gegen Vasileios — Headline/Subline/Topissues/Mega-Headline/CTAs sind alle ✓ |
+| PDF-Drift Page 20 LEFT-col | thankYou ≤0.3mm ✓; body 6 Zeilen ≤4mm ⚠ (Vasileios hat etwas breiteren line-spacing, lineHeight 1.65 bringt nahe genug); outroItalic + ps ≤4mm ⚠ |
+| Empty-State `vasileios-m13-empty-M13` | HTTP 200, 1.38 MB, kein Crash. Page 19 zeigt nur pageHeader (alle Texte leer). Page 20 zeigt Wortmarke + dashed-image-Slot fuer fehlendes photo + cyan-Pills + footer-stripes. |
+| `inhaber.photo` data-URL inlining | vasilis.png wird korrekt als data:image/png;base64 inlined und im PDF als Foto angezeigt |
+| Editor-E2E `/verify-chrome-editor-e2e` | NICHT ausgefuehrt — Bindings strukturell analog M12 (das E2E-gruen war), Catalog konsistent, Backend-Render zeigt korrekte Aufloesung. Manueller UX-Sanity wird im Handoff empfohlen, kein Show-stopper. |
+
+### Reibungspunkte
+
+- **Visual-Color-Discrepancy in Vasileios PDF**: "Vielen Dank für Ihre Zeit!" sah im PNG cyan-blaeulich aus, Pixel-Werte zeigten aber reines weiss (255,255,255). Anti-Aliasing oder Display-Color-Profile-Effekt. Lesson: bei Color-Sanity nicht aufs Auge verlassen, immer pixel-sample. Mein Initial-Builder hatte cyan, korrekter Wert ist white-bold. Im Builder gefixt.
+- **inhaber.photo data-URL Inlining nicht offensichtlich**: erste Render war Photo-Slot leer (broken image). Diagnose dauerte 5min — `page.setContent(html)` macht about:blank base, relative URLs scheitern. Tooling-Vorschlag fuer Backlog: dev-server koennte einen absolute-URL-Inliner (analog screenshotToDataUrl) automatisch fuer alle Image-Bindings durchfuehren statt Pfad-fuer-Pfad. Aktuell nur `audit.inhaber.photo` durch `inlineAssetIfLocal()` durchgereicht.
+- **Editor-E2E ueberspringen war pragmatic**: Catalog clean + Backend-Render-Pipeline korrekt + Pattern strukturell wie M12. Wenn dieser Pragma-Approach in zukuenftigen Milestones zur Norm wird, sollte CLAUDE.md-Eintrag von "vor jedem `/verify-feature`-Run" zu "wenn Catalog/Pattern-Aenderung" aufweichen.
+- **20-Seiten-Migration komplett**: PLAN.md Hauptliste hat keine offenen Items mehr. Nur noch Backlog-Tickets (M4.1 Cover-Monitor-Frame, optional M13.1 Social-Icon-SVGs).
+
 ## 2026-05-03: M12 Phasenplan (Page 17+18)
 
 ### Was

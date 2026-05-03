@@ -28,7 +28,7 @@ Output-Audit wird unter `data/audits/<baseAuditId>-empty-<milestone>.json` gespe
 | M10 | `sections.leistung.findings=[]`, `sections.leistung.actions=[]`, `sections.leistung.heading=""`, `sections.leistung.text=""`, `sections.leistung.costText=""`, `sections.leistung.closingNote=""`, `sections.leistung.resourceCounts={html:0,js:0,css:0,img:0,other:0,total:0}`, `sections.leistung.pageSizeBreakdown={html:0,js:0,css:0,img:0,other:0}`, numerische Felder (serverResponseTime/contentLoadTime/scriptLoadTime/pageSizeMb) auf 0 |
 | M11 | `sections.links.findings=[]`, `sections.links.actions=[]`, `sections.links.heading=""`, `sections.links.text=""`, `sections.links.costText=""`, `sections.links.closingNote=""`, alle numerischen Links-Felder auf 0 |
 | M12 | `phasenplan.phase1.entries=[]`, `phasenplan.phase2.entries=[]`, `phasenplan.phase3.entries=[]` |
-| M13 | `recommendations=[]` |
+| M13 | `summary.topIssues=[]`, `summary.heading=""`, `summary.subline=""`, `summary.closingHeadline=""`, `summary.closingSubline=""`, `summary.closingBody=""`, `summary.ctaCyan=""`, `summary.ctaBold=""`, `inhaber.thankYou=""`, `inhaber.body=""`, `inhaber.outroItalic=""`, `inhaber.ps=""`, `inhaber.name=""`, `inhaber.role=""`, `inhaber.photo=""`, `inhaber.phone=""`, `inhaber.email=""`, `inhaber.website=""` |
 | all | alle obigen kombiniert |
 
 Beispiele:
@@ -107,7 +107,19 @@ ops = {
         a["phasenplan"]["phase2"].update({"entries": []}),
         a["phasenplan"]["phase3"].update({"entries": []}),
     ),
-    "M13": lambda a: a.update({"recommendations": []}),
+    "M13": lambda a: (
+        a.setdefault("summary", {}).update({
+            "topIssues": [],
+            "heading": "", "subline": "",
+            "closingHeadline": "", "closingSubline": "", "closingBody": "",
+            "ctaCyan": "", "ctaBold": "",
+        }),
+        a.setdefault("inhaber", {}).update({
+            "thankYou": "", "body": "", "outroItalic": "", "ps": "",
+            "name": "", "role": "", "photo": "",
+            "phone": "", "email": "", "website": "",
+        }),
+    ),
 }
 
 milestones = [MS] if MS != "all" else ["M5","M6","M7","M8","M9","M10","M11","M12","M13"]

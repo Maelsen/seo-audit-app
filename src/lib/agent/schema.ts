@@ -149,6 +149,30 @@ export const auditSchema = z.object({
     afterPhase2: z.string(),
     afterPhase3: z.string(),
   }),
+  summary: z.object({
+    heading: z.string(),
+    subline: z.string(),
+    topIssues: z.array(
+      z.object({ headline: z.string(), body: z.string() }),
+    ),
+    closingHeadline: z.string(),
+    closingSubline: z.string(),
+    closingBody: z.string(),
+    ctaCyan: z.string(),
+    ctaBold: z.string(),
+  }),
+  inhaber: z.object({
+    thankYou: z.string(),
+    body: z.string(),
+    outroItalic: z.string(),
+    ps: z.string(),
+    name: z.string(),
+    role: z.string(),
+    photo: z.string().optional(),
+    phone: z.string(),
+    email: z.string(),
+    website: z.string(),
+  }),
   recommendations: z.array(
     z.object({
       title: z.string(),

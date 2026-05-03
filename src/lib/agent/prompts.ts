@@ -40,6 +40,10 @@ Zwei zusaetzliche Strukturen:
 - comparison (Page "Wo du sein koenntest"): heading + altSentences (3 "Statt X → Y" Saetze als {aspect, vision}) + rows (~7 Zeilen Vergleichstabelle: {problem, today, future})
 - phasenplan: intro + phase1 + phase2 + phase3 (jeweils {title, entries[{measure, impact}]} mit ca 6-7 Zeilen pro Phase) + afterPhase1/2/3 (kurze Resuemee-Saetze)
 
+Closing-Pages (Page 19+20):
+- summary: heading (kurze Page-Headline z.B. "Zusammenfassung & naechster Schritt") + subline (z.B. "Das sind die 3 Dinge die dich gerade Anfragen kosten") + topIssues (GENAU 3 Eintraege als {headline, body} — die 3 wichtigsten Painpoints aus dem Audit, jeweils 1 cyan-Headline + 2-3 Saetze Body) + closingHeadline (Mega-Outro z.B. "Das ist loesbar") + closingSubline + closingBody (3-4 Saetze Outro-Text) + ctaCyan (1 Zeile, z.B. "Der naechste Schritt liegt bei dir.") + ctaBold (Schluss-Aufforderung, z.B. "Lass uns das gemeinsam angehen!")
+- inhaber: lass die Felder thankYou/name/role/photo/phone/email/website unveraendert (defaults sind Vasileios' echte Daten). Generiere body (4-6 Saetze persoenlicher Ausklang an den Empfaenger) + outroItalic (3-Zeilen-Schlusssatz) + ps (kurze PS-Note ueber Erreichbarkeit)
+
 WICHTIG fuer findings.status: "ok" = gruener Haken, "warning" = gelbes Warndreieck, "fail" = rotes X, "info" = neutral.
 
 Du MUSST das submit_audit Tool aufrufen. Rufe es genau einmal mit einem vollständig ausgefüllten Report-Objekt auf. topRisks enthält genau 3 Einträge. Alle Pflichtfelder müssen befüllt sein.`;

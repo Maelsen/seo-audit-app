@@ -12,8 +12,10 @@ import { ndjsonResponse } from "@/lib/stream";
 import type {
   AuditData,
   ComparisonSection,
+  InhaberSection,
   PhasenplanSection,
   SectionBase,
+  SummarySection,
 } from "@/lib/types";
 
 export const maxDuration = 300;
@@ -77,6 +79,34 @@ function emptyPhasenplan(): PhasenplanSection {
     afterPhase1: "",
     afterPhase2: "",
     afterPhase3: "",
+  };
+}
+
+function emptySummary(): SummarySection {
+  return {
+    heading: "Zusammenfassung & naechster Schritt",
+    subline: "",
+    topIssues: [],
+    closingHeadline: "Das ist loesbar",
+    closingSubline: "und zwar schneller als du denkst.",
+    closingBody: "",
+    ctaCyan: "Der naechste Schritt liegt bei dir.",
+    ctaBold: "Lass uns das gemeinsam angehen!",
+  };
+}
+
+function defaultInhaber(): InhaberSection {
+  return {
+    thankYou: "Vielen Dank fuer Ihre Zeit!",
+    body: "",
+    outroItalic: "",
+    ps: "",
+    name: "Vasilis Mavridis",
+    role: "Inhaber von Artistic Avenue",
+    photo: "/assets/vasilis.png",
+    phone: "+49 179 3213 445",
+    email: "info@artisticavenue.de",
+    website: "www.artisticavenue.de",
   };
 }
 
@@ -205,6 +235,8 @@ export async function POST(req: NextRequest) {
       ],
       comparison: emptyComparison(),
       phasenplan: emptyPhasenplan(),
+      summary: emptySummary(),
+      inhaber: defaultInhaber(),
       recommendations: [],
       screenshots,
       rawInputs: { screamingFrog, seoptimer, pageSpeed },

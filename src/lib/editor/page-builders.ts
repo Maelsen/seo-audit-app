@@ -46,17 +46,19 @@ function footerStripes(idPrefix: string): Block[] {
   ];
 }
 
-export function pageChrome(): Block[] {
+// M13: pageHeader extrahiert, damit Page 19 (kein Footer-Stripe) den
+// Standard-Header weiterverwenden kann ohne pageChrome() zu rufen.
+export function pageHeader(idPrefix: string = "chrome"): Block[] {
   return [
     {
-      id: "chrome-logo",
+      id: `${idPrefix}-logo`,
       type: "brandDecoration",
       kind: "signet",
       frame: { x: 20.6, y: 10.2, w: 16.7, h: 13.7 },
       zIndex: 100,
     },
     {
-      id: "chrome-title",
+      id: `${idPrefix}-title`,
       type: "text",
       binding: { kind: "static" },
       staticText: "SEO-Audit",
@@ -72,7 +74,7 @@ export function pageChrome(): Block[] {
       },
     },
     {
-      id: "chrome-url",
+      id: `${idPrefix}-url`,
       type: "text",
       binding: { kind: "static" },
       staticText: "für {domain}",
@@ -87,8 +89,11 @@ export function pageChrome(): Block[] {
         textAlign: "center",
       },
     },
-    ...footerStripes("chrome-footer"),
   ];
+}
+
+export function pageChrome(): Block[] {
+  return [...pageHeader("chrome"), ...footerStripes("chrome-footer")];
 }
 
 // ---------- Helper: small-text style preset ----------
@@ -2941,6 +2946,356 @@ function buildPhasenplan2(): Block[] {
   ];
 }
 
+// ---------- M13: Zusammenfassung (Page 19) ----------
+//
+// Vermessen aus docs/measurements/page-19.png:
+// - pageHeader (Logo TL + cyan SEO-Audit + white "fuer {domain}") – KEINE
+//   footer-stripes (Vasileios Page 19 ist die einzige Section-Page ohne
+//   stripes, wahrscheinlich weil die Mega-CTA-Headline visuell ohne Marker
+//   ausklingen soll)
+// - Headline "Zusammenfassung & naechster Schritt" centered y[40, 47]mm,
+//   ~22pt bold weiss
+// - Subline centered y[54, 58]mm, ~13pt bold weiss
+// - 3 Top-Issue Items (jedes hat headline + body):
+//     Item 0 headline y~70, body y[74, 82] (2 lines)
+//     Item 1 headline y~92, body y[95, 108] (3 lines)
+//     Item 2 headline y~118, body y[122, 129] (2 lines)
+//   Headlines sind weiss-bold ~10pt, body ~9pt grau lineHeight 1.5
+// - Mega-Headline "Das ist loesbar" centered y[150, 158]mm, ~36pt bold weiss
+// - closingSubline centered y[165, 167]mm, ~12pt bold weiss
+// - closingBody centered y[175, 192]mm 3 lines, ~10pt weiss lineHeight 1.5
+// - ctaCyan cyan-bold centered y[214, 217]mm, ~12pt
+// - ctaBold weiss-bold centered y[225, 229]mm, ~13pt
+
+function topIssueItem(idx: number, yHeading: Mm, yBody: Mm, bodyHeight: Mm): Block[] {
+  return [
+    {
+      id: `zf-issue${idx}-headline`,
+      type: "text",
+      binding: {
+        kind: "audit",
+        path: `summary.topIssues[${idx}].headline`,
+      },
+      frame: { x: 25, y: yHeading, w: 160, h: 5 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 10,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    {
+      id: `zf-issue${idx}-body`,
+      type: "text",
+      binding: {
+        kind: "audit",
+        path: `summary.topIssues[${idx}].body`,
+      },
+      frame: { x: 25, y: yBody, w: 160, h: bodyHeight },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 9,
+        fontWeight: 400,
+        color: "#cfcfcf",
+        textAlign: "left",
+        lineHeight: 1.5,
+      }),
+    },
+  ];
+}
+
+function buildZusammenfassung(): Block[] {
+  return [
+    ...pageHeader("zf-chrome"),
+    {
+      id: "zf-headline",
+      type: "text",
+      binding: { kind: "audit", path: "summary.heading" },
+      frame: { x: 15, y: 38, w: 180, h: 10 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 22,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "center",
+        lineHeight: 1.2,
+      }),
+    },
+    {
+      id: "zf-subline",
+      type: "text",
+      binding: { kind: "audit", path: "summary.subline" },
+      frame: { x: 15, y: 52, w: 180, h: 7 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 12.5,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "center",
+        lineHeight: 1.2,
+      }),
+    },
+    ...topIssueItem(0, 68, 73, 12),
+    ...topIssueItem(1, 90, 95, 16),
+    ...topIssueItem(2, 116, 121, 12),
+    {
+      id: "zf-closing-headline",
+      type: "text",
+      binding: { kind: "audit", path: "summary.closingHeadline" },
+      frame: { x: 15, y: 148, w: 180, h: 14 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 32,
+        fontWeight: 800,
+        color: "#ffffff",
+        textAlign: "center",
+        lineHeight: 1.05,
+      }),
+    },
+    {
+      id: "zf-closing-subline",
+      type: "text",
+      binding: { kind: "audit", path: "summary.closingSubline" },
+      frame: { x: 15, y: 164, w: 180, h: 6 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 12,
+        fontWeight: 400,
+        color: "#ffffff",
+        textAlign: "center",
+        lineHeight: 1.3,
+      }),
+    },
+    {
+      id: "zf-closing-body",
+      type: "text",
+      binding: { kind: "audit", path: "summary.closingBody" },
+      frame: { x: 25, y: 174, w: 160, h: 25 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 10,
+        fontWeight: 400,
+        color: "#ffffff",
+        textAlign: "center",
+        lineHeight: 1.55,
+      }),
+    },
+    {
+      id: "zf-cta-cyan",
+      type: "text",
+      binding: { kind: "audit", path: "summary.ctaCyan" },
+      frame: { x: 15, y: 213, w: 180, h: 6 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 12,
+        fontWeight: 700,
+        color: BRAND_CYAN,
+        textAlign: "center",
+        lineHeight: 1.3,
+      }),
+    },
+    {
+      id: "zf-cta-bold",
+      type: "text",
+      binding: { kind: "audit", path: "summary.ctaBold" },
+      frame: { x: 15, y: 224, w: 180, h: 6 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 13,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "center",
+        lineHeight: 1.3,
+      }),
+    },
+  ];
+}
+
+// ---------- M13: Inhaber (Page 20) ----------
+//
+// Vermessen aus docs/measurements/page-20.png:
+// - KEIN pageChrome – stattdessen "ARTISTIC AVENUE" Wortmarke (mit Schwung-
+//   Signet) zentriert oben y[30, 55]mm, x[53, 157]mm (~104x25mm)
+// - Footer-Stripes (cyan, identisch zu pageChrome)
+// - LEFT column x=20 w=80mm:
+//     thankYou-headline cyan-bold y=83 ~14pt
+//     body 5-6 Zeilen y=95 weiss ~10pt lineHeight 1.5 (~50mm Hoehe)
+//     outroItalic 3 Zeilen italic-bold y=160 (~22mm)
+//     ps 3 Zeilen italic-light-grey y=193
+// - RIGHT column x=110 w=85mm:
+//     photo 80x80mm y[80, 168]mm (rectangle, vasilis.png)
+//     name bold ~12pt y=178
+//     role light-grey ~9pt y=185
+//     3 cyan-circles (Social: LinkedIn / Instagram / Globe) y=190 (gemessen
+//       y[171.55, 183.23]mm Wide-cyan-Band, davor Photo, danach Contact-Info)
+//     3 Contact-Lines y=205/218/231: cyan-circle 8mm + bound-text rechts
+//
+// Anmerkung: Die Social-Pills + Contact-Icons sind reine cyan-Ellipsen ohne
+// Glyph (Vasileios' PDF rendert sie als bunte Markenflaechen, das exakte
+// Mini-Icon fehlt im Text-Layer). Falls in einem M13.1-Refinement-Ticket SVGs
+// nachgepflegt werden, kann der User sie im Editor durch ein Image-Block
+// ersetzen.
+
+function socialCircle(idx: number, x: Mm): Block {
+  return {
+    id: `inh-social${idx}`,
+    type: "shape",
+    shape: "ellipse",
+    fill: BRAND_CYAN,
+    frame: { x, y: 187, w: 9, h: 9 },
+    zIndex: 50,
+  };
+}
+
+function contactLine(idx: number, y: Mm, bindingPath: string): Block[] {
+  return [
+    {
+      id: `inh-contact${idx}-icon`,
+      type: "shape",
+      shape: "ellipse",
+      fill: BRAND_CYAN,
+      frame: { x: 115, y: y - 1, w: 7, h: 7 },
+      zIndex: 50,
+    },
+    {
+      id: `inh-contact${idx}-text`,
+      type: "text",
+      binding: { kind: "audit", path: bindingPath },
+      frame: { x: 126, y, w: 70, h: 5 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 10,
+        fontWeight: 400,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.3,
+      }),
+    },
+  ];
+}
+
+function buildInhaber(): Block[] {
+  return [
+    // Wortmarke "ARTISTIC AVENUE" (mit Signet) zentriert oben
+    {
+      id: "inh-brand-logo",
+      type: "brandDecoration",
+      kind: "logo",
+      frame: { x: 50, y: 27, w: 110, h: 28 },
+      zIndex: 50,
+    },
+    // Left column
+    {
+      id: "inh-thankyou",
+      type: "text",
+      binding: { kind: "audit", path: "inhaber.thankYou" },
+      frame: { x: 20, y: 82, w: 80, h: 7 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 13,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    {
+      id: "inh-body",
+      type: "text",
+      binding: { kind: "audit", path: "inhaber.body" },
+      frame: { x: 20, y: 98, w: 80, h: 55 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 10,
+        fontWeight: 400,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.65,
+      }),
+    },
+    {
+      id: "inh-outro-italic",
+      type: "text",
+      binding: { kind: "audit", path: "inhaber.outroItalic" },
+      frame: { x: 20, y: 162, w: 80, h: 22 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 10,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.4,
+        fontStyle: "italic",
+      }),
+    },
+    {
+      id: "inh-ps",
+      type: "text",
+      binding: { kind: "audit", path: "inhaber.ps" },
+      frame: { x: 20, y: 197, w: 80, h: 22 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 9,
+        fontWeight: 400,
+        color: "#cfcfcf",
+        textAlign: "left",
+        lineHeight: 1.45,
+        fontStyle: "italic",
+      }),
+    },
+    // Right column: photo
+    {
+      id: "inh-photo",
+      type: "image",
+      binding: { kind: "audit", path: "inhaber.photo" },
+      frame: { x: 113, y: 80, w: 80, h: 90 },
+      zIndex: 50,
+      objectFit: "cover",
+      objectPosition: "top",
+      borderRadius: 2,
+    },
+    {
+      id: "inh-name",
+      type: "text",
+      binding: { kind: "audit", path: "inhaber.name" },
+      frame: { x: 113, y: 173, w: 80, h: 6 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 12,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    {
+      id: "inh-role",
+      type: "text",
+      binding: { kind: "audit", path: "inhaber.role" },
+      frame: { x: 113, y: 180, w: 80, h: 5 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 9.5,
+        fontWeight: 400,
+        color: "#cfcfcf",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    // 3 Social-Pills (LinkedIn / Instagram / Globe als reine cyan-Ellipsen)
+    socialCircle(0, 113),
+    socialCircle(1, 126),
+    socialCircle(2, 139),
+    // 3 Contact-Lines (phone / email / website)
+    ...contactLine(0, 205, "inhaber.phone"),
+    ...contactLine(1, 217, "inhaber.email"),
+    ...contactLine(2, 229, "inhaber.website"),
+    ...footerStripes("inh-footer"),
+  ];
+}
+
 // ---------- Page-Key registry ----------
 
 export type PageKey =
@@ -2965,11 +3320,8 @@ export type PageKey =
   | "zusammenfassung"
   | "inhaber";
 
-const EMPTY_BUILDER = (): Block[] => [];
-
 // M3: alle Section-Pages bekommen Standard-pageChrome.
 // Cover und Inhaber haben eigenes Chrome-Layout (M4 / M13).
-const CHROME_ONLY_BUILDER = (): Block[] => pageChrome();
 
 export const BUILDERS: Record<PageKey, () => Block[]> = {
   cover: buildCover,
@@ -2990,8 +3342,8 @@ export const BUILDERS: Record<PageKey, () => Block[]> = {
   links2: buildLinks2,
   phasenplan1: buildPhasenplan1,
   phasenplan2: buildPhasenplan2,
-  zusammenfassung: CHROME_ONLY_BUILDER,
-  inhaber: EMPTY_BUILDER,
+  zusammenfassung: buildZusammenfassung,
+  inhaber: buildInhaber,
 };
 
 export function decomposePageBlocks(pageKey: string): Block[] {

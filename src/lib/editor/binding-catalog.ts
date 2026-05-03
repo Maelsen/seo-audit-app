@@ -120,6 +120,28 @@ export const BINDING_CATALOG: BindingEntry[] = [
   { path: "phasenplan.afterPhase2", label: "Phasenplan - Nach Phase 2", type: "string" },
   { path: "phasenplan.afterPhase3", label: "Phasenplan - Nach Phase 3", type: "string" },
 
+  // Summary (Page 19 — Zusammenfassung & naechster Schritt)
+  { path: "summary.heading", label: "Zusammenfassung - Heading", type: "string" },
+  { path: "summary.subline", label: "Zusammenfassung - Subline", type: "string" },
+  { path: "summary.topIssues", label: "Zusammenfassung - Top-Issues (3 Items)", type: "array" },
+  { path: "summary.closingHeadline", label: "Zusammenfassung - Closing-Headline (\"Das ist loesbar\")", type: "string" },
+  { path: "summary.closingSubline", label: "Zusammenfassung - Closing-Subline", type: "string" },
+  { path: "summary.closingBody", label: "Zusammenfassung - Closing-Body", type: "string" },
+  { path: "summary.ctaCyan", label: "Zusammenfassung - CTA Cyan", type: "string" },
+  { path: "summary.ctaBold", label: "Zusammenfassung - CTA Bold", type: "string" },
+
+  // Inhaber (Page 20)
+  { path: "inhaber.thankYou", label: "Inhaber - Dank-Headline", type: "string" },
+  { path: "inhaber.body", label: "Inhaber - Body", type: "string" },
+  { path: "inhaber.outroItalic", label: "Inhaber - Outro (italic)", type: "string" },
+  { path: "inhaber.ps", label: "Inhaber - PS", type: "string" },
+  { path: "inhaber.name", label: "Inhaber - Name", type: "string" },
+  { path: "inhaber.role", label: "Inhaber - Rolle", type: "string" },
+  { path: "inhaber.photo", label: "Inhaber - Foto", type: "image" },
+  { path: "inhaber.phone", label: "Inhaber - Telefon", type: "string" },
+  { path: "inhaber.email", label: "Inhaber - E-Mail", type: "string" },
+  { path: "inhaber.website", label: "Inhaber - Website", type: "string" },
+
   // Recommendations (legacy, fallback)
   { path: "recommendations", label: "Empfehlungen (Liste)", type: "array" },
 
