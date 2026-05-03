@@ -2315,6 +2315,379 @@ function buildPerformance2(): Block[] {
   ];
 }
 
+// PAGE 15 (buildLinks1): Score-Donut + Sub-Headline/Diagnose oben (wie M5-M10),
+// dann zwei kleine Mini-Donuts (gauge full) für Domain- und Seitenstärke,
+// dann zwei große ResourceTiles (Total Backlinks + Verweisende Domänen) und
+// fünf kleine ResourceTiles (Nofollow / Dofollow / Subnets / IPs / Gov-Backlinks).
+//
+// Mini-Donut-Skala: domainStrength + pageStrength sind 0-100 (Authority-Score).
+// Threshold-Stufen so gewählt, dass <10 grau wirkt (kaum sichtbar bei dünnem Track),
+// 10-30 orange, 30+ grün — matcht Vasileios' Vorlage (13 ist orange, 8 grau).
+//
+// PAGE 16 (buildLinks2): klassisches Cost+Action-Pattern wie M7 P8 / M10 P14
+// mit 4 ArrowBullets und linksbündiger closingNote (Vasileios' P16 zeigt das Closing
+// linksbündig mit Indent — alle anderen Pages nutzen center, hier abweichend).
+
+function buildLinks1(): Block[] {
+  return [
+    ...pageChrome(),
+    {
+      id: "links1-headline",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "Links & Autorität",
+      frame: { x: 20, y: 36, w: 170, h: 10 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 22,
+        fontWeight: 800,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    {
+      id: "links1-score-donut",
+      type: "scoreCircle",
+      binding: { kind: "audit", path: "sections.links.score" },
+      frame: { x: 17, y: 51, w: 37, h: 37 },
+      zIndex: 50,
+      size: 37,
+      strokeWidth: 5,
+      labelStyle: textStyle({
+        fontSize: 24,
+        fontWeight: 800,
+        color: "#ffffff",
+        textAlign: "center",
+        lineHeight: 1,
+      }),
+    },
+    {
+      id: "links1-section-heading",
+      type: "text",
+      binding: { kind: "audit", path: "sections.links.heading" },
+      frame: { x: 65, y: 50, w: 130, h: 8 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 13,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.3,
+      }),
+    },
+    {
+      id: "links1-section-text",
+      type: "text",
+      binding: { kind: "audit", path: "sections.links.text" },
+      frame: { x: 65, y: 58, w: 130, h: 30 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 10,
+        fontWeight: 400,
+        color: "#e6e6e6",
+        textAlign: "left",
+        lineHeight: 1.5,
+      }),
+    },
+    // ---- Mini-Donuts: Domainstärke + Seitenstärke (gauge full, 0-100) ----
+    {
+      id: "links1-domain-gauge",
+      type: "gauge",
+      binding: { kind: "audit", path: "sections.links.domainStrength" },
+      frame: { x: 17, y: 95, w: 22, h: 28 },
+      zIndex: 50,
+      variant: "full",
+      minValue: 0,
+      maxValue: 100,
+      thresholds: [
+        { value: 0, color: "#9ca3af" },
+        { value: 10, color: "#fb923c" },
+        { value: 30, color: "#22c55e" },
+      ],
+      trackColor: "#444444",
+      strokeWidth: 3,
+      valueStyle: {
+        fontFamily: "Poppins",
+        fontSize: 13,
+        fontWeight: 700,
+        color: "#ffffff",
+        lineHeight: 1,
+        textAlign: "center",
+      },
+      labelStyle: textStyle({
+        fontSize: 9,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "center",
+        lineHeight: 1.2,
+      }),
+      labelText: "Domainstärke",
+    },
+    {
+      id: "links1-page-gauge",
+      type: "gauge",
+      binding: { kind: "audit", path: "sections.links.pageStrength" },
+      frame: { x: 47, y: 95, w: 22, h: 28 },
+      zIndex: 50,
+      variant: "full",
+      minValue: 0,
+      maxValue: 100,
+      thresholds: [
+        { value: 0, color: "#9ca3af" },
+        { value: 10, color: "#fb923c" },
+        { value: 30, color: "#22c55e" },
+      ],
+      trackColor: "#444444",
+      strokeWidth: 3,
+      valueStyle: {
+        fontFamily: "Poppins",
+        fontSize: 13,
+        fontWeight: 700,
+        color: "#ffffff",
+        lineHeight: 1,
+        textAlign: "center",
+      },
+      labelStyle: textStyle({
+        fontSize: 9,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "center",
+        lineHeight: 1.2,
+      }),
+      labelText: "Seitenstärke",
+    },
+    // ---- Big Tiles: Total Backlinks + Verweisende Domänen ----
+    {
+      id: "links1-tile-total",
+      type: "resourceTile",
+      binding: { kind: "audit", path: "sections.links.totalBacklinks" },
+      frame: { x: 17, y: 132, w: 84, h: 32 },
+      zIndex: 50,
+      label: "Total Backlinks",
+      icon: "🔗",
+      iconBg: BRAND_CYAN,
+      iconColor: "#1a1a1a",
+      tileBg: "#222222",
+      tileBorderRadius: 2,
+      tilePadding: 4,
+      tileLayout: "left",
+      iconSize: 10,
+      valueStyle: textStyle({
+        fontSize: 22,
+        fontWeight: 800,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1,
+      }),
+      labelStyle: textStyle({
+        fontSize: 9.5,
+        fontWeight: 400,
+        color: "#cfcfcf",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    {
+      id: "links1-tile-referring",
+      type: "resourceTile",
+      binding: { kind: "audit", path: "sections.links.referringDomains" },
+      frame: { x: 105, y: 132, w: 84, h: 32 },
+      zIndex: 50,
+      label: "Verweisende Domänen",
+      icon: "↗",
+      iconBg: BRAND_CYAN,
+      iconColor: "#1a1a1a",
+      tileBg: "#222222",
+      tileBorderRadius: 2,
+      tilePadding: 4,
+      tileLayout: "left",
+      iconSize: 10,
+      valueStyle: textStyle({
+        fontSize: 22,
+        fontWeight: 800,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1,
+      }),
+      labelStyle: textStyle({
+        fontSize: 9.5,
+        fontWeight: 400,
+        color: "#cfcfcf",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    // ---- Small Tiles: 5 in einer Reihe (Nofollow/Dofollow/Subnets/IPs/Gov) ----
+    ...buildLinkStatTiles(),
+  ];
+}
+
+// 5 kleine ResourceTiles in einer Reihe — angelehnt an buildResourceTiles() von M10.
+// Tile-Width 33mm, Gap 1.75mm: 5*33 + 4*1.75 = 172mm; startX=18.5 → endet bei 190.5.
+function buildLinkStatTiles(): Block[] {
+  const tileY = 170;
+  const tileW = 33;
+  const tileH = 32;
+  const startX = 18.5;
+  const gap = 1.75;
+
+  type TileSpec = {
+    id: string;
+    fieldPath: string;
+    label: string;
+    icon: string;
+    iconBg: string;
+    iconColor: string;
+  };
+  const specs: TileSpec[] = [
+    { id: "nofollow", fieldPath: "nofollow", label: "Nofollow-Backlinks", icon: "⊘", iconBg: BRAND_CYAN, iconColor: "#1a1a1a" },
+    { id: "dofollow", fieldPath: "dofollow", label: "Dofollow-Backlinks", icon: "▶", iconBg: BRAND_CYAN, iconColor: "#1a1a1a" },
+    { id: "subnets", fieldPath: "subnets", label: "Subnets", icon: "▦", iconBg: BRAND_CYAN, iconColor: "#1a1a1a" },
+    { id: "ips", fieldPath: "ips", label: "IPs", icon: "≡", iconBg: BRAND_CYAN, iconColor: "#1a1a1a" },
+    { id: "gov", fieldPath: "govBacklinks", label: "Gov-Backlinks", icon: "⚑", iconBg: BRAND_CYAN, iconColor: "#1a1a1a" },
+  ];
+
+  return specs.map((s, i) => ({
+    id: `links1-tile-${s.id}`,
+    type: "resourceTile" as const,
+    binding: {
+      kind: "audit" as const,
+      path: `sections.links.${s.fieldPath}`,
+    },
+    frame: { x: startX + i * (tileW + gap), y: tileY, w: tileW, h: tileH },
+    zIndex: 50,
+    label: s.label,
+    icon: s.icon,
+    iconBg: s.iconBg,
+    iconColor: s.iconColor,
+    tileBg: "#222222",
+    tileBorderRadius: 2,
+    tilePadding: 3,
+    tileLayout: "left" as const,
+    iconSize: 9,
+    valueStyle: textStyle({
+      fontSize: 16,
+      fontWeight: 800,
+      color: "#ffffff",
+      textAlign: "left",
+      lineHeight: 1,
+    }),
+    labelStyle: textStyle({
+      fontSize: 8,
+      fontWeight: 400,
+      color: "#cfcfcf",
+      textAlign: "left",
+      lineHeight: 1.2,
+    }),
+  }));
+}
+
+function buildLinks2(): Block[] {
+  return [
+    ...pageChrome(),
+    {
+      id: "links2-headline",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "Links & Autorität",
+      frame: { x: 20, y: 36, w: 170, h: 10 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 22,
+        fontWeight: 800,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    {
+      id: "links2-cost-heading",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "Was das konkret kostet:",
+      frame: { x: 20, y: 48, w: 170, h: 7 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 14,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    {
+      id: "links2-cost-text",
+      type: "text",
+      binding: { kind: "audit", path: "sections.links.costText" },
+      frame: { x: 20, y: 58, w: 175, h: 38 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 10.5,
+        fontWeight: 400,
+        color: "#e6e6e6",
+        textAlign: "left",
+        lineHeight: 1.5,
+      }),
+    },
+    {
+      id: "links2-actions-heading",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "Was dagegen zu tun ist",
+      frame: { x: 20, y: 102, w: 170, h: 7 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 14,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    {
+      id: "links2-actions",
+      type: "arrowBulletList",
+      binding: { kind: "audit", path: "sections.links.actions" },
+      frame: { x: 25, y: 112, w: 165, h: 75 },
+      zIndex: 50,
+      itemGap: 5,
+      arrowColor: BRAND_CYAN,
+      arrowSize: 5,
+      arrowGap: 6,
+      titleStyle: textStyle({
+        fontSize: 10.5,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.3,
+      }),
+      detailStyle: textStyle({
+        fontSize: 9.5,
+        fontWeight: 400,
+        color: "#cfcfcf",
+        textAlign: "left",
+        lineHeight: 1.4,
+      }),
+      overflow: "shrink",
+    },
+    {
+      id: "links2-closing-note",
+      type: "text",
+      binding: { kind: "audit", path: "sections.links.closingNote" },
+      frame: { x: 25, y: 192, w: 165, h: 16 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 10.5,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.4,
+      }),
+    },
+  ];
+}
+
 // ---------- Page-Key registry ----------
 
 export type PageKey =
@@ -2360,8 +2733,8 @@ export const BUILDERS: Record<PageKey, () => Block[]> = {
   lokalesSeo2: buildLokalesSeo2,
   performance1: buildPerformance1,
   performance2: buildPerformance2,
-  links1: CHROME_ONLY_BUILDER,
-  links2: CHROME_ONLY_BUILDER,
+  links1: buildLinks1,
+  links2: buildLinks2,
   phasenplan1: CHROME_ONLY_BUILDER,
   phasenplan2: CHROME_ONLY_BUILDER,
   zusammenfassung: CHROME_ONLY_BUILDER,

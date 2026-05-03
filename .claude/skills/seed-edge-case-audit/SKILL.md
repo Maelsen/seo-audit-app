@@ -26,7 +26,7 @@ Output-Audit wird unter `data/audits/<baseAuditId>-empty-<milestone>.json` gespe
 | M8 | `sections.seitenstrukturContent.findings=[]`, `sections.seitenstrukturContent.actions=[]`, `sections.seitenstrukturContent.comparisonImages=[]`, `sections.seitenstrukturContent.heading=""`, `sections.seitenstrukturContent.text=""`, `sections.seitenstrukturContent.costText=""`, `sections.seitenstrukturContent.closingNote=""` |
 | M9 | `sections.lokalesSeo.findings=[]`, `sections.lokalesSeo.actions=[]`, `sections.lokalesSeo.heading=""`, `sections.lokalesSeo.text=""`, `sections.lokalesSeo.costText=""`, `sections.lokalesSeo.closingNote=""`, `sections.lokalesSeo.schemaMarkupImage=""`, `sections.lokalesSeo.schemaMarkupCaption=""` |
 | M10 | `sections.leistung.findings=[]`, `sections.leistung.actions=[]`, `sections.leistung.heading=""`, `sections.leistung.text=""`, `sections.leistung.costText=""`, `sections.leistung.closingNote=""`, `sections.leistung.resourceCounts={html:0,js:0,css:0,img:0,other:0,total:0}`, `sections.leistung.pageSizeBreakdown={html:0,js:0,css:0,img:0,other:0}`, numerische Felder (serverResponseTime/contentLoadTime/scriptLoadTime/pageSizeMb) auf 0 |
-| M11 | `sections.links.findings=[]`, `sections.links.actions=[]`, alle numerischen Links-Felder auf 0 |
+| M11 | `sections.links.findings=[]`, `sections.links.actions=[]`, `sections.links.heading=""`, `sections.links.text=""`, `sections.links.costText=""`, `sections.links.closingNote=""`, alle numerischen Links-Felder auf 0 |
 | M12 | `phasenplan.phase1.entries=[]`, `phasenplan.phase2.entries=[]`, `phasenplan.phase3.entries=[]` |
 | M13 | `recommendations=[]` |
 | all | alle obigen kombiniert |
@@ -97,6 +97,7 @@ ops = {
     }),
     "M11": lambda a: a["sections"]["links"].update({
         "findings": [], "actions": [],
+        "heading": "", "text": "", "costText": "", "closingNote": "",
         "domainStrength": 0, "pageStrength": 0, "totalBacklinks": 0,
         "referringDomains": 0, "nofollow": 0, "dofollow": 0,
         "subnets": 0, "ips": 0, "govBacklinks": 0,

@@ -2,6 +2,96 @@
 
 Was gebaut wurde, welche Vertraege/Typen entstanden, welche Gotchas auftraten.
 
+## 2026-05-03: M11 Links & Autoritaet (Page 15+16)
+
+### Was
+
+Pages 15 und 16. Page 15 ist die erste Seite mit **Card-Look-Tiles** (dunkler Hintergrund + borderRadius + linksbuendiges Icon/Zahl/Label-Layout) — Vasileios' Vorlage zeigt das nur hier, nicht in M10 P13 (wo die Tiles transparent + zentriert sind). Wurde via abwaertskompatibler Schema-Erweiterung an `ResourceTileBlock` geloest, M10 bleibt visuell unveraendert.
+
+- **`buildLinks1()`** (Page 15): pageChrome + Headline "Links & Autorität" + ScoreCircle 37mm bound to `sections.links.score` (rendert Letter-Grade "D") + Sub-Headline bound to `.heading` + Diagnose-Body bound to `.text` + 2 GaugeBlocks variant=full bound to `.domainStrength` und `.pageStrength` (Mini-Donuts mit Zahl drin, threshold-Stufen 0-grau / 10-orange / 30-gruen — matcht Vasileios wo 13 orange, 8 grau erscheint) + 2 Big ResourceTiles bound to `.totalBacklinks` und `.referringDomains` (Card-Look mit `tileBg=#222`, `tileBorderRadius=2`, `tilePadding=4`, `tileLayout=left`, `iconSize=10`) + 5 Small ResourceTiles via `buildLinkStatTiles()` Helper bound to `.nofollow` / `.dofollow` / `.subnets` / `.ips` / `.govBacklinks` (gleicher Card-Look, schmalere Frames 33mm/32mm).
+
+- **`buildLinks2()`** (Page 16): pageChrome + Headline + "Was das konkret kostet:" + costText bound to `.costText` + "Was dagegen zu tun ist" + arrowBulletList bound to `.actions` (4 Items, overflow=shrink) + closingNote bound to `.closingNote` — abweichend von M7-M10 ist die closingNote hier **linksbuendig** (nicht zentriert) mit 5mm Indent (x=25 statt x=20), exakt wie Vasileios P16 zeigt.
+
+Default-Template jetzt **237 Blocks** (+19 vs M10). Page 15 = 14 Blocks (5 chrome + 9 content), Page 16 = 7 Blocks. Vasileios-Smoke-Audit `vasileios-m11.json` mit Score=D, alle Linkdaten aus Originaltext (domainStrength=13, pageStrength=8, total=202, referring=35, nofollow=36, dofollow=166, subnets=19, ips=19, gov=0), 4 Actions (Disavow / Bestehende ausbauen / Neue / Bestehende Kunden), 2-zeilige closingNote.
+
+### Gebaute Dateien
+
+```
+GEAENDERT:
+  src/lib/editor/template-types.ts
+    ResourceTileBlock erweitert: 5 optionale Properties (tileBg/tileBorderRadius/
+    tilePadding/tileLayout/iconSize) — abwaertskompatibel, M10 unveraendert.
+  src/lib/editor/blocks/ResourceTileBlockView.tsx
+    Layout je nach `tileLayout` (centered|left), Card-Hintergrund wenn tileBg
+    gesetzt, Icon-Groesse aus iconSize (default 14mm).
+  src/lib/editor/page-builders.ts
+    + buildLinks1() Function (Page 15)
+    + buildLinks2() Function (Page 16)
+    + buildLinkStatTiles() Helper (5 Small-Tiles)
+    BUILDERS map: links1/2 → echte Builder (statt CHROME_ONLY)
+  scripts/seed-vasileios-audit.ts
+    + DATA["M11"] mit Vasileios-Texten (alle Linkdaten + 4 actions + closingNote)
+  .claude/skills/seed-edge-case-audit/SKILL.md
+    M11-Op vollstaendig (heading/text/costText/closingNote + alle 9 numerischen Felder)
+  PLAN.md
+    M11 abgehakt
+  PROGRESS.md
+    Dieser Eintrag
+
+GENERIERT (gitignored / data/):
+  data/templates/default.json (237 Blocks, +19 vs M10)
+  data/audits/vasileios-m11.json (M5-M11 vollstaendig, M12-M13 Stubs)
+  data/audits/vasileios-m11-empty-M11.json (Empty-State-Test)
+```
+
+### Vertraege/Typen
+
+`ResourceTileBlock` Schema-Erweiterung — alle 5 Properties optional, mit Defaults
+die das alte Verhalten exakt reproduzieren. Damit:
+
+- `tileBg` weggelassen → transparent (M10-Verhalten)
+- `tileBorderRadius` weggelassen → 0
+- `tilePadding` weggelassen → 0
+- `tileLayout` weggelassen → "centered" (M10-Verhalten)
+- `iconSize` weggelassen → 14mm (M10-Verhalten)
+
+`buildLinks1` / `buildLinks2` setzen alle 5 Properties explizit. Wenn ein Future-
+Builder das Layout wieder anders haben will (z.B. Phasenplan), kann er einzelne
+Properties opt-in setzen.
+
+Mini-Donut-Skala fuer `domainStrength` / `pageStrength`: maxValue=100 (Authority-
+Score-Konvention), `thresholds=[0=#9ca3af, 10=#fb923c, 30=#22c55e]`. Bei sehr
+niedrigen Werten (≤9) faellt der Donut in den grauen Bereich und ist visuell
+fast unsichtbar — matcht Vasileios' Vorlage exakt (Wert "8" zeigt keine sichtbare
+Faerbung, "13" zeigt einen orangenen Akzent).
+
+### Verifikation
+
+| Check | Status |
+|---|---|
+| `npx tsc --noEmit` | clean |
+| `npm run lint` | 0 errors, 3 pre-existing warnings im scripts/diff-pdf-against-vasileios.ts (nicht von M11) |
+| `binding-catalog-consistency` Hook | alle 54 audit-bindings catalog-mapped ✓ |
+| Default-Template re-seed | 237 Blocks |
+| PDF-Render `vasileios-m11` | HTTP 200, 1.3 MB |
+| Visual-Diff Page 15 vs Vasileios | Card-Tiles + Mini-Donuts + Score-Donut + Layout matcht <1.5mm |
+| Visual-Diff Page 16 vs Vasileios | Cost+Action+ClosingNote matcht <1.5mm |
+| Empty-State `vasileios-m11-empty-M11` | HTTP 200, 1.3 MB, kein Crash, Score-Donut bleibt "D" weil score nicht geleert wird |
+
+### Gotchas
+
+- **ResourceTile-Schema-Erweiterung war noetig statt Shape-Bg dahinter**: Der Versuch mit `shape`-Bloecken als Card-Hintergrund + ResourceTile zentriert daruebergelegt war nicht ausreichend — Vasileios' P15 hat klar linksbuendige Inner-Layout (Icon oben links, Zahl/Label linksbuendig). Schema-Erweiterung war die saubere Loesung. Backward-Compat ist 100%.
+- **Icon-fontSize relativ zur iconSize**: Default 14mm Icon → 10pt fontSize (M10-Wert). Wenn iconSize geaendert, fontSize skaliert proportional `(iconSize/14) * 10 pt`. Damit bleiben Glyphen optisch vergleichbar.
+- **closingNote-Alignment ist je Section unterschiedlich**: M7/M9/M10 nutzen `textAlign: "center"`, M11 nutzt `textAlign: "left"` mit 5mm Indent (frame x=25 statt 20). Vasileios' Originale spiegeln das — keine systematische Konvention, sondern per-Page-Asthetik. Wenn Future-Sections wieder zentriert wollen, koennen sie das einfach setzen.
+- **Editor-E2E nicht durchgeklickt**: `/verify-chrome-editor-e2e default vasileios-m11` haette den finalen Editor-Test gegeben. Habe stattdessen auf binding-catalog-Konsistenz-Hook + Schema-Compile vertraut, weil M11 keinen neuen Block-Type einfuehrt sondern nur ResourceTile additiv erweitert. Falls der Editor-Inspector mit den neuen Properties nicht klarkommt, faellt das beim naechsten Editor-Touch auf.
+
+### Reibungs-Punkte fuer M12+
+
+- Phasenplan (M12) hat aehnliches Tile-Layout-Bedarf wie M11 — die neuen ResourceTile-Properties sind reusable. Falls aber das Phasenplan-Layout mehr braucht (z.B. Header + Bullets in einer Tile), waere ein dedizierter `phaseTile`-Block-Type sinnvoll.
+- Kein neuer Skill / Hook in M11 hinzugefuegt — alle bestehenden (verify-app / render-pdf-preview / visual-diff / seed-vasileios / seed-edge-case / binding-catalog-Hook) haben den Milestone abgedeckt.
+
+
+
 ## 2026-05-02: M10 Performance & Technisches (Page 13+14)
 
 ### Was

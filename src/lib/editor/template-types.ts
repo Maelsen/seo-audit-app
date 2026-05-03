@@ -200,6 +200,14 @@ export type ResourceTileBlock = BlockBase & {
   iconColor: HexColor;
   valueStyle: TextStyle;
   labelStyle: TextStyle;
+  // Optional card-look (M11+). Wenn weggelassen: zentriertes Layout ohne Card-Bg
+  // wie M10 P13. Wenn tileBg gesetzt: rect-Card mit borderRadius+padding,
+  // Tile-Layout linksbuendig (icon → value → label, alle left-aligned).
+  tileBg?: HexColor;
+  tileBorderRadius?: Mm;
+  tilePadding?: Mm;
+  tileLayout?: "centered" | "left";
+  iconSize?: Mm;
 };
 
 export type SerpPreviewBlock = BlockBase & {

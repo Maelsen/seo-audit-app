@@ -226,7 +226,49 @@ const DATA: Partial<Record<Milestone, DataPatch>> = {
       },
     },
   },
-  // M11-M13: noch nicht erfasst. Pro Milestone hier ergaenzen wenn der Builder gebaut wird.
+  M11: {
+    sections: {
+      links: {
+        score: "D",
+        heading: "Gute Ansätze – aber Spam zieht die Domain runter",
+        text:
+          "Du hast bereits wertvolle Links von starken Quellen. Das Problem: Ein erheblicher Teil der Backlinks kommt von Spam-Seiten die deiner Domain aktiv schaden. Das neutralisiert die positiven Signale und bremst dein Ranking-Potenzial.",
+        domainStrength: 13,
+        pageStrength: 8,
+        totalBacklinks: 202,
+        referringDomains: 35,
+        nofollow: 36,
+        dofollow: 166,
+        subnets: 19,
+        ips: 19,
+        govBacklinks: 0,
+        findings: [],
+        costText:
+          "Die guten Links – HWK, Gelbe Seiten, ProvenExpert, dein-waf.de – sind echte Vertrauenssignale die Google positiv wertet. Aber Spam-Links von Seiten wie rankvance.info, rankongoogle.agency oder rankpilot.shop ziehen die Domain-Autorität aktiv runter. Google erkennt diese Muster und kann die gesamte Domain als weniger vertrauenswürdig einstufen. Das ist kein akutes Problem – aber ein langfristiges Risiko das angegangen werden sollte.",
+        actions: [
+          {
+            title: "Spam-Links über Google Disavow Tool entwerten",
+            detail:
+              "Die Links von rankvance.info, rankongoogle.agency, rankpilot.shop und ähnlichen Seiten sollten in einer Disavow-Datei gemeldet werden",
+          },
+          {
+            title: "Bestehende starke Links weiter ausbauen",
+            detail: "ProvenExpert-Profil vollständig befüllen, HWK-Eintrag optimieren",
+          },
+          {
+            title: "Neue qualitative Links gezielt aufbauen",
+            detail: "Stadtportale im Kreis Warendorf, lokale Gewerbeverbände, Kooperationspartner",
+          },
+          {
+            title: "Bestehende Kunden bitten die Website zu verlinken oder zu erwähnen",
+          },
+        ],
+        closingNote:
+          "Disavow ist einmalig in einem halben Tag erledigt. Link-Building ist langfristig – wer jetzt anfängt hat in 6 Monaten einen echten Vorsprung gegenüber Wettbewerbern die es nicht tun.",
+      },
+    },
+  },
+  // M12-M13: noch nicht erfasst. Pro Milestone hier ergaenzen wenn der Builder gebaut wird.
 };
 
 const ALL_MILESTONES: Milestone[] = ["M5", "M6", "M7", "M8", "M9", "M10", "M11", "M12", "M13"];

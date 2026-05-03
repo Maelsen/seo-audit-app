@@ -11,6 +11,12 @@ export function ResourceTileBlockView({ block, audit }: Props): ReactElement {
     block.binding.kind === "audit" ? resolveBinding(audit, block.binding) : 0;
   const value = raw == null ? 0 : Number(raw);
 
+  const layout = block.tileLayout ?? "centered";
+  const isLeft = layout === "left";
+  const padding = block.tilePadding ?? 0;
+  const borderRadius = block.tileBorderRadius ?? 0;
+  const iconSize = block.iconSize ?? 14;
+
   return (
     <div
       data-block-id={block.id}
@@ -19,15 +25,19 @@ export function ResourceTileBlockView({ block, audit }: Props): ReactElement {
         ...frameStyle(block.frame),
         display: "flex",
         flexDirection: "column",
-        alignItems: "center",
+        alignItems: isLeft ? "flex-start" : "center",
         justifyContent: "flex-start",
         overflow: "hidden",
+        background: block.tileBg ?? "transparent",
+        borderRadius: borderRadius ? `${borderRadius}mm` : undefined,
+        padding: padding ? `${padding}mm` : undefined,
+        boxSizing: "border-box",
       }}
     >
       <div
         style={{
-          width: "14mm",
-          height: "14mm",
+          width: `${iconSize}mm`,
+          height: `${iconSize}mm`,
           borderRadius: "1.5mm",
           background: block.iconBg,
           color: block.iconColor,
@@ -35,19 +45,27 @@ export function ResourceTileBlockView({ block, audit }: Props): ReactElement {
           alignItems: "center",
           justifyContent: "center",
           fontFamily: "'Poppins', Arial, sans-serif",
-          fontSize: "10pt",
+          fontSize: `${(iconSize / 14) * 10}pt`,
           fontWeight: 700,
           marginBottom: "1.5mm",
+          flexShrink: 0,
         }}
       >
         {block.icon}
       </div>
-      <div style={textStyleToCss(block.valueStyle)}>{value}</div>
+      <div
+        style={{
+          ...textStyleToCss(block.valueStyle),
+          textAlign: isLeft ? "left" : "center",
+        }}
+      >
+        {value}
+      </div>
       <div
         style={{
           ...textStyleToCss(block.labelStyle),
           marginTop: "0.6mm",
-          textAlign: "center",
+          textAlign: isLeft ? "left" : "center",
         }}
       >
         {block.label}
