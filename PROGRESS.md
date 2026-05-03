@@ -30,7 +30,10 @@ GEAENDERT:
     + closing-Texten + ctas, inhaber bleibt mit defaults wenn nichts spezifisch
     generiert wird (thankYou/name/role/photo/phone/email/website sind statisch)
   src/lib/editor/binding-catalog.ts
-    + 18 neue Pfade: 8× summary.* + 10× inhaber.*
+    + 24 neue Pfade: 8× summary.* (heading/subline/topIssues/closingHeadline/
+      closingSubline/closingBody/ctaCyan/ctaBold) + 6× summary.topIssues[0..2]
+      .headline/.body (Index-Pfade — siehe Bug-Fix unter Reibungspunkten) +
+      10× inhaber.*
   src/app/api/upload/route.ts
     + emptySummary() + defaultInhaber() (vasilis.png + Vasileios-Kontakt
       als defaults — auch fuer kuenftige Audits ohne Agent-Generierung)
@@ -134,6 +137,43 @@ pageHeader(prefix?: string): Block[]  // NEU: 3 Blocks (Logo + Title + URL), reu
 - **Editor-E2E ueberspringen war ein FEHLER**: Initial hatte ich den Editor-E2E weggelassen mit der Begruendung "strukturell analog M12". Auf Marlins Nachfrage doch durchgefuehrt — und prompt einen Persistenz-Killer-Bug entdeckt: Inspector zeigte fuer 6 von 16 Page-19-Blocks (alle `summary.topIssues[i].headline/.body`) das Label "(statisch)" statt "Zusammenfassung - Issue X Y". Ursache: Index-spezifische Pfade matchen nicht die Top-Level `summary.topIssues` Catalog-Eintragung. Gefixt durch 6 zusaetzliche Catalog-Eintraege fuer `summary.topIssues[0..2].headline/.body`. Lesson: **strukturelle Aehnlichkeit allein reicht NICHT als Begruendung E2E zu skippen** — der Inspector-Catalog-Match ist eine separate Anfaelligkeit pro Pfad. Tools-Pattern, das `binding-catalog-consistency` Hook nur sections.* prefix scannt — Top-Level summary/inhaber/comparison/phasenplan-Pfade werden NICHT abgedeckt. Backlog-Ticket: Hook-Erweiterung auf alle audit-Pfade + auch Index-Pfade vs Catalog matchen.
 - **M5-Latenz-Bug gleicher Klasse**: `comparison.altSentences[i].aspect` und `[i].vision` zeigen seit M5 ebenfalls "(statisch)" im Inspector — beim Inspizieren von M13 entdeckt. M5 ist seit Monaten stable weil niemand altSentences im Editor angefasst hat, aber wenn ja: gleicher silent persistence-killer. Backlog-Ticket: 6 Index-Pfade fuer altSentences in Catalog ergaenzen (analog M13-Fix).
 - **20-Seiten-Migration komplett**: PLAN.md Hauptliste hat keine offenen Items mehr. Nur noch Backlog-Tickets (M4.1 Cover-Monitor-Frame, M13.1 Social-Icon-SVGs, M5.1-Catalog-Patch fuer altSentences-Index-Pfade, Hook-Erweiterung).
+
+### Bekannte Gotchas
+
+- **Page 19 hat KEINE footer-stripes** (anders als alle anderen Section-Pages). Wenn jemand zukuenftig `pageHeader("zf-chrome")` durch `pageChrome()` ersetzt, kommen die Stripes zurueck und matchen Vasileios nicht mehr. Auskommentiert war das in M13 nicht ergonomisch — daher pageHeader als separater Helper extrahiert.
+- **Page 20 nutzt KEIN pageChrome** — eigene Wortmarke + footer-stripes manuell. Wenn jemand pageChrome-Aenderungen macht (z.B. Logo-Position), betreffen die Page 20 NICHT. Doppelmeasurement noetig.
+- **inhaber.photo muss `/assets/<filename>` Form haben** (oder absolute URL). Wenn jemand einen relativen Pfad ohne `/assets/` Prefix einsetzt (z.B. `vasilis.png`), greift `inlineAssetIfLocal()` NICHT und das Bild laedt nicht im PDF.
+- **Index-Pfade muessen explizit im Catalog stehen** (M13-Bug-Fix-Lesson). Top-Level-Eintrag `summary.topIssues` ist nicht genug — der Inspector matcht keine `summary.topIssues[0].headline` gegen `summary.topIssues`. M5 hat den gleichen latenten Bug bei `comparison.altSentences[i].aspect/.vision` (Backlog-Ticket M5.1).
+- **`binding-catalog-consistency` Hook deckt nicht alle Pfade**: Aktuell nur `path: "sections.X.Y"` mit `sections.` prefix. Top-Level-Pfade (`summary.*`, `inhaber.*`, `comparison.*`, `phasenplan.*`, `topRisks`) UND Index-Pfade werden NICHT geprueft. Ergebnis: M13-Bug schlich durch tsc/lint und blieb bis zum Editor-E2E unentdeckt. Backlog-Ticket dokumentiert.
+
+### Offene Tests
+
+Keine. Alles gruen:
+- Compile + Lint
+- Backend-Render Both Pages mit echten Werten + Empty-State + Edge-Case
+- Pixel-Drift gegen Vasileios (Page 19 ≤1.5mm, Page 20 ≤4mm)
+- Editor-E2E in Chrome (35/35 Blocks Inspector-Catalog-Match, Save-Persistenz x=25→30 verifiziert, Console 0 echte App-Errors)
+- Manuelle Browser-UX-Checks vom User stehen aus, sind aber nicht Show-Stopper (siehe Handoff-Report).
+
+### Tooling-Vorschlaege fuer Reibungen aus diesem Milestone
+
+Was sich in M13 wiederholt hat und sich automatisieren liesse — erstmal keine Umsetzung, nur Vorschlaege:
+
+1. **Hook-Erweiterung `binding-catalog-consistency`** (project-internal, nicht offizieller MCP-Server)
+   - **Reibung**: M13-Bug schlich durch alle Pre-Commit-Checks, weil der Hook nur `sections.*` prueft. Ich hab den Bug erst nach manuellem Editor-E2E nach 2 Stunden Build-Zeit entdeckt — nachdem ich initial sogar versucht habe das E2E zu skippen.
+   - **Vorschlag**: Hook-Skript erweitern um (a) alle audit-Pfade (`comparison.*`, `phasenplan.*`, `summary.*`, `inhaber.*`, `topRisks`, `recommendations`, `screenshots.*`) abzudecken und (b) Index-Pfade gegen Top-Level-Array-Catalog-Eintraege zu validieren — wenn `summary.topIssues[0].headline` im Builder vorkommt aber kein `summary.topIssues[0].headline` im Catalog steht, hook-fail.
+   - **Wo**: `.claude/hooks/binding-catalog-consistency.sh` — bereits committed, nur erweitern.
+   - **ROI**: Faengt den naechsten "M7-closingNote-Bug-Klasse" Fehler bei Build-Time statt erst im E2E.
+
+2. **Skill `/diff-text-rows-vs-vasileios <auditId> <pageNum>`** (project-internal Skill, kein MCP-Server)
+   - **Reibung**: 4× Inline-Python in M13 fuer Drift-Comparison App-PDF vs Vasileios-PNG (white-text-row scan, drift-table per Zeile). Skill-Code waere reuse aus M5/M11/M13.
+   - **Vorschlag**: Wrapper-Skill der `/render-pdf-preview` + numpy text-row-detection + paired comparison kombiniert. Ausgabe: Drift-Tabelle mit ✓/⚠/✗ pro Row.
+   - **ROI**: Nur dann lohnend, wenn nach M13 noch weitere Pages dazukommen (Migration ist 20/20 = komplett). Fuer reine Refinements (M4.1 Cover-Monitor) braucht man keine Drift-Comparison.
+   - **Status**: Nicht prioritaer wenn keine M14+ Pages geplant sind.
+
+3. **Offizielle MCP-Server**: Keine relevant. Die in M13 verwendeten Tools (`measure-vasileios-page`, `verify-chrome-editor-e2e`, `seed-vasileios-audit`, `seed-edge-case-audit`, `render-pdf-preview`) sind alle project-spezifisch. Standardisierte MCP-Server fuer PDF-Pixel-Drift / Visual-Diff / SEO-Audit-Schemas existieren nicht und waeren auch overkill.
+
+Routine-Anteil dieses Milestones war hoch (Schema → Builder → Catalog → Re-Seed → Render → Visual-Diff → Editor-E2E). Die existierenden Skills haben das gut abgedeckt — `/measure-vasileios-page`, `/render-pdf-preview`, `/seed-vasileios-audit`, `/seed-edge-case-audit`, `/verify-chrome-editor-e2e`. Einzige Reibung war der Hook-Gap (Vorschlag #1).
 
 ## 2026-05-03: M12 Phasenplan (Page 17+18)
 
