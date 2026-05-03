@@ -75,6 +75,13 @@ export const BINDING_CATALOG: BindingEntry[] = [
   { path: "sections.leistung.pageSizeMb", label: "Performance - Page Size (MB)", type: "number" },
   { path: "sections.leistung.pageSizeBreakdown", label: "Performance - Page Size Breakdown (Pie)", type: "object" },
   { path: "sections.leistung.resourceCounts", label: "Performance - Resource Counts (Object)", type: "object" },
+  { path: "sections.leistung.resourceCounts.html", label: "Performance - HTML Count", type: "number" },
+  { path: "sections.leistung.resourceCounts.js", label: "Performance - JS Count", type: "number" },
+  { path: "sections.leistung.resourceCounts.css", label: "Performance - CSS Count", type: "number" },
+  { path: "sections.leistung.resourceCounts.img", label: "Performance - IMG Count", type: "number" },
+  { path: "sections.leistung.resourceCounts.other", label: "Performance - Other Count", type: "number" },
+  { path: "sections.leistung.resourceCounts.total", label: "Performance - Total Count", type: "number" },
+  { path: "sections.leistung.findings", label: "Performance - Findings (Tabelle)", type: "array" },
 
   // Links & Autoritaet (intern: links)
   { path: "sections.links.score", label: "Links - Note", type: "grade" },

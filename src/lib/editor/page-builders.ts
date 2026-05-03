@@ -1805,6 +1805,516 @@ function buildLokalesSeo2(): Block[] {
   ];
 }
 
+// ---------- M10: Performance & Technisches (Pages 13 + 14) ----------
+//
+// PAGE 13 (buildPerformance1): die bislang dichteste Page —
+//   Score-Donut links + Sub-Headline/Diagnose rechts
+//   3× Speed-Gauge (semi, Server / Content / Skript)
+//   6× ResourceTile (HTML / JS / CSS / IMG / Other / Total)
+//   Page-Size-Gauge (semi, MB) + Pie-Chart pageSizeBreakdown.
+//
+// PAGE 14 (buildPerformance2): klassisches Cost+Actions-Pattern wie M7 P8.
+//   Cost-Heading + costText + Action-Heading + arrowBulletList + closingNote.
+//
+// Vasileios' Original schreibt die Headline "Perfomance & Technisches" (ohne
+// erstes "r") — übernommen, das ist Markenname/Original-Tippfehler.
+
+function buildPerformance1(): Block[] {
+  return [
+    ...pageChrome(),
+    {
+      id: "perf1-headline",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "Perfomance & Technisches",
+      frame: { x: 20, y: 36, w: 170, h: 10 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 22,
+        fontWeight: 800,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    {
+      id: "perf1-score-donut",
+      type: "scoreCircle",
+      binding: { kind: "audit", path: "sections.leistung.score" },
+      frame: { x: 17, y: 51, w: 37, h: 37 },
+      zIndex: 50,
+      size: 37,
+      strokeWidth: 5,
+      labelStyle: textStyle({
+        fontSize: 24,
+        fontWeight: 800,
+        color: "#ffffff",
+        textAlign: "center",
+        lineHeight: 1,
+      }),
+    },
+    {
+      id: "perf1-section-heading",
+      type: "text",
+      binding: { kind: "audit", path: "sections.leistung.heading" },
+      frame: { x: 65, y: 50, w: 130, h: 8 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 13,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.3,
+      }),
+    },
+    {
+      id: "perf1-section-text",
+      type: "text",
+      binding: { kind: "audit", path: "sections.leistung.text" },
+      frame: { x: 65, y: 58, w: 130, h: 30 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 10,
+        fontWeight: 400,
+        color: "#e6e6e6",
+        textAlign: "left",
+        lineHeight: 1.5,
+      }),
+    },
+    // ---- Block: Website-Ladegeschwindigkeit (3 Speed-Gauges) ----
+    {
+      id: "perf1-speed-heading",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "Website-Ladegeschwindigkeit",
+      frame: { x: 20, y: 95, w: 170, h: 7 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 13,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    {
+      id: "perf1-speed-text",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "Deine Website lädt in angemessener Zeit.",
+      frame: { x: 20, y: 103, w: 170, h: 5 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 9.5,
+        fontWeight: 400,
+        color: "#cfcfcf",
+        textAlign: "left",
+        lineHeight: 1.4,
+      }),
+    },
+    // 3 Gauges side-by-side (drei Spalten je 55mm, gap ~3mm)
+    {
+      id: "perf1-gauge-server",
+      type: "gauge",
+      binding: { kind: "audit", path: "sections.leistung.serverResponseTime" },
+      frame: { x: 20, y: 113, w: 55, h: 32 },
+      zIndex: 50,
+      variant: "semi",
+      minValue: 0,
+      maxValue: 5,
+      suffix: "s",
+      thresholds: [
+        { value: 0, color: "#22c55e" },
+        { value: 1, color: "#fbbf24" },
+        { value: 2, color: "#ef4444" },
+      ],
+      trackColor: "#444444",
+      strokeWidth: 8,
+      valueStyle: {
+        fontFamily: "Poppins",
+        fontSize: 11,
+        fontWeight: 700,
+        color: "#ffffff",
+        lineHeight: 1,
+        textAlign: "center",
+      },
+      labelStyle: textStyle({
+        fontSize: 8.5,
+        fontWeight: 600,
+        color: "#ffffff",
+        textAlign: "center",
+        lineHeight: 1.2,
+      }),
+      labelText: "Serverantwort",
+    },
+    {
+      id: "perf1-gauge-content",
+      type: "gauge",
+      binding: { kind: "audit", path: "sections.leistung.contentLoadTime" },
+      frame: { x: 77.5, y: 113, w: 55, h: 32 },
+      zIndex: 50,
+      variant: "semi",
+      minValue: 0,
+      maxValue: 15,
+      suffix: "s",
+      thresholds: [
+        { value: 0, color: "#22c55e" },
+        { value: 3, color: "#fbbf24" },
+        { value: 6, color: "#ef4444" },
+      ],
+      trackColor: "#444444",
+      strokeWidth: 8,
+      valueStyle: {
+        fontFamily: "Poppins",
+        fontSize: 11,
+        fontWeight: 700,
+        color: "#ffffff",
+        lineHeight: 1,
+        textAlign: "center",
+      },
+      labelStyle: textStyle({
+        fontSize: 8.5,
+        fontWeight: 600,
+        color: "#ffffff",
+        textAlign: "center",
+        lineHeight: 1.2,
+      }),
+      labelText: "Alle Seiteninhalte geladen",
+    },
+    {
+      id: "perf1-gauge-script",
+      type: "gauge",
+      binding: { kind: "audit", path: "sections.leistung.scriptLoadTime" },
+      frame: { x: 135, y: 113, w: 55, h: 32 },
+      zIndex: 50,
+      variant: "semi",
+      minValue: 0,
+      maxValue: 20,
+      suffix: "s",
+      thresholds: [
+        { value: 0, color: "#22c55e" },
+        { value: 5, color: "#fbbf24" },
+        { value: 10, color: "#ef4444" },
+      ],
+      trackColor: "#444444",
+      strokeWidth: 8,
+      valueStyle: {
+        fontFamily: "Poppins",
+        fontSize: 11,
+        fontWeight: 700,
+        color: "#ffffff",
+        lineHeight: 1,
+        textAlign: "center",
+      },
+      labelStyle: textStyle({
+        fontSize: 8.5,
+        fontWeight: 600,
+        color: "#ffffff",
+        textAlign: "center",
+        lineHeight: 1.2,
+      }),
+      labelText: "Alle Seitenskripte vollständig",
+    },
+    // ---- Block: Ressourcenaufteilung (6 Resource-Tiles) ----
+    {
+      id: "perf1-resources-heading",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "Ressourcenaufteilung",
+      frame: { x: 20, y: 152, w: 170, h: 7 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 13,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    {
+      id: "perf1-resources-text",
+      type: "text",
+      binding: { kind: "static" },
+      staticText:
+        "Dieser Check zeigt die Gesamtanzahl der Dateien an, die von Webservern abgerufen werden müssen, um Ihre Seite zu laden.",
+      frame: { x: 20, y: 160, w: 175, h: 8 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 9.5,
+        fontWeight: 400,
+        color: "#cfcfcf",
+        textAlign: "left",
+        lineHeight: 1.4,
+      }),
+    },
+    // 6 Tiles side-by-side; jeder ~28mm breit + 1mm gap → x=15/45/75/105/135/165
+    ...buildResourceTiles(),
+    // ---- Block: Seitengröße Download (links) + Aufschlüsselung (rechts) ----
+    {
+      id: "perf1-pagesize-heading",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "Seitengröße Download",
+      frame: { x: 20, y: 207, w: 80, h: 7 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 12,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    {
+      id: "perf1-pagesize-gauge",
+      type: "gauge",
+      binding: { kind: "audit", path: "sections.leistung.pageSizeMb" },
+      frame: { x: 18, y: 217, w: 80, h: 50 },
+      zIndex: 50,
+      variant: "semi",
+      minValue: 0,
+      maxValue: 10,
+      suffix: "MB",
+      thresholds: [
+        { value: 0, color: "#22c55e" },
+        { value: 3, color: "#fbbf24" },
+        { value: 6, color: "#ef4444" },
+      ],
+      trackColor: "#444444",
+      strokeWidth: 8,
+      valueStyle: {
+        fontFamily: "Poppins",
+        fontSize: 13,
+        fontWeight: 700,
+        color: "#ffffff",
+        lineHeight: 1,
+        textAlign: "center",
+      },
+      labelStyle: textStyle({
+        fontSize: 8.5,
+        fontWeight: 400,
+        color: "#cfcfcf",
+        textAlign: "center",
+        lineHeight: 1.2,
+      }),
+    },
+    {
+      id: "perf1-breakdown-heading",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "Aufschlüsselung der Seitengröße Download",
+      frame: { x: 110, y: 207, w: 85, h: 12 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 12,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    {
+      id: "perf1-breakdown-pie",
+      type: "pieChart",
+      binding: { kind: "audit", path: "sections.leistung.pageSizeBreakdown" },
+      frame: { x: 110, y: 222, w: 85, h: 60 },
+      zIndex: 50,
+      slices: [
+        { label: "HTML", fieldPath: "html", color: "#22c55e" },
+        { label: "JS", fieldPath: "js", color: "#ef4444" },
+        { label: "CSS", fieldPath: "css", color: "#3b82f6" },
+        { label: "IMG", fieldPath: "img", color: "#a855f7" },
+        { label: "Other", fieldPath: "other", color: "#fbbf24" },
+      ],
+      pieDiameter: 38,
+      innerRadius: 0,
+      showLegend: true,
+      legendPosition: "right",
+      legendGap: 3,
+      legendItemGap: 1.5,
+      legendSwatchSize: 2.5,
+      legendStyle: textStyle({
+        fontSize: 8,
+        fontWeight: 400,
+        color: "#cfcfcf",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+      showSliceLabels: true,
+      sliceLabelStyle: textStyle({
+        fontSize: 7,
+        fontWeight: 600,
+        color: "#ffffff",
+        textAlign: "center",
+        lineHeight: 1,
+      }),
+      sliceLabelOffset: 3,
+    },
+  ];
+}
+
+// 6 ResourceTiles in einer Reihe, bound to sections.leistung.resourceCounts.*
+// iconBg-Farben angelehnt an gängige File-Type-Farben (HTML orange, JS gelb, CSS blau,
+// IMG grau, Other cyan, Total dunkel-cyan).
+function buildResourceTiles(): Block[] {
+  const tileY = 172;
+  const tileW = 28;
+  const tileH = 30;
+  const startX = 16;
+  const gap = 2;
+
+  type TileSpec = {
+    id: string;
+    fieldPath: string;
+    label: string;
+    icon: string;
+    iconBg: string;
+    iconColor: string;
+  };
+  const specs: TileSpec[] = [
+    { id: "html", fieldPath: "html", label: "Anzahl der HTML-Seiten", icon: "HTML", iconBg: "#e34c26", iconColor: "#ffffff" },
+    { id: "js", fieldPath: "js", label: "Anzahl der JS-Ressourcen", icon: "JS", iconBg: "#f7df1e", iconColor: "#1a1a1a" },
+    { id: "css", fieldPath: "css", label: "Anzahl der CSS-Ressourcen", icon: "{ }", iconBg: "#2965f1", iconColor: "#ffffff" },
+    { id: "img", fieldPath: "img", label: "Anzahl der Bilder", icon: "IMG", iconBg: "#6c757d", iconColor: "#ffffff" },
+    { id: "other", fieldPath: "other", label: "Andere Ressourcen", icon: "•••", iconBg: BRAND_CYAN, iconColor: "#1a1a1a" },
+    { id: "total", fieldPath: "total", label: "Gesamtzahl Objekte", icon: "#", iconBg: BRAND_CYAN, iconColor: "#1a1a1a" },
+  ];
+
+  return specs.map((s, i) => ({
+    id: `perf1-tile-${s.id}`,
+    type: "resourceTile" as const,
+    binding: {
+      kind: "audit" as const,
+      path: `sections.leistung.resourceCounts.${s.fieldPath}`,
+    },
+    frame: { x: startX + i * (tileW + gap), y: tileY, w: tileW, h: tileH },
+    zIndex: 50,
+    label: s.label,
+    icon: s.icon,
+    iconBg: s.iconBg,
+    iconColor: s.iconColor,
+    valueStyle: textStyle({
+      fontSize: 13,
+      fontWeight: 800,
+      color: "#ffffff",
+      textAlign: "center",
+      lineHeight: 1,
+    }),
+    labelStyle: textStyle({
+      fontSize: 7,
+      fontWeight: 400,
+      color: "#cfcfcf",
+      textAlign: "center",
+      lineHeight: 1.2,
+    }),
+  }));
+}
+
+function buildPerformance2(): Block[] {
+  return [
+    ...pageChrome(),
+    {
+      id: "perf2-headline",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "Perfomance & Technisches",
+      frame: { x: 20, y: 36, w: 170, h: 10 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 22,
+        fontWeight: 800,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    {
+      id: "perf2-cost-heading",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "Was das konkret kostet:",
+      frame: { x: 20, y: 48, w: 170, h: 7 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 14,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    {
+      id: "perf2-cost-text",
+      type: "text",
+      binding: { kind: "audit", path: "sections.leistung.costText" },
+      frame: { x: 20, y: 58, w: 175, h: 38 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 10.5,
+        fontWeight: 400,
+        color: "#e6e6e6",
+        textAlign: "left",
+        lineHeight: 1.5,
+      }),
+    },
+    {
+      id: "perf2-actions-heading",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "Was dagegen zu tun ist",
+      frame: { x: 20, y: 102, w: 170, h: 7 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 14,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    {
+      id: "perf2-actions",
+      type: "arrowBulletList",
+      binding: { kind: "audit", path: "sections.leistung.actions" },
+      frame: { x: 20, y: 112, w: 170, h: 80 },
+      zIndex: 50,
+      itemGap: 5,
+      arrowColor: BRAND_CYAN,
+      arrowSize: 5,
+      arrowGap: 6,
+      titleStyle: textStyle({
+        fontSize: 10.5,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.3,
+      }),
+      detailStyle: textStyle({
+        fontSize: 9.5,
+        fontWeight: 400,
+        color: "#cfcfcf",
+        textAlign: "left",
+        lineHeight: 1.4,
+      }),
+      overflow: "shrink",
+    },
+    {
+      id: "perf2-closing-note",
+      type: "text",
+      binding: { kind: "audit", path: "sections.leistung.closingNote" },
+      frame: { x: 20, y: 197, w: 170, h: 12 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 10.5,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "center",
+        lineHeight: 1.4,
+      }),
+    },
+  ];
+}
+
 // ---------- Page-Key registry ----------
 
 export type PageKey =
@@ -1848,8 +2358,8 @@ export const BUILDERS: Record<PageKey, () => Block[]> = {
   seitenstrukturContent2: buildSeitenstrukturContent2,
   lokalesSeo1: buildLokalesSeo1,
   lokalesSeo2: buildLokalesSeo2,
-  performance1: CHROME_ONLY_BUILDER,
-  performance2: CHROME_ONLY_BUILDER,
+  performance1: buildPerformance1,
+  performance2: buildPerformance2,
   links1: CHROME_ONLY_BUILDER,
   links2: CHROME_ONLY_BUILDER,
   phasenplan1: CHROME_ONLY_BUILDER,

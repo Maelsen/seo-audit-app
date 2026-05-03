@@ -68,12 +68,67 @@ Erster Sanity-Check aus dem Screenshot:
 
 ### 3. Pro Block: anklicken + Inspector lesen
 
-**Robuster Pfad: clickBlock-Helper** — dispatchEvent oder synthetic clicks gehen am Editor-Pointer-Layer vorbei. Stabil ist nur `computer.left_click` mit echten Pixel-Koordinaten. Der Helper unten liest aus dem DOM die Viewport-Pixel-Mitte des Block-Frames + scrollt ihn in den View und gibt `{x, y}` zurueck — die du dann an `computer.left_click` reichst:
+**Zwei Pfade je nach Use-Case:**
+
+| Pfad | Wann nutzen | Latenz | Caveat |
+|---|---|---|---|
+| Stage-0 (JS-only Sweep) | Viele Blocks pro Page nur SELEKTIEREN + Bindings auslesen | ~700ms / Block | `setPointerCapture`-Exception in Console (siehe unten) |
+| Stage-1 (echter Pixel-Klick) | Drag/Move/Resize testen, oder wenn Stage-0 unzuverlaessig | ~2s / Block | benoetigt sichtbare Hit-Box im Viewport |
+
+**Stage-0: JS-only Sweep** (in M10 als Standard etabliert weil 21 Blocks auf einer Page).
+
+Ein einziger `javascript_tool`-Call, klickt mehrere Blocks nacheinander via synthetisch dispatched PointerEvents und liest die Inspector-`<select option:checked>` Werte aus. Jeder Click loest im Editor eine `setPointerCapture`-NotFoundError-Exception aus (synthetische PointerEvents haben keine echte browser-pointerId, der `EditorClient.beginMove`-Handler crasht beim `setPointerCapture`-Aufruf). **Diese Exception ist ein bekanntes Test-Tooling-Artefakt** — der Block selektiert sich trotzdem korrekt, der Inspector aktualisiert sich, und echter User-Klick mit Maus hat das Problem nicht. Beim Console-Error-Filter (Schritt 6) explizit `setPointerCapture` ausschliessen.
+
+```javascript
+// In claude-in-chrome javascript_tool ausfuehren
+async function clickAndReadBindings(blockId) {
+  const el = document.querySelector(`[data-overlay-block-id="${blockId}"]`)
+         ?? document.querySelector(`[data-block-id="${blockId}"]`);
+  if (!el) return {blockId, error: 'not_found'};
+  el.scrollIntoView({block: 'center', inline: 'center'});
+  await new Promise(r => setTimeout(r, 300));
+  const r = el.getBoundingClientRect();
+  const cx = r.left + r.width / 2;
+  const cy = r.top + r.height / 2;
+  for (const ev of ['pointerdown', 'pointerup', 'click']) {
+    el.dispatchEvent(new PointerEvent(ev, {
+      clientX: cx, clientY: cy, button: 0, isPrimary: true,
+      buttons: ev === 'pointerup' ? 0 : 1,
+      bubbles: true, cancelable: true, pointerType: 'mouse'
+    }));
+  }
+  await new Promise(r => setTimeout(r, 400));
+  // Letzter <select option:checked> ist typischerweise das Binding-Label.
+  return {
+    blockId,
+    selects: Array.from(document.querySelectorAll('select option:checked'))
+                  .map(o => o.textContent.trim())
+  };
+}
+
+(async () => {
+  const tests = ['perf1-score-donut', 'perf2-closing-note'];  // einsetzen
+  const out = [];
+  for (const id of tests) out.push(await clickAndReadBindings(id));
+  return JSON.stringify(out, null, 2);
+})();
+```
+
+Output-Beispiel:
+```json
+[{"blockId":"perf1-score-donut","selects":["Performance - Note"]},
+ {"blockId":"perf2-closing-note","selects":["Poppins","700","center","Performance - Footer-Note"]}]
+```
+
+Der LETZTE Eintrag pro `selects`-Array ist das Binding-Label aus dem BINDING-Selector. Falls der Eintrag fehlt (`selects: []` oder nur Font-Eintraege ohne Catalog-Label), pruefe ob der Block-Type ueberhaupt einen Binding-Selector im Inspector hat — `gauge`/`resourceTile`/`pieChart`/`barChart` rendern keinen (siehe M10-Doku in PROGRESS.md), das ist eine Editor-UX-Limitation, kein Bug.
+
+**Stage-1: Echter Pixel-Klick via `computer.left_click`** — wenn Drag-Move-Sanity getestet werden soll oder Stage-0 unzuverlaessig ist (z.B. degenerate frames). Helper unten liefert Koordinaten, die du an `computer.left_click` reichst:
 
 ```javascript
 // In claude-in-chrome javascript_tool ausfuehren — gibt JSON {ok, x, y, page, frame_mm}
 ((blockId) => {
-  const el = document.querySelector(`[data-block-id="${blockId}"]`);
+  const el = document.querySelector(`[data-overlay-block-id="${blockId}"]`)
+         ?? document.querySelector(`[data-block-id="${blockId}"]`);
   if (!el) return JSON.stringify({ok: false, reason: "block not in DOM (wrong page?)"});
   // Scroll into view falls noetig (block evtl unter dem Fold)
   el.scrollIntoView({block: "center", inline: "center", behavior: "instant"});
@@ -174,7 +229,24 @@ python3 -c "import json; t=json.load(open('data/templates/${TEMPLATE_ID}.json'))
 mcp__claude-in-chrome__read_console_messages pattern="error|Error|fail|Fail|500|warn" tabId=... limit=50
 ```
 
-Erwartet: Nur React-DevTools-Info und HMR-Connect-Logs. Keine `[error]` oder `[fail]` Zeilen aus dem App-Code.
+Wenn der Output zu gross ist (>50k chars), schreibt das Tool die Datei auf Disk und gibt den Pfad zurueck. Dann mit `jq` filtern (verlustfrei):
+
+```bash
+FILE="/path/aus/dem/tool-result"
+jq 'length' "$FILE"                                    # total messages
+jq -r 'group_by(.type) | map({type: .[0].type, count: length}) | .[]' "$FILE"
+jq -r '[.[] | select(.type=="error")][0:10] | .[].text' "$FILE"  # echte errors only
+```
+
+Erwartet: nur React-DevTools-Info und HMR-Connect-Logs. Keine `[error]` oder `[fail]` Zeilen aus dem App-Code.
+
+**Bekanntes Test-Tooling-Artefakt:** Bei Stage-0-Sweep entstehen pro synthetischem Click eine `NotFoundError: Failed to execute 'setPointerCapture' on 'Element'`-Exception aus `EditorClient.useCallback[beginMove]`. Das ist KEIN App-Bug — synthetische PointerEvents haben keine echte browser-pointerId, der React-Pointer-Capture-Path crasht entsprechend. Bei der Console-Auswertung explizit ausschliessen:
+
+```bash
+jq -r '.[] | select(.text | test("setPointerCapture")? | not) | .text' "$FILE" | head -20
+```
+
+Wenn nach diesem Filter noch Errors uebrig sind: das sind echte App-Bugs.
 
 ## Output
 

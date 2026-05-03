@@ -201,7 +201,32 @@ const DATA: Partial<Record<Milestone, DataPatch>> = {
       },
     },
   },
-  // M10-M13: noch nicht erfasst. Pro Milestone hier ergaenzen wenn der Builder gebaut wird.
+  M10: {
+    sections: {
+      leistung: {
+        score: "B",
+        heading: "Server stark – Bilder bremsen alles aus",
+        text: "An sich stimmt die technische Basis, der Server antwortet in ca. 0,5 Sekunden, HTTP/2 aktiv, Komprimierung läuft. Das Problem sind die Bilder – sie machen 6,52 MB von insgesamt 7,24 MB Seitengröße aus. Auf Mobile ein K.O.-Kriterium.",
+        serverResponseTime: 0.3,
+        contentLoadTime: 4.3,
+        scriptLoadTime: 10.0,
+        pageSizeMb: 7.24,
+        resourceCounts: { html: 6, js: 6, css: 3, img: 19, other: 8, total: 47 },
+        // Pie-Verteilung MB: img dominiert mit ~90%, Rest verteilt sich.
+        pageSizeBreakdown: { html: 0.45, js: 0.15, css: 0.07, img: 6.52, other: 0.05 },
+        findings: [],
+        costText:
+          "Über 60% deiner potenziellen Kunden suchen am Smartphone. 13 Sekunden bis der Inhalt sichtbar ist bedeutet: Die meisten sind längst weg. Google bestraft langsame mobile Seiten direkt im Ranking – das kostet dich gleichzeitig Besucher und Positionen.",
+        actions: [
+          { title: "Alle Bilder auf WebP komprimieren und unter 1 MB Gesamtgröße bringen" },
+          { title: "Ungenutztes JavaScript entfernen und Skripte minimieren" },
+          { title: "Bilder mit loading=\"lazy\" versehen – alles außer dem Hero-Bild" },
+        ],
+        closingNote: "Einmalige Maßnahme. Mobile Ladezeit danach unter 3 Sekunden realistisch.",
+      },
+    },
+  },
+  // M11-M13: noch nicht erfasst. Pro Milestone hier ergaenzen wenn der Builder gebaut wird.
 };
 
 const ALL_MILESTONES: Milestone[] = ["M5", "M6", "M7", "M8", "M9", "M10", "M11", "M12", "M13"];

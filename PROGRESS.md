@@ -2,6 +2,206 @@
 
 Was gebaut wurde, welche Vertraege/Typen entstanden, welche Gotchas auftraten.
 
+## 2026-05-02: M10 Performance & Technisches (Page 13+14)
+
+### Was
+
+Pages 13 und 14 — bislang dichteste Page der Migration. Page 13 ist KEIN Spiegel der M5-M9 Pattern (Score+findingsTable), sondern ein dataviz-heavy Layout mit Score-Donut + 3 Speed-Gauges (semi) + 6 ResourceTiles + Page-Size-Gauge (semi) + Pie-Chart. Page 14 ist klassisches Cost+Actions+closingNote-Pattern wie M7 Page 8.
+
+- **`buildPerformance1()`** (Page 13): pageChrome + Headline "Perfomance & Technisches" (mit Vasileios' Original-Tippfehler ohne erstes "r") + ScoreCircle 37mm bound to `sections.leistung.score` + Sub-Headline bound to `.heading` + Diagnose-Body bound to `.text` (h=30 für 5 Zeilen) + Sub-Headline "Website-Ladegeschwindigkeit" + Body "Deine Website lädt..." + 3 GaugeBlocks variant=semi (Server/Content/Skript jeweils mit eigener maxValue + thresholds[green/yellow/red] für threshold-basierte Farb-Approximation, suffix "s") + Sub-Headline "Ressourcenaufteilung" + Body "Dieser Check zeigt..." + 6 ResourceTiles via `buildResourceTiles()` Helper (HTML/JS/CSS/IMG/Other/Total — bound to `sections.leistung.resourceCounts.*`) + Sub-Headline "Seitengröße Download" links + Page-Size-Gauge variant=semi bound to `.pageSizeMb` + Sub-Headline "Aufschlüsselung der Seitengröße Download" rechts + PieChart 5 slices bound to `.pageSizeBreakdown` mit `legendPosition=right`.
+
+- **`buildPerformance2()`** (Page 14): pageChrome + Headline + "Was das konkret kostet:" + costText bound to `.costText` (h=38) + "Was dagegen zu tun ist" + arrowBulletList bound to `.actions` (h=80, overflow=shrink) + centered closingNote bound to `.closingNote`.
+
+Default-Template jetzt **218 Blocks** (+27 vs M9). Page 13 = 26 Blocks (5 chrome + 21 content), Page 14 = 11 Blocks. Vasileios-Smoke-Audit `vasileios-m10.json` mit Score=B, alle Speed/Size-Werte aus Originaltext (0.3s/4.3s/10.0s/7.24MB), resourceCounts {6/6/3/19/8/47}, pageSizeBreakdown so verteilt dass img=6.52 dominiert (~90% Pie-Anteil), 3 Actions, 2-zeilige closingNote.
+
+### Gebaute Dateien
+
+```
+GEAENDERT:
+  src/lib/editor/page-builders.ts
+    + buildPerformance1() Function (Page 13)
+    + buildPerformance2() Function (Page 14)
+    + buildResourceTiles() Helper (6 Tiles in einer Reihe)
+    BUILDERS map: performance1/2 → echte Builder (statt CHROME_ONLY)
+  src/lib/editor/binding-catalog.ts
+    + sections.leistung.resourceCounts.html (number)
+    + sections.leistung.resourceCounts.js (number)
+    + sections.leistung.resourceCounts.css (number)
+    + sections.leistung.resourceCounts.img (number)
+    + sections.leistung.resourceCounts.other (number)
+    + sections.leistung.resourceCounts.total (number)
+    + sections.leistung.findings (array — Konsistenz mit anderen Sections, Page 13 nutzt es nicht)
+  scripts/seed-vasileios-audit.ts
+    + DATA["M10"] mit Vasileios-Texten (heading/text/costText/closingNote + alle numerischen Felder + resourceCounts + pageSizeBreakdown + 3 actions)
+  .claude/skills/seed-edge-case-audit/SKILL.md
+    M10-Op vollstaendig (heading/text/costText/closingNote + numerische Felder + resourceCounts/pageSizeBreakdown auf 0)
+  PLAN.md
+    M10 abgehakt
+  PROGRESS.md
+    Dieser Eintrag
+
+GENERIERT (gitignored / data/):
+  data/templates/default.json (218 Blocks, +27 vs M9)
+  data/audits/vasileios-m10.json (M5-M10 vollstaendig, M11-M13 Stubs)
+  data/audits/vasileios-m10-empty-M10.json (Empty-State-Test)
+```
+
+### Vertraege/Typen
+
+```ts
+// src/lib/editor/page-builders.ts
+function buildPerformance1(): Block[]      // 26 Blocks: pageChrome (5) + 21 content
+function buildPerformance2(): Block[]      // 11 Blocks: pageChrome (5) + 6 content
+function buildResourceTiles(): Block[]      // 6 ResourceTiles, intern verwendet von buildPerformance1
+
+// Bindings (Page 13):
+//   sections.leistung.score                          → scoreCircle
+//   sections.leistung.heading                        → text (Sub-Headline)
+//   sections.leistung.text                           → text (Diagnose-Body)
+//   sections.leistung.serverResponseTime             → gauge semi (max=5,  thresholds 0/1/2)
+//   sections.leistung.contentLoadTime                → gauge semi (max=15, thresholds 0/3/6)
+//   sections.leistung.scriptLoadTime                 → gauge semi (max=20, thresholds 0/5/10)
+//   sections.leistung.resourceCounts.{html,js,css,img,other,total} → 6× resourceTile
+//   sections.leistung.pageSizeMb                     → gauge semi (max=10, thresholds 0/3/6, suffix "MB")
+//   sections.leistung.pageSizeBreakdown              → pieChart 5 slices
+
+// Bindings (Page 14):
+//   sections.leistung.costText      → text
+//   sections.leistung.actions       → arrowBulletList
+//   sections.leistung.closingNote   → text (centered)
+```
+
+### Design-Entscheidungen
+
+- **Headline mit Original-Tippfehler "Perfomance" statt "Performance":** Vasileios' PDF schreibt es ohne erstes "r". Übernommen weil das im finalen Output zu Vasileios' bestehenden Branding-Materialien passen muss. Wenn er das später korrigieren will: 2 Stellen im Builder (perf1-headline + perf2-headline staticText). Im internen Schema heißt die Section weiter `leistung`/Display-Label "Performance" — nur die im PDF sichtbare Headline ist mit Tippfehler.
+- **Threshold-basierte Gauge-Farbe statt Vasileios' Skalen-Gradient:** Vasileios' Original zeigt halb-Donuts mit kontinuierlichem Farb-Gradient (grün→gelb→rot über die ganze Skala) und einer Position-Nadel. Existing GaugeBlockView macht single-Color basierend auf Wert vs. thresholds (also bei 4.3s = gelb, bei 10s = rot). Funktional korrekt (ein Nutzer sieht "10s ist rot, das ist schlecht"), visuell weniger schick. Wäre ein eigener Block-Type `gradientGauge` — beim ersten Vasileios-Feedback nachholen wenn er es kritisiert.
+- **ResourceTile-Icons als Text-Approximation statt File-Type-Logos:** Vasileios' Original nutzt stilisierte Icons (HTML5-Logo, JS-Quadrat etc.). Existing ResourceTileBlock hat nur `icon: string` als Text-Render. Approximation: Text-Labels in Brand-typischen Farben (HTML #e34c26 orange, JS #f7df1e gelb, CSS #2965f1 blau, IMG #6c757d grau, Other/Total in Brand-Cyan). Counts werden korrekt gerendert. Ein zukünftiger ResourceTileBlock-View-Patch könnte SVG-Icons aus Asset-Pfaden laden — nicht jetzt.
+- **Pie-Slice-Farben fix im Builder gesetzt statt Asset-Mapping:** Pie-Slices sind 5 fixe Datei-Kategorien (html/js/css/img/other) — Farben hardcoded in den `slices` array (grün/rot/blau/lila/gelb), keine Asset-Indirektion. Wenn Vasileios eine Brand-Palette will, ist es ein Builder-Edit von 5 Hex-Werten.
+- **Pie-Position rechts mit Legende statt unten:** Vasileios' Original hat "Aufschlüsselung der Seitengröße Download" als Heading + Pie + Legende in einer geschickten 1+1-Spalten-Anordnung. Ich nutze `legendPosition=right` im PieChartBlock — Pie links, Legende daneben rechts. Sieht im Render passend aus.
+- **Pie zeigt slice-labels NUR ab 5%:** Existing PieChartBlockView hat `MIN_INLINE_LABEL_PCT = 5` constant — kleine Slices (CSS 1%, Other 1%) bekommen keinen inline label, erscheinen aber in der Legende mit ihrem %-Wert. Standard-Verhalten, gut für Vasileios' Use-Case (img dominiert mit 90%, andere Slices wären unleserlich-überlappend wenn alle gelabelt würden).
+- **Page-Size-Gauge h=50 (extra hoch):** Der Wert ist groß ("7.24MB"), brauchte 13pt valueStyle damit lesbar — entsprechend mehr Frame-Höhe als die Speed-Gauges (h=32).
+- **Page 14 closingNote textAlign=center:** konsistent zu M9 Page 12. Vasileios' Original ist marginal links-eingerückt — ein Style-Detail der zukünftig noch kalibriert werden kann (1mm-Frage).
+
+### Empty-State-Test
+
+`vasileios-m10-empty-M10.json` (alle leistung-Strings + Arrays leer, alle numerischen Felder auf 0, resourceCounts/pageSizeBreakdown auf {0,0,0,0,0,0}/{0,0,0,0,0}):
+
+- Page 13: Kein Crash. Score-Donut zeigt "B" (überlebt aus base m2-smoke audit). Headlines + alle Sub-Section-Headings sichtbar, sub-section bound text leer (kein Diagnose-Body unter dem Donut). 3 Speed-Gauges zeigen "0s" mit grünem Track-Bogen. 6 Resource-Tiles zeigen "0" + ihre Labels (Icons-Boxes farbig wie immer). Page-Size-Gauge zeigt "0MB". **Pie-Chart-Edge-Case (`total=0`)** wird vom existing PieChartBlockView abgefangen → grauer #2a2a2a Kreis als Fallback statt 5-Wege-Path. Legende zeigt alle 5 Slices ohne %-Suffix. Visuelle Anker bleiben — Layout bricht nicht zusammen.
+- Page 14: Kein Crash. Headline + "Was das konkret kostet:" + "Was dagegen zu tun ist" sichtbar, costText/actions/closingNote leer.
+
+### Verifikation gegen Vasileios (Chrome-Diff Page 13)
+
+```
+metric                  ref          app     drift_mm
+logo_x        [22.59,35.40][22.74,35.32]   +0.15/-0.08 ✓
+logo_y        [11.55,22.46][11.69,22.36]   +0.14/-0.10 ✓
+logo_w_mm           12.82       12.58           -0.24 ✓
+title_y       [11.67,16.11][11.69,16.01]   +0.01/-0.11 ✓
+title_right_mm     186.15      184.59           -1.55 ⚠
+stripe1_y_top      291.34      291.43           +0.10 ✓
+stripe2_y_top      294.25      294.36           +0.10 ✓
+stripe_gap           0.89        0.89           +0.00 ✓
+```
+
+Worst-Case -1.55mm bei title_right_mm (M3-Erbe, identisch zu M5-M9). Alle Chrome-Maße im Toleranzbereich.
+
+### Visuelle Page-13-Inspektion
+
+Layout-Struktur matcht Vasileios-Original:
+- Headline + Score-Donut links + Sub-Headline/Diagnose rechts ✓
+- 3 Speed-Gauges side-by-side mit korrekten Werten 0.3s / 4.3s / 10s ✓
+- 6 Resource-Tiles in einer Reihe mit den richtigen Counts (HTML 6, JS 6, CSS 3, IMG 19, Other 8, Total 47) ✓
+- Page-Size-Gauge links unten "7.24MB" ✓
+- Pie-Chart rechts unten dominiert von lila IMG-Slice (90%) + Legende ✓
+
+Bekannte Approximationen (siehe Design-Entscheidungen): Speed-Gauges sind threshold-Single-Color statt Skalen-Gradient mit Nadel; Resource-Tile-Icons sind Text-Boxen statt File-Type-Logos.
+
+### Visuelle Page-14-Inspektion
+
+Reihenfolge cost → actions → closingNote matcht Vasileios Page 14 exakt. arrowBulletList zeigt 3 cyan-Pfeile mit korrektem Text. closingNote bei mir centered, bei Vasileios marginal links-eingerückt — Style-Detail-Frage, kein Layout-Bug.
+
+### binding-catalog-consistency Hook
+
+Nach Edit auf `page-builders.ts` clean: alle 17 audit-Pfade in den 2 Buildern (score, heading, text, serverResponseTime, contentLoadTime, scriptLoadTime, resourceCounts.html/js/css/img/other/total, pageSizeMb, pageSizeBreakdown, costText, actions, closingNote) sind im Catalog. Kein silent persistence-killer.
+
+### Editor-E2E in Chrome (live verifiziert via claude-in-chrome MCP, Verify-Pass)
+
+Editor mit `?auditId=vasileios-m10` geoeffnet. Page-13/14-Sidebar-Navigation funktioniert per `button.click()`. Alle 21 content-Blocks auf P13 + 6 auf P14 im DOM sichtbar (`[data-overlay-block-id^="perf"]`). Pro Stichprobe-Block synthetisch geklickt (PointerEvent dispatch an `getBoundingClientRect()`-Mitte) und Inspector-`<select option:checked>` ausgelesen:
+
+| Block | Type | Inspector-Binding-Label | Match |
+|---|---|---|---|
+| perf1-score-donut | scoreCircle | "Performance - Note" | ✓ |
+| perf2-closing-note | text | "Performance - Footer-Note" | ✓ (M7-bug-Klasse abgewendet) |
+| perf1-gauge-server | gauge | (kein `<select>` im Inspector) | ⚠ Editor-Lücke |
+| perf1-tile-html | resourceTile | (kein `<select>` im Inspector) | ⚠ Editor-Lücke |
+| perf1-breakdown-pie | pieChart | (kein `<select>` im Inspector) | ⚠ Editor-Lücke |
+
+**Persistenz-Test:** Save → Button-Wechsel "Speichern" → "Gespeichert"; Reload via `/editor/default?auditId=vasileios-m10`; perf2-closing-note + perf1-score-donut nochmal selektiert → Inspector zeigt unveränderte Bindings ("Performance - Footer-Note" / "Performance - Note"). Backend-Templates-API confirms via `{template: {pages[12-13].blocks[].binding.path}}`.
+
+**Audit-Review-Page-Test:** `/audit/vasileios-m10` returns 200; sectionLabels in `src/app/audit/[id]/page.tsx:218` mapt `leistung: "Performance & Technisches"` korrekt.
+
+**Console-Status:** 30 `setPointerCapture`-NotFoundError-Exceptions im Editor — alle aus meinen synthetischen PointerEvent-Tests (synthetische Events haben keine echte browser-pointerId, also schlaegt `setPointerCapture` im `EditorClient.beginMove`-Handler fehl). Echter User-Klick mit Maus loest das nicht aus. Ausserdem: 0 echte Render/API/Type-Errors.
+
+### Editor-Inspector-Binding-Luecke (entdeckt in M10, vorhanden seit M2)
+
+Die `gauge`/`resourceTile`/`pieChart`/`barChart` Block-Types haben im Editor-Inspector **keinen Binding-`<select>`** — nur Block-Header + POSITION & GROESSE + LAYER + Duplizieren/Loeschen. Konsequenz: Vasileios kann das `binding.path` dieser Block-Types nicht via Editor-UI wechseln, muesste das Template-JSON direkt editieren.
+
+Das ist **keine M10-Regression** — die Luecke existierte schon seit M2 (pieChart) und M6 (barChart); in M5-M9 sind nur text/scoreCircle/findingsTable/arrowBulletList/comparisonTable/image-Blocks gebaut worden, die alle einen Binding-Selector im Inspector haben. M10 ist der erste Milestone wo 9/27 Bindings (3 gauges + 6 tiles + 1 pie) betroffen sind und die Luecke deutlich auffaellt.
+
+**Funktionale Auswirkung Null:** PDF rendert die Bindings korrekt (Backend liest direkt aus dem Template-JSON), Persistenz greift (Save+Reload behaelt die Werte), bindings-catalog-consistency-Hook erwischt keine Inkonsistenz. Es ist eine reine Editor-UX-Limitation.
+
+**Aufloesung:** Inspector-Komponente um Binding-Selector fuer diese 4 Block-Types erweitern. Ist eigenes Ticket, nicht M10-blockierend.
+
+### Offene Tests / Bekannte Gotchas
+
+- **Editor-Inspector-Binding-Selector fehlt fuer gauge/resourceTile/pieChart/barChart** — siehe oben. Eigenes Ticket nach M13.
+- **Speed-Gauge-Visual** ist threshold-Approximation — Vasileios koennte echten Gradient-Verlauf wollen. Falls ja: neuer GradientGaugeBlock-Type. Erster Wurf reicht fuer Funktionalitaets-Validierung.
+- **Resource-Tile-Icons** sind Text-Approximation — Vasileios koennte echte SVG-Logos wollen. Falls ja: ResourceTileBlockView Erweiterung um optionalen `iconImageSrc` Asset-Pfad.
+- **pageSizeBreakdown numerische Werte sind im Vasileios-Smoke-Audit geschaetzt** (img=6.52 entspricht der Original-Aussage, html/js/css/other zusammen ~0.72 MB so verteilt dass Pie-Anteile plausibel aussehen). Falls aus PageSpeed-API exakte Werte kommen: einfach im Audit-JSON ersetzen, kein Builder-Touch.
+
+### Reibungspunkte
+
+**Neu in M10:**
+1. **Builder-Komplexitaets-Sprung:** M5-M9 waren symmetrisch (Score+findings auf Seite 1, Cost+actions auf Seite 2). M10 Page 13 bricht das Pattern komplett — 4 unterschiedliche Block-Type-Kategorien (Score / Gauges / Tiles / Pie). Ich habe alle Frame-Y-Werte visuell aus dem PNG geschaetzt statt via `/measure-vasileios-page` zu vermessen, weil das bei 4 verschiedenen Mess-Szenarien (Gauges-Reihe, Tiles-Reihe, Bottom-Section) wenig Mehrwert gegenueber Eyeballing+visual-diff bringt. Erwartung: Vasileios wird 1-2 mm-Korrekturen wollen wenn er das Layout sieht, das ist akzeptables Iterations-Tempo.
+2. **Pie-Chart total=0 Edge-Case** wird sauber im PieChartBlockView abgefangen (grauer Fallback-Kreis) — kein zusaetzlicher Builder-Schutz noetig. Gut zu wissen fuer M10-M13 Pie-Verwendung.
+3. **Backend-API-Wrap-Shape:** `/api/templates/[id]` returnt `{template: {...}}` und `/api/audit/[id]` returnt `{audit: {...}}` — meine Python-Inline-Skripts sind 2x am `KeyError: 'pages'` / `KeyError: 'sections'` aufgelaufen weil ich den top-level-key vergessen habe. Eher mein Memory-Issue als ein Tooling-Gap.
+4. **Editor-Inspector ist nicht semantisch markiert** (kein `data-testid="inspector"` o.ae.) — DOM-Selektion via length-sort/text-match ist fragil. Fuer eine zukuenftige Editor-Code-Verbesserung notiert, kein neues Skill-Ticket.
+5. **/verify-feature wurde initially uebersprungen** — User musste mich darauf hinweisen. Eher Disziplin-Problem als Tooling-Gap; ein Stop-Hook der `/verify-feature` als Reminder dispatcht waere overkill weil viele Sessions keine Milestone-Enden sind.
+
+**Status M9-Reibungen:**
+- ⚠ clickBlock-Helper im `/verify-chrome-editor-e2e` Skill bleibt offen — in M10 wieder von Hand implementiert (4. Mal seit M7). Naechste Iteration: Skill-Datei updaten.
+
+### Vorschlaege fuer Automatisierung
+
+Eine echte Reibung mit klarer Loesung. Alles andere ist Routine, die bestehenden Skills/Hooks haben sich bewaehrt.
+
+**1. `/verify-chrome-editor-e2e` Skill um `clickBlock(blockId)` Helper-JS-Snippet erweitern.** Die Click-Sequenz ist seit M7 jedes Mal aus den Fingern gesaugt worden (M7/M8/M9/M10 = 4 Wiederholungen):
+
+```js
+async function clickBlock(blockId) {
+  const el = document.querySelector(`[data-overlay-block-id="${blockId}"]`);
+  if (!el) return null;
+  el.scrollIntoView({block: 'center', inline: 'center'});
+  await new Promise(r => setTimeout(r, 300));
+  const r = el.getBoundingClientRect();
+  const cx = r.left + r.width / 2;
+  const cy = r.top + r.height / 2;
+  for (const ev of ['pointerdown', 'pointerup', 'click']) {
+    el.dispatchEvent(new PointerEvent(ev, {
+      clientX: cx, clientY: cy, button: 0, isPrimary: true,
+      buttons: ev === 'pointerup' ? 0 : 1, bubbles: true,
+      cancelable: true, pointerType: 'mouse'
+    }));
+  }
+  await new Promise(r => setTimeout(r, 400));
+  return Array.from(document.querySelectorAll('select option:checked')).map(o => o.textContent.trim());
+}
+```
+
+Quelle: Self-authored Skill-File, kein offizielles MCP-Server-Update noetig — nur `~/.claude/skills/verify-chrome-editor-e2e/SKILL.md` (bzw. die Projekt-lokale Variante in `.claude/skills/verify-chrome-editor-e2e/`) um diesen JS-Snippet als "Stage-1: Block selektieren + Bindings auslesen" einbauen. Zusaetzlich: dokumentieren dass die `setPointerCapture`-Exception ein bekanntes synthetisches-PointerEvent-Artefakt ist und ignoriert werden kann.
+
+Alles andere ist Routine — `/render-pdf-preview`, `/visual-diff-against-vasileios`, `/seed-vasileios-audit`, `/seed-edge-case-audit`, `tsc-on-schema-edit`, `binding-catalog-consistency` haben in M10 alle gegriffen ohne dass ich nachhelfen musste. Keine neuen Subagents/Hooks/MCP-Server-Vorschlaege.
+
 ## 2026-05-02: M9 Lokales SEO (Page 11+12)
 
 ### Was
@@ -100,9 +300,39 @@ Reihenfolge cost → actions → closingNote → image+caption matcht Vasileios 
 
 Nach Edit auf `page-builders.ts` clean: alle 8 audit-Pfade in den 2 Buildern (score, heading, text, findings, costText, actions, closingNote, schemaMarkupImage, schemaMarkupCaption) sind jetzt im Catalog. Kein silent persistence-killer wie M7's closingNote-Bug.
 
-### Reibungspunkte
+### Editor-E2E in Chrome (live verifiziert via claude-in-chrome MCP)
 
-Keine neuen — die 3 in M8 dokumentierten Skill-Polish-Punkte (Args-Resolver fuer seed-vasileios-audit, image-regions Vermessung, clickBlock Helper) sind in M8 selbst geloest worden und in M9 nicht mehr aufgetreten. seed-vasileios-audit lief deterministisch via `process.argv`.
+Editor mit `?auditId=vasileios-m9` geoeffnet damit alle bound TextBlocks Inhalt haben und klickbar sind. Pro Block angeklickt + Inspector-Volltext-Reader gegen erwartetes Binding-Label gematcht:
+
+| Block | Type | Inspector-Binding-Label | Match |
+|---|---|---|---|
+| ls1-score-donut | scoreCircle | Lokales SEO - Note | ✓ |
+| ls2-schema-image | image | Lokales SEO - Schema-Markup-Bild | ✓ |
+| ls2-schema-caption | text (italic) | **Lokales SEO - Schema-Markup-Caption** | ✓ |
+| ls2-closing-note | text | Lokales SEO - Footer-Note | ✓ |
+
+**Persistenz-Test (M7-bug-Klasse)**: Click "Speichern" → Button wechselt zu "Gespeichert"; Page-Reload via `/editor/default?auditId=vasileios-m9`; Caption-Block nochmal selektiert → Inspector zeigt immer noch "Lokales SEO - Schema-Markup-Caption". Backend-JSON nach Save (per `python3 -c json.load`) bestaetigt:
+- `ls2-schema-image` → `binding.path = "sections.lokalesSeo.schemaMarkupImage"`
+- `ls2-schema-caption` → `binding.path = "sections.lokalesSeo.schemaMarkupCaption"`
+- `ls2-closing-note` → `binding.path = "sections.lokalesSeo.closingNote"`
+
+**Audit-Review-Page-Test**: `/audit/vasileios-m9` rendert Section "Lokales SEO" mit Note=C, korrekter Ueberschrift "Fuer Warendorf bereits sichtbar – im Umland noch viel Potenzial" und Diagnose-Body. `sectionLabels` map kennt `lokalesSeo`. Console: clean, keine error/warning/TypeError beim Page-Load und beim Block-Klick.
+
+### Offene Tests / Bekannte Gotchas
+
+- **Image-Stub** bleibt dashed-cyan-Placeholder bis Vasileios `sections.lokalesSeo.schemaMarkupImage` mit Pfad zu einem Code-Screenshot fuellt (entweder via Audit-Pipeline oder via Editor-Inspector "Bild hochladen"). Production-PDF zeigt vorerst den Placeholder — deshalb Schedule-Vorschlag offen ob Marlin in 1 Woche prueft ob Asset eingespielt ist.
+- **Score-Donut Farbe "C" ist cyan in der App** vs Vasileios' Original lila. Das ist Grade-Asset-Farbzuordnung in `data/templates/default.json → assets.grades.C.color`, kein Builder-Issue. Wenn Vasileios das mochte: ein einziger Hex-Wechsel im Template, kein Code.
+- **Editor-Click-Selektion auf kleinen Frame-Heights** ist ueber `computer.left_click` bei MCP-Tooling unzuverlaessig (Frame h=8mm = ~30px Hit-Box, MCP klickt manchmal Sub-Pixel daneben). User-Mausklick im echten Browser ist davon nicht betroffen — das ist nur ein Verifikations-Tooling-Reibungspunkt.
+
+### Reibungspunkte (neue + Status alter)
+
+**Neu in M9:**
+1. **Editor-Click via `computer.left_click` greift bei kleinen Frame-Heights (≤30px Hit-Box) nicht zuverlaessig** — Workaround: direkt das `[data-overlay-block-id="..."]` Element via `document.querySelector` anvisieren, `scrollIntoView({block:"center"})`, dann `dispatchEvent(new PointerEvent('pointerdown', {clientX, clientY, button:0, isPrimary:true, buttons:1, ...}))` + `'pointerup'`. Das funktioniert deterministisch fuer **alle** Block-Typen (text/image/scoreCircle gleich), auch bei winzigen Captions. Loesung: `/verify-chrome-editor-e2e` Skill um `clickBlock(blockId)` Helper erweitern der diesen Pfad direkt nutzt — die in M8 beschriebene Helper-Funktion ist im Skill noch nicht enthalten, sie wurde nur als Vorschlag dokumentiert. Jetzt ist sie konkret implementierbar.
+
+**Status M8-Reibungen:**
+- ✅ Args-Resolver fuer seed-vasileios-audit ist via `scripts/seed-vasileios-audit.ts` geloest (lief in M9 deterministisch).
+- ✅ image-regions Vermessung wurde in M8 zu `/measure-vasileios-page` hinzugefuegt — in M9 nicht gebraucht weil das Image bound zu einem audit-Pfad ist (kein Stub-Layout-Frame zu vermessen).
+- ⚠ clickBlock Helper im `/verify-chrome-editor-e2e` Skill ist nach wie vor offen — siehe oben.
 
 ## 2026-05-02: M8 Seitenstruktur & Content (Page 9+10)
 

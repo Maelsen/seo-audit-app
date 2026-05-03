@@ -25,7 +25,7 @@ Output-Audit wird unter `data/audits/<baseAuditId>-empty-<milestone>.json` gespe
 | M7 | `sections.uxConversion.findings=[]`, `sections.uxConversion.actions=[]`, `sections.uxConversion.heading=""`, `sections.uxConversion.text=""`, `sections.uxConversion.costText=""`, `sections.uxConversion.closingNote=""` |
 | M8 | `sections.seitenstrukturContent.findings=[]`, `sections.seitenstrukturContent.actions=[]`, `sections.seitenstrukturContent.comparisonImages=[]`, `sections.seitenstrukturContent.heading=""`, `sections.seitenstrukturContent.text=""`, `sections.seitenstrukturContent.costText=""`, `sections.seitenstrukturContent.closingNote=""` |
 | M9 | `sections.lokalesSeo.findings=[]`, `sections.lokalesSeo.actions=[]`, `sections.lokalesSeo.heading=""`, `sections.lokalesSeo.text=""`, `sections.lokalesSeo.costText=""`, `sections.lokalesSeo.closingNote=""`, `sections.lokalesSeo.schemaMarkupImage=""`, `sections.lokalesSeo.schemaMarkupCaption=""` |
-| M10 | `sections.leistung.findings=[]`, `sections.leistung.actions=[]`, `sections.leistung.resourceCounts={html:0,js:0,css:0,img:0,other:0,total:0}`, `sections.leistung.pageSizeBreakdown={html:0,js:0,css:0,img:0,other:0}`, numerische Felder auf 0 |
+| M10 | `sections.leistung.findings=[]`, `sections.leistung.actions=[]`, `sections.leistung.heading=""`, `sections.leistung.text=""`, `sections.leistung.costText=""`, `sections.leistung.closingNote=""`, `sections.leistung.resourceCounts={html:0,js:0,css:0,img:0,other:0,total:0}`, `sections.leistung.pageSizeBreakdown={html:0,js:0,css:0,img:0,other:0}`, numerische Felder (serverResponseTime/contentLoadTime/scriptLoadTime/pageSizeMb) auf 0 |
 | M11 | `sections.links.findings=[]`, `sections.links.actions=[]`, alle numerischen Links-Felder auf 0 |
 | M12 | `phasenplan.phase1.entries=[]`, `phasenplan.phase2.entries=[]`, `phasenplan.phase3.entries=[]` |
 | M13 | `recommendations=[]` |
@@ -89,6 +89,7 @@ ops = {
     }),
     "M10": lambda a: a["sections"]["leistung"].update({
         "findings": [], "actions": [],
+        "heading": "", "text": "", "costText": "", "closingNote": "",
         "serverResponseTime": 0, "contentLoadTime": 0, "scriptLoadTime": 0,
         "pageSizeMb": 0,
         "resourceCounts": {"html": 0, "js": 0, "css": 0, "img": 0, "other": 0, "total": 0},
