@@ -124,6 +124,16 @@ export const BINDING_CATALOG: BindingEntry[] = [
   { path: "summary.heading", label: "Zusammenfassung - Heading", type: "string" },
   { path: "summary.subline", label: "Zusammenfassung - Subline", type: "string" },
   { path: "summary.topIssues", label: "Zusammenfassung - Top-Issues (3 Items)", type: "array" },
+  // Index-spezifische Pfade noetig damit Inspector die topIssues-Items als
+  // audit-Bindings erkennt (sonst zeigt der Inspector "(statisch)" und
+  // beim Dropdown-Aendern wuerde das Binding zerstoert — silent
+  // persistence-killer, analog M7-closingNote-Bug).
+  { path: "summary.topIssues[0].headline", label: "Zusammenfassung - Issue 1 Headline", type: "string" },
+  { path: "summary.topIssues[0].body", label: "Zusammenfassung - Issue 1 Body", type: "string" },
+  { path: "summary.topIssues[1].headline", label: "Zusammenfassung - Issue 2 Headline", type: "string" },
+  { path: "summary.topIssues[1].body", label: "Zusammenfassung - Issue 2 Body", type: "string" },
+  { path: "summary.topIssues[2].headline", label: "Zusammenfassung - Issue 3 Headline", type: "string" },
+  { path: "summary.topIssues[2].body", label: "Zusammenfassung - Issue 3 Body", type: "string" },
   { path: "summary.closingHeadline", label: "Zusammenfassung - Closing-Headline (\"Das ist loesbar\")", type: "string" },
   { path: "summary.closingSubline", label: "Zusammenfassung - Closing-Subline", type: "string" },
   { path: "summary.closingBody", label: "Zusammenfassung - Closing-Body", type: "string" },

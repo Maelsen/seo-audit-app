@@ -42,6 +42,8 @@ Detail-Plan: `~/.claude/plans/soft-tickling-iverson.md`
 
 - [ ] M4.1 Refinement: Cover-Screenshot in Monitor-Mockup-Frame (Bezel + Stand) — derzeit nur borderRadius:4. Asset-PNG oder SVG-Block noetig
 - [ ] M13.1 Refinement: Social-Pills + Contact-Pills mit echten SVG-Icons (LinkedIn / Instagram / Globe / Phone / Mail / Web). Aktuell reine cyan-Ellipsen ohne Glyph als bewusster Compromise. Asset-SVGs in `public/assets/icons/` ablegen, dann pro Pill als image-block ueberlagern (image-binding statt shape-ellipse).
+- [ ] M5.1 Catalog-Patch fuer altSentences: `comparison.altSentences[0..2].aspect` + `[0..2].vision` als 6 Index-Pfade in `binding-catalog.ts` ergaenzen — analog M13-Fix fuer summary.topIssues. Inspector zeigt aktuell "(statisch)" fuer diese Pfade, latenter persistence-killer wenn User altSentences im Editor neu bindet.
+- [ ] Hook-Erweiterung `binding-catalog-consistency`: aktuell prueft er nur `sections.*` prefix. Erweitern auf alle audit-Pfade (inkl. `comparison.*`, `phasenplan.*`, `summary.*`, `inhaber.*`, `topRisks`) UND Index-Pfade gegen Catalog matchen. Wuerde den M13-Bug bei Build-Time gefangen haben statt erst im Editor-E2E.
 - [ ] Style-Profile lernt aus Vasileios' Edits, fliesst in System-Prompt zurueck
 - [ ] Multi-Template-Support im PDF-Export (Dropdown, nicht nur "default")
 - [ ] Audit-Liste/Dashboard zum Wiederfinden alter Audits
