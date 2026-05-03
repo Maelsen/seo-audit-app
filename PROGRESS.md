@@ -2,6 +2,83 @@
 
 Was gebaut wurde, welche Vertraege/Typen entstanden, welche Gotchas auftraten.
 
+## 2026-05-03: M12 Phasenplan (Page 17+18)
+
+### Was
+
+Pages 17 und 18 — der "Phasierter Massnahmenplan". Page 17 listet Phase 1 + Phase 2 jeweils als 2-Spalten-Tabelle (Massnahme | Impact). Page 18 listet Phase 3 + 3 "Nach Phase X"-Outcomes als linksbuendige Foot-Texte.
+
+- **`buildPhasenplan1()`** (Page 17): pageChrome + Headline "Phasierter Maßnahmenplan" + Subline bound to `phasenplan.intro` + Phase 1 Heading bound to `.phase1.title` (z.B. "Phase 1 – Sofortmaßnahmen (Woche 1-2)") + TableBlock 2 cols bound to `.phase1.entries` (h=65mm, ~6 Rows) + Phase 2 Heading bound to `.phase2.title` + TableBlock 2 cols bound to `.phase2.entries` (h=130mm, ~8 Rows). Tabellen haben cyan-`#38E1E1` Header-Underline (analog FindingsTable), dunkle `#333` Row-Dividers, `rowVerticalPadding=2mm`, fontSize 8.5pt fuer cells.
+
+- **`buildPhasenplan2()`** (Page 18): gleiche Header-Sektion + Phase 3 Heading bound to `.phase3.title` + TableBlock 2 cols bound to `.phase3.entries` (h=110mm, ~6-7 Rows) + 3 Outcome-Texte bound to `.afterPhase1` / `.afterPhase2` / `.afterPhase3` (jeweils einzeilig 9.5pt, gestapelt y=195/210/225).
+
+Default-Template jetzt **250 Blocks** (+13 vs M11). Page 17 = 8 Blocks, Page 18 = 8 Blocks. Vasileios-Smoke-Audit `vasileios-m12.json` mit allen drei Phase-Titeln + 6+8+6 Massnahmen-Entries + 3 Outcome-Texten aus Originaltext.
+
+### Gebaute Dateien
+
+```
+GEAENDERT:
+  src/lib/editor/template-types.ts
+    TableBlock erweitert: 3 optionale Properties (headerUnderlineColor /
+    headerUnderlineThickness / rowVerticalPadding) — abwaertskompatibel.
+  src/lib/editor/blocks/TableBlockView.tsx
+    Header-Underline mit eigenem Color + Thickness wenn gesetzt, sonst rowDivider.
+    rowVerticalPadding statt fix 1.5mm.
+  src/lib/editor/page-builders.ts
+    + buildPhasenplan1() Function (Page 17)
+    + buildPhasenplan2() Function (Page 18)
+    BUILDERS map: phasenplan1/2 → echte Builder (statt CHROME_ONLY)
+  scripts/seed-vasileios-audit.ts
+    + DATA["M12"] mit Vasileios-Texten (intro + 3 phasen mit titles+entries +
+      3 afterPhase-Outcomes, gesamt 20 Massnahmen-Entries)
+  PLAN.md
+    M12 abgehakt
+  PROGRESS.md
+    Dieser Eintrag
+
+GENERIERT (gitignored / data/):
+  data/templates/default.json (250 Blocks, +13 vs M11)
+  data/audits/vasileios-m12.json (M5-M12 vollstaendig, M13 Stub)
+  data/audits/vasileios-m12-empty-M12.json (Empty-State-Test)
+```
+
+### Vertraege/Typen
+
+`TableBlock` Schema-Erweiterung — alle 3 Properties optional. Defaults:
+- `headerUnderlineColor` weggelassen → nimmt `rowDividerColor` (oder `#2a2a2a`).
+- `headerUnderlineThickness` weggelassen → 0.3mm.
+- `rowVerticalPadding` weggelassen → 1.5mm (alter Hardcode).
+
+Damit funktionieren bestehende Tables (gibt's noch keine im default-Template) genau wie vorher. M12 setzt cyan-Underline + 0.4mm + 2mm row-padding.
+
+`phasenplan.phaseN.entries` ist ein Array von `{measure: string, impact: string}` (siehe `PhaseEntry` in `types.ts`). Wenn AI-Agent das Audit generiert und das Array leer laesst (war so fuer M5-M9 erwartet), rendert die Table nur den Header — kein Crash.
+
+### Verifikation
+
+| Check | Status |
+|---|---|
+| `npx tsc --noEmit` | clean |
+| `npm run lint` | 0 errors, 3 pre-existing warnings (unverändert) |
+| `binding-catalog-consistency` Hook | alle 54 audit-bindings catalog-mapped ✓ (alle phasenplan.* paths waren schon im Catalog seit M1) |
+| Default-Template re-seed | 250 Blocks |
+| PDF-Render `vasileios-m12` | HTTP 200, 1.35 MB |
+| Visual-Diff Page 17 vs Vasileios | Phase 1+2 Tabellen mit cyan Underline match, Layout sauber |
+| Visual-Diff Page 18 vs Vasileios | Phase 3 + 3 Nach-Phase-Outcomes match, Outcomes leicht weiter unten als Vasileios (~12mm Drift, akzeptabel weil Page sonst sehr leer wirkt) |
+| Empty-State `vasileios-m12-empty-M12` | HTTP 200, 1.33 MB, Tabellen rendern nur Header ohne Rows, kein Crash |
+
+### Gotchas
+
+- **TableBlock war bisher unbenutzt im default-Template** — M12 ist der erste Nutzer. Schema-Erweiterung war daher risikoarm: kein bestehender Block ist betroffen.
+- **Phase-Titel ist als 1 String bound**: `phasenplan.phase1.title` enthaelt den vollen "Phase 1 – Sofortmaßnahmen (Woche 1-2)" inklusive der Phasen-Nummer + Zeitraum-Klammer. AI-Agent muss den ganzen String generieren, nicht nur den title-Teil. Dokumentiert in der Vasileios-Vorlage.
+- **Page 18 Outcomes-Position ~12mm tiefer als Vasileios**: Mein Render hat afterPhase1 bei y=195, Vasileios ~y=183. Akzeptabler Drift; sieht trotzdem balanciert weil das untere Drittel sonst leer waere. Falls eng werden sollte (mehr Phase-3-Entries), hochziehen auf y=185.
+
+### Reibungs-Punkte fuer M13+
+
+- M13 (Zusammenfassung + Inhaber) ist die letzte Section. Vermutlich keine weitere Schema-Erweiterung noetig — Cover-aehnliches Layout fuer Inhaber-Page (Page 20) und Recommendation-Liste fuer Zusammenfassung (Page 19). Schauen vor dem Bau.
+- Editor-E2E in M11 + M12 nicht durchgeklickt. Wenn M13 fertig ist und alle 20 Pages befuellt sind, ein letztes voll-E2E mit `/verify-chrome-editor-e2e default vasileios-m12` lohnt sich als Final-Smoke vor Production.
+
+
+
 ## 2026-05-03: M11 Links & Autoritaet (Page 15+16)
 
 ### Was

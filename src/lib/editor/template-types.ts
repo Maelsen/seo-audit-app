@@ -124,6 +124,11 @@ export type TableBlock = BlockBase & {
   headerStyle: TextStyle;
   cellStyle: TextStyle;
   rowDividerColor?: HexColor;
+  // Optional separater Header-Underline-Style (analog FindingsTableBlock).
+  // Wenn weggelassen wird der rowDividerColor auch fuer den Header genommen.
+  headerUnderlineColor?: HexColor;
+  headerUnderlineThickness?: Mm;
+  rowVerticalPadding?: Mm;
 };
 
 export type ShapeBlock = BlockBase & {

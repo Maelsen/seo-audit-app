@@ -18,15 +18,18 @@ export function TableBlockView({ block, audit }: Props): ReactElement {
     block.binding.kind === "audit" ? resolveBinding(audit, block.binding) : [];
   const rows = Array.isArray(raw) ? raw : [];
   const divider = block.rowDividerColor ?? "#2a2a2a";
+  const headerUnderlineColor = block.headerUnderlineColor ?? divider;
+  const headerUnderlineMm = block.headerUnderlineThickness ?? 0.3;
+  const rowPadding = block.rowVerticalPadding ?? 1.5;
 
   const headerCss: CSSProperties = {
     ...textStyleToCss(block.headerStyle),
-    padding: "1.5mm 2mm",
-    borderBottom: `1px solid ${divider}`,
+    padding: `${rowPadding}mm 2mm`,
+    borderBottom: `${headerUnderlineMm}mm solid ${headerUnderlineColor}`,
   };
   const cellCss: CSSProperties = {
     ...textStyleToCss(block.cellStyle),
-    padding: "1.5mm 2mm",
+    padding: `${rowPadding}mm 2mm`,
     borderBottom: `1px solid ${divider}`,
     wordBreak: "break-word",
   };

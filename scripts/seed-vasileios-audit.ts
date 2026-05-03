@@ -268,7 +268,50 @@ const DATA: Partial<Record<Milestone, DataPatch>> = {
       },
     },
   },
-  // M12-M13: noch nicht erfasst. Pro Milestone hier ergaenzen wenn der Builder gebaut wird.
+  M12: {
+    phasenplan: {
+      intro: "Nicht alles auf einmal – die richtige Reihenfolge entscheidet",
+      phase1: {
+        title: "Phase 1 – Sofortmaßnahmen (Woche 1-2)",
+        entries: [
+          { measure: "Alle Bilder auf WebP komprimieren", impact: "Mobile Ladezeit von 13s auf unter 3s" },
+          { measure: "Identity-Schema & LocalBusiness-Schema implementieren", impact: "Google ordnet dich eindeutig ein" },
+          { measure: "Google Reviews direkt auf Startseite einbinden", impact: "Sofortiger Vertrauensaufbau beim Besucher" },
+          { measure: "Title-Tag auf 60 Zeichen kürzen", impact: "Vollständige Anzeige in Suchergebnissen" },
+          { measure: "Spam-Links via Google Disavow entwerten", impact: "Domain-Autorität bereinigen" },
+          { measure: "Ungenutztes JavaScript entfernen", impact: "Performance-Verbesserung Desktop" },
+        ],
+      },
+      phase2: {
+        title: "Phase 2 – Conversion & Sichtbarkeit (Monat 1)",
+        entries: [
+          { measure: "Hero-Section mit Painpoint-Botschaft ersetzen", impact: "Mehr Besucher werden zu Anfragen" },
+          { measure: "CTA konkretisieren – „Jetzt Termin vereinbaren\"", impact: "Höhere Verbindlichkeit beim Klick" },
+          { measure: "Prozessbeschreibung auf Startseite holen", impact: "Vertrauen direkt auf der Startseite" },
+          { measure: "HWK-Mitgliedschaft prominent platzieren", impact: "Differenzierung gegenüber Wettbewerb" },
+          { measure: "FAQ seitenspezifisch gestalten", impact: "Besseres Ranking + mehr Vertrauen" },
+          { measure: "Keywords in H2/H3 einbauen", impact: "Bessere Einordnung durch Google" },
+          { measure: "Alt-Texte für alle Bilder ergänzen", impact: "SEO + Barrierefreiheit" },
+          { measure: "Interne Verlinkung aufbauen", impact: "Stärkt alle Unterseiten gleichzeitig" },
+        ],
+      },
+      phase3: {
+        title: "Phase 3 – Reichweite ausbauen (Monat 2-3)",
+        entries: [
+          { measure: "Stadtseiten für Münster, Telgte, Sassenberg ausbauen", impact: "Rankings außerhalb Warendorf" },
+          { measure: "Dienstleistungsseiten inhaltlich ausbauen", impact: "Rankingfähiger Content pro Service" },
+          { measure: "Blog-Artikel informativ umschreiben", impact: "Organischer Traffic durch Ratgeber-Content" },
+          { measure: "Qualitative Backlinks aufbauen", impact: "Domain-Autorität nachhaltig stärken" },
+          { measure: "Google Business Profil vollständig befüllen", impact: "Stärkere lokale Präsenz in Maps" },
+          { measure: "Open Graph Tags ergänzen", impact: "Professionelles Social Sharing" },
+        ],
+      },
+      afterPhase1: "Nach Phase 1: Technische Basis sauber, Mobile lädt unter 3 Sekunden, Google ordnet dich eindeutig ein.",
+      afterPhase2: "Nach Phase 2: Startseite führt Besucher klar zum nächsten Schritt, Anfragerate steigt, erste Ranking-Verbesserungen sichtbar.",
+      afterPhase3: "Nach Phase 3: Erste Rankings für Umland-Keywords, messbar mehr organischer Traffic, Domain-Autorität wächst kontinuierlich.",
+    },
+  },
+  // M13: noch nicht erfasst. Pro Milestone hier ergaenzen wenn der Builder gebaut wird.
 };
 
 const ALL_MILESTONES: Milestone[] = ["M5", "M6", "M7", "M8", "M9", "M10", "M11", "M12", "M13"];

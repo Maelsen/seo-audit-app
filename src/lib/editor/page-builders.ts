@@ -2688,6 +2688,259 @@ function buildLinks2(): Block[] {
   ];
 }
 
+// PAGE 17 (buildPhasenplan1): Headline "Phasierter Maßnahmenplan" + Subline +
+// Phase 1 Heading mit cyan Underline + 2-Spalten-Tabelle bound to phase1.entries +
+// Phase 2 Heading + 2-Spalten-Tabelle bound to phase2.entries.
+//
+// PAGE 18 (buildPhasenplan2): gleiche Headline + Subline + Phase 3 Heading +
+// 2-Spalten-Tabelle bound to phase3.entries + 3 "Nach Phase X"-Footer-Texte
+// bound to afterPhase1/afterPhase2/afterPhase3.
+
+function buildPhasenplan1(): Block[] {
+  return [
+    ...pageChrome(),
+    {
+      id: "pp1-headline",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "Phasierter Maßnahmenplan",
+      frame: { x: 20, y: 36, w: 170, h: 10 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 22,
+        fontWeight: 800,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    {
+      id: "pp1-subline",
+      type: "text",
+      binding: { kind: "audit", path: "phasenplan.intro" },
+      frame: { x: 20, y: 50, w: 170, h: 7 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 12,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.3,
+      }),
+    },
+    // ---- Phase 1 ----
+    {
+      id: "pp1-phase1-heading",
+      type: "text",
+      binding: { kind: "audit", path: "phasenplan.phase1.title" },
+      frame: { x: 25, y: 65, w: 165, h: 7 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 12,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    {
+      id: "pp1-phase1-table",
+      type: "table",
+      binding: { kind: "audit", path: "phasenplan.phase1.entries" },
+      frame: { x: 20, y: 73, w: 170, h: 65 },
+      zIndex: 50,
+      columns: [
+        { header: "Maßnahme", fieldPath: "measure", width: 85 },
+        { header: "Impact", fieldPath: "impact", width: 85 },
+      ],
+      headerStyle: textStyle({
+        fontSize: 10,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+      cellStyle: textStyle({
+        fontSize: 8.5,
+        fontWeight: 400,
+        color: "#cfcfcf",
+        textAlign: "left",
+        lineHeight: 1.3,
+      }),
+      headerUnderlineColor: BRAND_CYAN,
+      headerUnderlineThickness: 0.4,
+      rowDividerColor: "#333333",
+      rowVerticalPadding: 2,
+    },
+    // ---- Phase 2 ----
+    {
+      id: "pp1-phase2-heading",
+      type: "text",
+      binding: { kind: "audit", path: "phasenplan.phase2.title" },
+      frame: { x: 25, y: 145, w: 165, h: 7 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 12,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    {
+      id: "pp1-phase2-table",
+      type: "table",
+      binding: { kind: "audit", path: "phasenplan.phase2.entries" },
+      frame: { x: 20, y: 153, w: 170, h: 130 },
+      zIndex: 50,
+      columns: [
+        { header: "Maßnahme", fieldPath: "measure", width: 85 },
+        { header: "Impact", fieldPath: "impact", width: 85 },
+      ],
+      headerStyle: textStyle({
+        fontSize: 10,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+      cellStyle: textStyle({
+        fontSize: 8.5,
+        fontWeight: 400,
+        color: "#cfcfcf",
+        textAlign: "left",
+        lineHeight: 1.3,
+      }),
+      headerUnderlineColor: BRAND_CYAN,
+      headerUnderlineThickness: 0.4,
+      rowDividerColor: "#333333",
+      rowVerticalPadding: 2,
+    },
+  ];
+}
+
+function buildPhasenplan2(): Block[] {
+  return [
+    ...pageChrome(),
+    {
+      id: "pp2-headline",
+      type: "text",
+      binding: { kind: "static" },
+      staticText: "Phasierter Maßnahmenplan",
+      frame: { x: 20, y: 36, w: 170, h: 10 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 22,
+        fontWeight: 800,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    {
+      id: "pp2-subline",
+      type: "text",
+      binding: { kind: "audit", path: "phasenplan.intro" },
+      frame: { x: 20, y: 50, w: 170, h: 7 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 12,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.3,
+      }),
+    },
+    // ---- Phase 3 ----
+    {
+      id: "pp2-phase3-heading",
+      type: "text",
+      binding: { kind: "audit", path: "phasenplan.phase3.title" },
+      frame: { x: 25, y: 65, w: 165, h: 7 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 12,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+    },
+    {
+      id: "pp2-phase3-table",
+      type: "table",
+      binding: { kind: "audit", path: "phasenplan.phase3.entries" },
+      frame: { x: 20, y: 73, w: 170, h: 110 },
+      zIndex: 50,
+      columns: [
+        { header: "Maßnahme", fieldPath: "measure", width: 85 },
+        { header: "Impact", fieldPath: "impact", width: 85 },
+      ],
+      headerStyle: textStyle({
+        fontSize: 10,
+        fontWeight: 700,
+        color: "#ffffff",
+        textAlign: "left",
+        lineHeight: 1.2,
+      }),
+      cellStyle: textStyle({
+        fontSize: 8.5,
+        fontWeight: 400,
+        color: "#cfcfcf",
+        textAlign: "left",
+        lineHeight: 1.3,
+      }),
+      headerUnderlineColor: BRAND_CYAN,
+      headerUnderlineThickness: 0.4,
+      rowDividerColor: "#333333",
+      rowVerticalPadding: 2,
+    },
+    // ---- Nach Phase 1/2/3 (3 zeilen-Blocks am Page-Ende) ----
+    {
+      id: "pp2-after-phase1",
+      type: "text",
+      binding: { kind: "audit", path: "phasenplan.afterPhase1" },
+      frame: { x: 20, y: 195, w: 170, h: 10 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 9.5,
+        fontWeight: 400,
+        color: "#cfcfcf",
+        textAlign: "left",
+        lineHeight: 1.4,
+      }),
+    },
+    {
+      id: "pp2-after-phase2",
+      type: "text",
+      binding: { kind: "audit", path: "phasenplan.afterPhase2" },
+      frame: { x: 20, y: 210, w: 170, h: 10 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 9.5,
+        fontWeight: 400,
+        color: "#cfcfcf",
+        textAlign: "left",
+        lineHeight: 1.4,
+      }),
+    },
+    {
+      id: "pp2-after-phase3",
+      type: "text",
+      binding: { kind: "audit", path: "phasenplan.afterPhase3" },
+      frame: { x: 20, y: 225, w: 170, h: 10 },
+      zIndex: 50,
+      style: textStyle({
+        fontSize: 9.5,
+        fontWeight: 400,
+        color: "#cfcfcf",
+        textAlign: "left",
+        lineHeight: 1.4,
+      }),
+    },
+  ];
+}
+
 // ---------- Page-Key registry ----------
 
 export type PageKey =
@@ -2735,8 +2988,8 @@ export const BUILDERS: Record<PageKey, () => Block[]> = {
   performance2: buildPerformance2,
   links1: buildLinks1,
   links2: buildLinks2,
-  phasenplan1: CHROME_ONLY_BUILDER,
-  phasenplan2: CHROME_ONLY_BUILDER,
+  phasenplan1: buildPhasenplan1,
+  phasenplan2: buildPhasenplan2,
   zusammenfassung: CHROME_ONLY_BUILDER,
   inhaber: EMPTY_BUILDER,
 };
