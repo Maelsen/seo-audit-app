@@ -42,40 +42,95 @@ GENERIERT (gitignored / data/):
   data/audits/vasileios-m12-empty-M12.json (Empty-State-Test)
 ```
 
-### Vertraege/Typen
+### Public Interfaces
 
-`TableBlock` Schema-Erweiterung — alle 3 Properties optional. Defaults:
-- `headerUnderlineColor` weggelassen → nimmt `rowDividerColor` (oder `#2a2a2a`).
-- `headerUnderlineThickness` weggelassen → 0.3mm.
-- `rowVerticalPadding` weggelassen → 1.5mm (alter Hardcode).
+**TableBlock** (in `template-types.ts`) erweitert um 3 optionale Properties:
 
-Damit funktionieren bestehende Tables (gibt's noch keine im default-Template) genau wie vorher. M12 setzt cyan-Underline + 0.4mm + 2mm row-padding.
+```ts
+TableBlock = {
+  ...,
+  // Optional. Wenn weggelassen: Verhalten exakt wie vor M12.
+  headerUnderlineColor?: HexColor;       // default = rowDividerColor (oder "#2a2a2a")
+  headerUnderlineThickness?: Mm;         // default = 0.3
+  rowVerticalPadding?: Mm;               // default = 1.5 (alter Hardcode)
+}
+```
 
-`phasenplan.phaseN.entries` ist ein Array von `{measure: string, impact: string}` (siehe `PhaseEntry` in `types.ts`). Wenn AI-Agent das Audit generiert und das Array leer laesst (war so fuer M5-M9 erwartet), rendert die Table nur den Header — kein Crash.
+`phasenplan` Schema in `types.ts` (unveraendert seit M1):
+
+```ts
+PhaseEntry = { measure: string; impact: string };
+PhasenplanPhase = { title: string; entries: PhaseEntry[] };
+PhasenplanSection = {
+  intro: string;
+  phase1: PhasenplanPhase; phase2: PhasenplanPhase; phase3: PhasenplanPhase;
+  afterPhase1: string; afterPhase2: string; afterPhase3: string;
+};
+```
+
+Builder-Public-API:
+
+```ts
+// page-builders.ts
+buildPhasenplan1(): Block[]   // 11 Blocks: pageChrome + headline + subline + 2× (heading + table)
+buildPhasenplan2(): Block[]   // 12 Blocks: pageChrome + headline + subline + heading + table + 3× afterPhase
+```
+
+### Design-Entscheidungen
+
+- **TableBlock-Erweiterung statt eigener `phaseTable`-Block**: TableBlock war bisher ungenutzt im default-Template. Erweiterung ist risikoarm + abwaertskompatibel + reused fuer alles was eine 2/3-Spalten-Tabelle mit cyan Header-Underline braucht (z.B. spaeter Zusammenfassungs-Page wenn dort eine Tabelle reinkommt).
+- **Phase-Titel als 1 String bound**: `phasenplan.phase1.title` enthaelt den vollen "Phase 1 – Sofortmaßnahmen (Woche 1-2)" inklusive Phasen-Nummer + Zeitraum-Klammer. Alternative waere ein generischer Phasen-Counter im Builder + nur "Sofortmaßnahmen (Woche 1-2)" als bound title gewesen. Entschieden gegen den Counter, weil Vasileios' Format leicht inkonsistent ist (en-Dash vs em-Dash je Page) und der AI-Agent es ohnehin als ganzen String generiert.
+- **Header-Indent 5mm** (frame x=25 statt 20): Vasileios' Phase-Headings sind leicht eingerueckt gegenueber dem Tabellen-Frame-Beginn (x=20). Statt eines Custom-Padding-Properties am Heading: 5mm Indent direkt im Frame setzen. Sub-mm-Detail, lebensdauer dieser Page.
+- **rowVerticalPadding=2mm**: Default war 1.5mm (zu eng fuer 8.5pt-Cells). 2mm gibt Vasileios' Look. Wenn andere Tables enger gewuenscht sind, koennen sie default lassen oder `rowVerticalPadding=1` setzen.
 
 ### Verifikation
 
 | Check | Status |
 |---|---|
 | `npx tsc --noEmit` | clean |
-| `npm run lint` | 0 errors, 3 pre-existing warnings (unverändert) |
-| `binding-catalog-consistency` Hook | alle 54 audit-bindings catalog-mapped ✓ (alle phasenplan.* paths waren schon im Catalog seit M1) |
+| `npm run lint` | 0 errors, 3 pre-existing warnings (unverändert seit M10) |
+| `binding-catalog-consistency` Hook | alle 54 audit-bindings catalog-mapped ✓ (alle `phasenplan.*` paths sind im Catalog seit M1) |
 | Default-Template re-seed | 250 Blocks |
 | PDF-Render `vasileios-m12` | HTTP 200, 1.35 MB |
 | Visual-Diff Page 17 vs Vasileios | Phase 1+2 Tabellen mit cyan Underline match, Layout sauber |
-| Visual-Diff Page 18 vs Vasileios | Phase 3 + 3 Nach-Phase-Outcomes match, Outcomes leicht weiter unten als Vasileios (~12mm Drift, akzeptabel weil Page sonst sehr leer wirkt) |
+| Visual-Diff Page 18 vs Vasileios | Phase 3 + 3 Nach-Phase-Outcomes match, Outcomes ~12mm tiefer als Vasileios (akzeptabel) |
 | Empty-State `vasileios-m12-empty-M12` | HTTP 200, 1.33 MB, Tabellen rendern nur Header ohne Rows, kein Crash |
+| **Editor-E2E `/verify-chrome-editor-e2e default vasileios-m12`** | **6/6 Page-17-Blocks + 7/7 Page-18-Blocks im Inspector korrekt** — alle audit-Bindings zeigen catalog-Labels ("Phasenplan - Intro", "Phasenplan - Phase 1 Titel/Massnahmen", "Phasenplan - Nach Phase 1/2/3"). Save → "Gespeichert" Status. Reload → 20 Pages, 250 Blocks unveraendert. Console: 53 Messages, alle Errors `setPointerCapture` (Test-Tooling-Artefakt) — 0 echte App-Errors nach Filter. |
+| **TableBlock Inspector-Selector** | TableBlock zeigt Binding-Selector im Inspector (anders als gauge/resourceTile/pieChart/barChart die seit M10 als Editor-Limitation dokumentiert sind). User kann das Binding via Editor weiterhin aendern. |
+
+### Offene Tests
+
+- **Domain-Edge-Test fuer P17/P18 nicht durchgeklickt**: Phasen-Titel und after-Phase-Texte koennten bei sehr langen Strings (vom AI-Agent) ueber den Frame hinaus rutschen. Aktuelle Frames `phaseN-heading h=7mm` reicht fuer ~80 Zeichen, `after-phaseN h=10mm` reicht fuer ~150 Zeichen. Bei laengerem Output: TextBlockView hat `overflow: hidden` (siehe M4 fix), also clipt sauber.
+- **Voll-Sweep aller 20 Pages**: in M13 nachholen. M11+M12 Editor-E2E gemacht, aber kein End-to-End-Click-Through ueber alle Section-Pages auf einmal.
+- **Production-Render** (Railway): nicht getestet. Lokal HTTP 200 + Empty-State ✓ — aber Railway hat anderes Filesystem (Volume-Mount `/app/data`). Das Re-Seed-on-Boot-Script wird default.json neu schreiben mit den neuen 250 Blocks beim naechsten Container-Start.
 
 ### Gotchas
 
-- **TableBlock war bisher unbenutzt im default-Template** — M12 ist der erste Nutzer. Schema-Erweiterung war daher risikoarm: kein bestehender Block ist betroffen.
-- **Phase-Titel ist als 1 String bound**: `phasenplan.phase1.title` enthaelt den vollen "Phase 1 – Sofortmaßnahmen (Woche 1-2)" inklusive der Phasen-Nummer + Zeitraum-Klammer. AI-Agent muss den ganzen String generieren, nicht nur den title-Teil. Dokumentiert in der Vasileios-Vorlage.
-- **Page 18 Outcomes-Position ~12mm tiefer als Vasileios**: Mein Render hat afterPhase1 bei y=195, Vasileios ~y=183. Akzeptabler Drift; sieht trotzdem balanciert weil das untere Drittel sonst leer waere. Falls eng werden sollte (mehr Phase-3-Entries), hochziehen auf y=185.
+- **Phase-Titel ist als 1 String bound, nicht zwei**. AI-Agent muss den ganzen "Phase 1 – Sofortmaßnahmen (Woche 1-2)" generieren, nicht nur den title-Teil. Dokumentiert via `seed-vasileios-audit.ts` Beispiel.
+- **TableBlock-Schema additiv erweitert**: alte Blocks (gibt's noch keine im Template) wuerden weiterhin funktionieren — defaults reproduzieren das alte Verhalten. Wer einen Custom-Header-Style will, setzt explizit `headerUnderlineColor: BRAND_CYAN`.
+- **Page 18 Outcomes-Position ~12mm tiefer als Vasileios**: Mein Render hat afterPhase1 bei y=195, Vasileios ~y=183. Akzeptabler Drift; Page wirkt trotzdem balanciert weil das untere Drittel sonst leer waere. Falls Phase-3 mehr Entries bekommt: hochziehen auf y=185.
+- **Console-Errors aus Stage-0-Sweep im Editor-E2E sind ERWARTET**: alle `setPointerCapture: NotFoundError` aus dem `EditorClient.beginMove`-Handler. Echter User-Klick mit Maus loest das nicht aus. Filter: `jq -r '.[].text' file | grep -v setPointerCapture`.
 
 ### Reibungs-Punkte fuer M13+
 
-- M13 (Zusammenfassung + Inhaber) ist die letzte Section. Vermutlich keine weitere Schema-Erweiterung noetig — Cover-aehnliches Layout fuer Inhaber-Page (Page 20) und Recommendation-Liste fuer Zusammenfassung (Page 19). Schauen vor dem Bau.
-- Editor-E2E in M11 + M12 nicht durchgeklickt. Wenn M13 fertig ist und alle 20 Pages befuellt sind, ein letztes voll-E2E mit `/verify-chrome-editor-e2e default vasileios-m12` lohnt sich als Final-Smoke vor Production.
+- **Bei M13 (Zusammenfassung + Inhaber)** Schema voraussichtlich keine weitere Erweiterung. Inhaber-Page koennte ein Cover-aehnliches Layout brauchen — `buildCover()` aus M4 als Vorlage.
+- **Final-Smoke nach M13**: `/verify-chrome-editor-e2e default vasileios-m13` ueber alle 20 Pages. Plus `/visual-diff-against-vasileios vasileios-m13 default 1-20 1-20` fuer den finalen Pixel-Vergleich gegen das Original-PDF.
+
+### Wiederholte manuelle Aktionen / Tooling-Vorschlaege
+
+In M12 lief alles ueber bestehende Tools. **Keine neuen Skills / Hooks / MCP-Server noetig.** Bestaetigung der existierenden Coverage:
+
+| Manuelle Aktion in M12 | Abgedeckt durch |
+|---|---|
+| tsc + binding-catalog Konsistenz nach Schema-Edit | `tsc-on-schema-edit` Hook + `binding-catalog-consistency` Hook (auto-aktiv) |
+| Default-Template re-seed nach Builder-Change | `scripts/seed-default-template.ts` (1 Befehl) |
+| Vasileios-Audit fuer Visual-Diff erstellen | `/seed-vasileios-audit vasileios-m12 M12` Skill |
+| PDF rendern + PNGs extrahieren | `/render-pdf-preview vasileios-m12 default 17-18` Skill |
+| Empty-State-Audit erstellen | `/seed-edge-case-audit vasileios-m12 M12` Skill |
+| Block-Selektion + Inspector-Vergleich pro Page | `/verify-chrome-editor-e2e default vasileios-m12` Skill |
+| Visual-Diff vs Vasileios-Original | `/visual-diff-against-vasileios vasileios-m12 default 17-18 17-18` (im Bedarfsfall, M12 visuell schon ueber Augen geprueft) |
+
+M12 war Routine — Schema-Erweiterung minor, Builder-Pattern bekannt aus M5-M11, kein Custom-Block-Type, kein neuer Bindings-Path. Pure Reuse.
 
 
 
