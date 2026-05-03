@@ -106,6 +106,16 @@ export const BINDING_CATALOG: BindingEntry[] = [
   // Comparison (Wo du sein koenntest)
   { path: "comparison.heading", label: "Vergleich - Heading", type: "string" },
   { path: "comparison.altSentences", label: "Vergleich - Alt-Saetze (Statt-Aussage)", type: "array" },
+  // Index-spezifische Pfade fuer die 3 alt-sentence-Items damit Inspector sie als
+  // audit-Bindings erkennt (sonst zeigt der Inspector "(statisch)" und beim
+  // Dropdown-Aendern wuerde das Binding zerstoert — silent persistence-killer,
+  // analog M13-topIssues und M7-closingNote.
+  { path: "comparison.altSentences[0].aspect", label: "Vergleich - Alt-Satz 1 Aspect", type: "string" },
+  { path: "comparison.altSentences[0].vision", label: "Vergleich - Alt-Satz 1 Vision", type: "string" },
+  { path: "comparison.altSentences[1].aspect", label: "Vergleich - Alt-Satz 2 Aspect", type: "string" },
+  { path: "comparison.altSentences[1].vision", label: "Vergleich - Alt-Satz 2 Vision", type: "string" },
+  { path: "comparison.altSentences[2].aspect", label: "Vergleich - Alt-Satz 3 Aspect", type: "string" },
+  { path: "comparison.altSentences[2].vision", label: "Vergleich - Alt-Satz 3 Vision", type: "string" },
   { path: "comparison.rows", label: "Vergleich - Tabellen-Zeilen (Heute/In 3 Monaten)", type: "array" },
 
   // Phasenplan

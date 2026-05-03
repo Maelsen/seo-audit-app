@@ -181,7 +181,46 @@ function buildCover(): Block[] {
         lineHeight: 1.2,
       }),
     },
-    // Monitor / Cover-Screenshot
+    // Monitor-Mockup-Frame (Bezel hinter dem Screenshot)
+    // Vasileios' Page 1 zeigt den Cover-Screenshot in einem dunklen Monitor-
+    // Mockup mit Bezel-Rand, Camera-Dot, Stand-Hals und Stand-Sockel. Wird
+    // aus 5 Shape/Image-Bloecken zusammengesetzt: bezel (zIndex 49) UNTER
+    // screenshot (zIndex 50), camera-dot + stand UEBER ueblichem Hintergrund.
+    {
+      id: "cover-monitor-bezel",
+      type: "shape",
+      shape: "rect",
+      frame: { x: 22, y: 127, w: 166, h: 116 },
+      zIndex: 49,
+      fill: "#2a2a2a",
+      borderRadius: 3,
+      boxShadow: "0 2mm 6mm rgba(0,0,0,0.45)",
+    },
+    {
+      id: "cover-monitor-camera",
+      type: "shape",
+      shape: "ellipse",
+      frame: { x: 104, y: 128.5, w: 2, h: 1 },
+      zIndex: 51,
+      fill: "#555555",
+    },
+    {
+      id: "cover-monitor-stand-neck",
+      type: "shape",
+      shape: "rect",
+      frame: { x: 98, y: 243, w: 14, h: 8 },
+      zIndex: 49,
+      fill: "#2a2a2a",
+    },
+    {
+      id: "cover-monitor-stand-base",
+      type: "shape",
+      shape: "rect",
+      frame: { x: 78, y: 250, w: 54, h: 3 },
+      zIndex: 49,
+      fill: "#aaaaaa",
+      borderRadius: 1.5,
+    },
     {
       id: "cover-screenshot",
       type: "image",
@@ -190,7 +229,7 @@ function buildCover(): Block[] {
       zIndex: 50,
       objectFit: "cover",
       objectPosition: "top",
-      borderRadius: 4,
+      borderRadius: 2,
     },
     // 3-column footer
     {
@@ -3132,32 +3171,87 @@ function buildZusammenfassung(): Block[] {
 //       y[171.55, 183.23]mm Wide-cyan-Band, davor Photo, danach Contact-Info)
 //     3 Contact-Lines y=205/218/231: cyan-circle 8mm + bound-text rechts
 //
-// Anmerkung: Die Social-Pills + Contact-Icons sind reine cyan-Ellipsen ohne
-// Glyph (Vasileios' PDF rendert sie als bunte Markenflaechen, das exakte
-// Mini-Icon fehlt im Text-Layer). Falls in einem M13.1-Refinement-Ticket SVGs
-// nachgepflegt werden, kann der User sie im Editor durch ein Image-Block
-// ersetzen.
+// M13.1: Social-Pills + Contact-Pills haben jetzt echte SVG-Icons als
+// weisse Glyphen ueber der cyan-Ellipse (statt reiner cyan-Pill). SVGs sind
+// inline als data-URL embedded — kein Asset-File-Lookup, kein Inline-Pfad-
+// Resolver in build.ts noetig. Icons sind minimal-outlined oder filled,
+// einheitliche Optik. Web == Globe (gleiche SVG-Geometrie, fuer social[2]
+// und contact[2]). Stand: Lucide-style (24x24 viewBox).
 
-function socialCircle(idx: number, x: Mm): Block {
-  return {
-    id: `inh-social${idx}`,
-    type: "shape",
-    shape: "ellipse",
-    fill: BRAND_CYAN,
-    frame: { x, y: 187, w: 9, h: 9 },
-    zIndex: 50,
-  };
+const ICON_LINKEDIN =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M19 3H5C3.9 3 3 3.9 3 5v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM8 18H5V9h3v9zM6.5 7.5C5.7 7.5 5 6.8 5 6s.7-1.5 1.5-1.5S8 5.2 8 6s-.7 1.5-1.5 1.5zM18 18h-3v-4.5c0-1-.9-1.5-1.5-1.5s-1.5.5-1.5 1.5V18h-3V9h3v1.5c.5-.7 1.5-1.5 3-1.5 2 0 3 1.7 3 3.8V18z"/></svg>';
+
+const ICON_INSTAGRAM =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.6" fill="white" stroke="none"/></svg>';
+
+const ICON_GLOBE =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2 a15 15 0 0 1 0 20 a15 15 0 0 1 0 -20z"/></svg>';
+
+const ICON_PHONE =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.05-.24c1.12.37 2.33.57 3.57.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1.05l-2.2 2.17z"/></svg>';
+
+const ICON_MAIL =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><polyline points="3,7 12,13 21,7"/></svg>';
+
+function svgToDataUrl(svg: string): string {
+  // base64 ist robust ggue. SVG-Sonderzeichen (& # < " etc.) und vermeidet
+  // URL-Encoding-Bugs. Pure ASCII in den Konstanten oben → btoa() reicht,
+  // global in Node 16+ und Browser verfuegbar.
+  return `data:image/svg+xml;base64,${btoa(svg)}`;
+}
+
+const SOCIAL_ICONS: string[] = [
+  svgToDataUrl(ICON_LINKEDIN),
+  svgToDataUrl(ICON_INSTAGRAM),
+  svgToDataUrl(ICON_GLOBE),
+];
+
+const CONTACT_ICONS: string[] = [
+  svgToDataUrl(ICON_PHONE),
+  svgToDataUrl(ICON_MAIL),
+  svgToDataUrl(ICON_GLOBE),
+];
+
+function socialCircle(idx: number, x: Mm): Block[] {
+  return [
+    {
+      id: `inh-social${idx}`,
+      type: "shape",
+      shape: "ellipse",
+      fill: BRAND_CYAN,
+      frame: { x, y: 187, w: 9, h: 9 },
+      zIndex: 50,
+    },
+    {
+      id: `inh-social${idx}-icon`,
+      type: "image",
+      binding: { kind: "static" },
+      staticSrc: SOCIAL_ICONS[idx],
+      frame: { x: x + 2, y: 189, w: 5, h: 5 },
+      zIndex: 51,
+      objectFit: "contain",
+    },
+  ];
 }
 
 function contactLine(idx: number, y: Mm, bindingPath: string): Block[] {
   return [
     {
-      id: `inh-contact${idx}-icon`,
+      id: `inh-contact${idx}-icon-bg`,
       type: "shape",
       shape: "ellipse",
       fill: BRAND_CYAN,
       frame: { x: 115, y: y - 1, w: 7, h: 7 },
       zIndex: 50,
+    },
+    {
+      id: `inh-contact${idx}-icon`,
+      type: "image",
+      binding: { kind: "static" },
+      staticSrc: CONTACT_ICONS[idx],
+      frame: { x: 116.5, y: y + 0.5, w: 4, h: 4 },
+      zIndex: 51,
+      objectFit: "contain",
     },
     {
       id: `inh-contact${idx}-text`,
@@ -3285,9 +3379,9 @@ function buildInhaber(): Block[] {
       }),
     },
     // 3 Social-Pills (LinkedIn / Instagram / Globe als reine cyan-Ellipsen)
-    socialCircle(0, 113),
-    socialCircle(1, 126),
-    socialCircle(2, 139),
+    ...socialCircle(0, 113),
+    ...socialCircle(1, 126),
+    ...socialCircle(2, 139),
     // 3 Contact-Lines (phone / email / website)
     ...contactLine(0, 205, "inhaber.phone"),
     ...contactLine(1, 217, "inhaber.email"),

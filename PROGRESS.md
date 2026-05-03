@@ -2,6 +2,57 @@
 
 Was gebaut wurde, welche Vertraege/Typen entstanden, welche Gotchas auftraten.
 
+## 2026-05-03: Backlog-Polish (M5.1 + M4.1 + M13.1)
+
+### Was
+
+Drei offene Backlog-Items in einem Schwung erledigt — die 20-Seiten-Migration ist visuell + im Editor jetzt komplett konsistent.
+
+- **M5.1 — altSentences Index-Pfade im Binding-Catalog.** 6 neue Eintraege `comparison.altSentences[0..2].aspect/.vision` in `src/lib/editor/binding-catalog.ts` ergaenzt, analog zum M13-topIssues-Fix. Vorher zeigte der Inspector "(statisch)" fuer die altSentence-Saetze auf Page 4 — silent persistence-killer wenn ein User die Bindings im Editor neu setzt und speichert.
+
+- **M4.1 — Monitor-Mockup-Frame fuer Cover-Screenshot.** `buildCover()` rendert jetzt 4 zusaetzliche `ShapeBlock` zusammen mit dem screenshot-image: Bezel (#2a2a2a, 166x116mm, borderRadius 3, boxShadow), Camera-Dot ellipse oben mittig, Stand-Hals (14x8mm dunkelgrau) und Stand-Sockel (54x3mm hell #aaaaaa). Bezel sitzt mit zIndex 49 hinter dem Screenshot (zIndex 50), Camera-Dot mit zIndex 51 obendrauf. Kein externes Asset, alles ueber das bestehende `shape rect/ellipse` Schema. Gegen Vasileios Page 1 visuell verifiziert mit dem `homeraum-immobilien.de` Test-Audit (das einzige aktuelle Audit mit echten Screenshots).
+
+- **M13.1 — SVG-Icons in Social/Contact-Pills.** Vorher waren das reine cyan-Ellipsen ohne Glyph (Vasileios' Original ist auch nicht klarer im Text-Layer — bewusster Compromise in M13). Jetzt 5 SVG-Konstanten (LinkedIn / Instagram / Globe / Phone / Mail; Web nutzt Globe wieder) inline als data:image/svg+xml;base64 ueber `btoa()` embedded — kein File in `public/assets/icons/`, kein neuer Inline-Pfad-Resolver in `build.ts` noetig. `socialCircle()` und `contactLine()` geben jetzt `Block[]` zurueck (cyan-Ellipse + image-Overlay zIndex 51, objectFit:contain). Aufrufe in `buildInhaber()` mit `...spread` versehen.
+
+Default-Template hat **290 Blocks** (+10 vs M13 Stand: +4 fuer Cover-Mockup, +6 fuer 3 social-Icons + 3 contact-Icons).
+
+### Gebaute Dateien
+
+```
+GEAENDERT:
+  src/lib/editor/binding-catalog.ts
+    + 6 Index-Pfade comparison.altSentences[0..2].aspect/.vision
+  src/lib/editor/page-builders.ts
+    + 4 Mockup-ShapeBlocks in buildCover() (bezel/camera/stand-neck/stand-base)
+    + 5 SVG-Konstanten ICON_LINKEDIN/INSTAGRAM/GLOBE/PHONE/MAIL
+    + svgToDataUrl() Helper (btoa-basiert)
+    + SOCIAL_ICONS[] / CONTACT_ICONS[] Lookup-Arrays
+    socialCircle() Signatur Block → Block[] (Pill + Icon-Overlay)
+    contactLine() erweitert: cyan-Ellipse + image-Overlay + Text
+    buildInhaber() socialCircle-Aufrufe mit ...spread
+  PLAN.md
+    Backlog M5.1/M4.1/M13.1 abgehakt + Hook-Erweiterung als bereits-in-M13 markiert
+  PROGRESS.md
+    Dieser Eintrag
+
+GENERIERT (gitignored):
+  data/templates/default.json (290 Blocks, +10 vs M13)
+```
+
+### Verifikation
+
+- `npx tsc --noEmit` ✓ (kein Error)
+- `npm run lint` ✓ 0 Errors (3 preexisting Warnings in `scripts/diff-pdf-against-vasileios.ts`)
+- `binding-catalog-consistency` Hook: 92/92 audit-bindings catalog-mapped ✓
+- `vasileios-m13` Audit, Page 20: alle 6 Pills zeigen ihren weissen Glyph auf cyan-Hintergrund, Foto + Text korrekt
+- `homeraum-immobilien.de` Audit (`adc273ac-...`), Page 1: Monitor-Mockup mit Bezel + Stand korrekt um Screenshot
+- `vasileios-m13-empty-M13` (Empty-State): HTTP 200, valide PDF — kein Crash bei leerem altSentences/inhaber/etc.
+
+### Kleine Gotchas
+
+- `staticSrc` in ImageBlock geht direkt in `<img src=...>`. Da Puppeteer mit `setContent()` ueber about:blank-Base-URL rendert, wuerden `/assets/...`-Pfade nicht aufgeloest. Loesung war data-URL inline statt File. Wenn spaeter doch File-basiert: regex in `inlineAssetIfLocal` erweitern (`^/assets/(.+)$` statt nur einzelnes Dateinamens-Match) und auch `staticSrc` im build.ts-Walk inlinen — aktuell wird nur `audit.inhaber.photo` inlined, nicht beliebiges `staticSrc`.
+- `btoa()` verlangt ASCII-only Strings. Die SVG-Konstanten enthalten nur ASCII (keine umlaute, keine emoji), deshalb safe.
+
 ## 2026-05-03: M13 Zusammenfassung + Inhaber (Page 19+20)
 
 ### Was

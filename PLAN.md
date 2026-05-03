@@ -40,10 +40,10 @@ Detail-Plan: `~/.claude/plans/soft-tickling-iverson.md`
 
 ## Backlog / Ideen
 
-- [ ] M4.1 Refinement: Cover-Screenshot in Monitor-Mockup-Frame (Bezel + Stand) — derzeit nur borderRadius:4. Asset-PNG oder SVG-Block noetig
-- [ ] M13.1 Refinement: Social-Pills + Contact-Pills mit echten SVG-Icons (LinkedIn / Instagram / Globe / Phone / Mail / Web). Aktuell reine cyan-Ellipsen ohne Glyph als bewusster Compromise. Asset-SVGs in `public/assets/icons/` ablegen, dann pro Pill als image-block ueberlagern (image-binding statt shape-ellipse).
-- [ ] M5.1 Catalog-Patch fuer altSentences: `comparison.altSentences[0..2].aspect` + `[0..2].vision` als 6 Index-Pfade in `binding-catalog.ts` ergaenzen — analog M13-Fix fuer summary.topIssues. Inspector zeigt aktuell "(statisch)" fuer diese Pfade, latenter persistence-killer wenn User altSentences im Editor neu bindet.
-- [ ] Hook-Erweiterung `binding-catalog-consistency`: aktuell prueft er nur `sections.*` prefix. Erweitern auf alle audit-Pfade (inkl. `comparison.*`, `phasenplan.*`, `summary.*`, `inhaber.*`, `topRisks`) UND Index-Pfade gegen Catalog matchen. Wuerde den M13-Bug bei Build-Time gefangen haben statt erst im Editor-E2E.
+- [x] M4.1 Refinement: Cover-Screenshot in Monitor-Mockup-Frame — Bezel (#2a2a2a, borderRadius 3, boxShadow) + Camera-Dot ellipse + Stand-Hals + Stand-Sockel (#aaaaaa) als 4 ShapeBlocks unter/auf dem screenshot-Image. Kein externes Asset noetig.
+- [x] M13.1 Refinement: Social-Pills + Contact-Pills mit echten SVG-Icons — 5 SVG-Konstanten (LinkedIn / Instagram / Globe / Phone / Mail) inline als data:image/svg+xml;base64 via btoa(). socialCircle()/contactLine() geben jetzt Block[] mit cyan-Ellipse + image-Overlay (zIndex 51, objectFit:contain). Web == Globe (gleiches SVG fuer social[2] und contact[2]).
+- [x] M5.1 Catalog-Patch fuer altSentences — 6 Index-Pfade (`comparison.altSentences[0..2].aspect` + `.vision`) in binding-catalog.ts ergaenzt, analog M13-Fix.
+- [x] Hook-Erweiterung `binding-catalog-consistency` — bereits in M13 (commit 2c1bc9f) erledigt: prueft alle audit-Pfade (sections, comparison, phasenplan, summary, inhaber, topRisks, recommendations, screenshots, Top-Level) plus Index-Pfade per regex.
 - [ ] Style-Profile lernt aus Vasileios' Edits, fliesst in System-Prompt zurueck
 - [ ] Multi-Template-Support im PDF-Export (Dropdown, nicht nur "default")
 - [ ] Audit-Liste/Dashboard zum Wiederfinden alter Audits
