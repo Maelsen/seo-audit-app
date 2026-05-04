@@ -1636,7 +1636,11 @@ function buildLokalesSeo1(): Block[] {
       id: "ls1-section-heading",
       type: "text",
       binding: { kind: "audit", path: "sections.lokalesSeo.heading" },
-      frame: { x: 65, y: 50, w: 130, h: 8 },
+      // h:8mm war fuer 1 Zeile zu schmal. Vasileios' Originaltext
+      // "Für Warendorf bereits sichtbar – im Umland noch viel Potenzial"
+      // braucht 2 Zeilen → h:14mm + leicht hoeheres y damit der Subtext
+      // darunter nicht ueberlappt.
+      frame: { x: 65, y: 48, w: 130, h: 14 },
       zIndex: 50,
       style: textStyle({
         fontSize: 13,

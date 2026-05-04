@@ -20,10 +20,18 @@
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 
-type Milestone = "M5" | "M6" | "M7" | "M8" | "M9" | "M10" | "M11" | "M12" | "M13";
+type Milestone = "M4" | "M5" | "M6" | "M7" | "M8" | "M9" | "M10" | "M11" | "M12" | "M13";
 type DataPatch = Record<string, unknown>;
 
 const DATA: Partial<Record<Milestone, DataPatch>> = {
+  M4: {
+    overallScore: "C",
+    overallHeading: "Ihre Seite könnte besser sein",
+    introText:
+      "Solide Basis, aber mit deutlichen Lücken bei Conversion, Autorität und Content.",
+    diagnosisText:
+      "Die Website hat mehr Substanz als der erste Blick zeigt. Du hast CTAs, ein Gesicht, FAQ, Prozessbeschreibung, Social Proof mit Google Link, eine Einsatzgebiets-Seite und sogar Stadtseiten eingebaut. Das ist deutlich mehr als die meisten lokalen Reiniger. Aber das Problem ist nicht was fehlt – sondern wie es präsentiert wird.",
+  },
   M5: {
     topRisks: [
       {
@@ -352,7 +360,7 @@ const DATA: Partial<Record<Milestone, DataPatch>> = {
   },
 };
 
-const ALL_MILESTONES: Milestone[] = ["M5", "M6", "M7", "M8", "M9", "M10", "M11", "M12", "M13"];
+const ALL_MILESTONES: Milestone[] = ["M4", "M5", "M6", "M7", "M8", "M9", "M10", "M11", "M12", "M13"];
 
 function deepMerge(dst: Record<string, unknown>, src: Record<string, unknown>): void {
   for (const [k, v] of Object.entries(src)) {
