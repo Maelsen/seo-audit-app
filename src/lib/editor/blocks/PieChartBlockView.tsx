@@ -159,7 +159,7 @@ function renderPie(
         })
       )}
       {block.showSliceLabels &&
-        renderSliceLabels(slices, total, cx, cy, outerR, labelOffset, labelStyle)}
+        renderSliceLabels(slices, total, cx, cy, outerR, innerR, labelOffset, labelStyle)}
     </svg>
   );
 }
@@ -193,6 +193,7 @@ function renderSliceLabels(
   cx: number,
   cy: number,
   outerR: number,
+  innerR: number,
   offset: number,
   style: CSSProperties,
 ): ReactElement[] {
@@ -211,7 +212,14 @@ function renderSliceLabels(
     const endRad = -Math.PI / 2 + (cumulative / total) * Math.PI * 2;
     if (slice.pct < MIN_INLINE_LABEL_PCT) continue;
     const midRad = (startRad + endRad) / 2;
-    const r = outerR + offset;
+    // Labels INNERHALB der Slice rendern (Vasileios-Style) statt aussen.
+    // Bei Donut (innerR > 0): Mitte zwischen innerR + outerR.
+    // Bei Voll-Pie (innerR = 0): 65% von outerR (Richtung Slice-Mitte).
+    // offset wird ignoriert wenn nicht explizit > 0 gesetzt — das ist der
+    // Fix fuer Bug 6 aus full-fidelity-test.
+    const r = offset > 0
+      ? outerR + offset // Legacy: Aussen-Modus wenn offset gesetzt
+      : (innerR > 0 ? (innerR + outerR) / 2 : outerR * 0.65);
     const p = polarToCartesian(cx, cy, r, midRad);
     const pct = Math.round(slice.pct);
     out.push(

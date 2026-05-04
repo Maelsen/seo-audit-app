@@ -37,7 +37,12 @@ export function ScoreCircleBlockView({ block, audit }: Props): ReactElement {
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
   const dashOffset = circumference * (1 - percent / 100);
-  const labelFontMm = block.labelStyle.fontSize * PT_TO_MM;
+  // Dynamische Schrift-Skalierung damit 2-/3-Zeichen-Noten ("C+", "D-", "B+")
+  // sicher in den Ring passen. Faktor 0.78 fuer 2-Zeichen, 0.62 fuer 3-Zeichen.
+  // Verhindert Note-Overflow-Bug aus full-fidelity-test (Bug 3).
+  const noteLen = grade.length;
+  const fontScale = noteLen >= 3 ? 0.62 : noteLen === 2 ? 0.78 : 1.0;
+  const labelFontMm = block.labelStyle.fontSize * PT_TO_MM * fontScale;
 
   if (imageSrc) {
     return (

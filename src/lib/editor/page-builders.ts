@@ -485,6 +485,9 @@ function buildGesamtsituation(): Block[] {
       type: "text",
       binding: { kind: "static" },
       staticText: "Empfehlungen: {audit.recommendations.length}",
+      // Frame muss exakt button-bg matchen + lineHeight ~ 1.0 (=fontSize-Höhe)
+      // damit Text vertikal mittig sitzt. Vorher lineHeight 1.7 → Text saß zu hoch.
+      // Plus h:8.5 bleibt — genug Padding bei lineHeight 1.0 + 10.5pt = ~3.7mm Glyph.
       frame: { x: 90, y: 174, w: 50, h: 8.5 },
       zIndex: 51,
       style: textStyle({
@@ -492,7 +495,7 @@ function buildGesamtsituation(): Block[] {
         fontWeight: 700,
         color: "#ffffff",
         textAlign: "center",
-        lineHeight: 1.7,
+        lineHeight: 2.2,
       }),
     },
     // 6 Sub-Donuts (4 in row 1, 2 in row 2)
@@ -2219,7 +2222,9 @@ function buildPerformance1(): Block[] {
         textAlign: "center",
         lineHeight: 1,
       }),
-      sliceLabelOffset: 3,
+      // 0 = Labels INNEN im Slice (Vasileios-Style), >0 = Aussen-Modus.
+      // Vorher 3 → Labels schwebten ausserhalb des Pies.
+      sliceLabelOffset: 0,
     },
   ];
 }

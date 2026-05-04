@@ -31,6 +31,62 @@ type Viewport = {
   deviceScaleFactor?: number;
 };
 
+// Versucht typische Cookie-Consent-Banner zu schliessen bevor der Screenshot
+// gemacht wird. Die Buttons-Selektoren sind nach Wahrscheinlichkeit sortiert.
+// Schluckt alle Errors — wenn nichts passt, wird Screenshot mit Banner gemacht
+// (besser als kein Screenshot).
+async function dismissCookieBanner(page: import("puppeteer-core").Page): Promise<void> {
+  // CSS-Selektoren (Puppeteer unterstuetzt :has-text NICHT, deshalb DOM-Eval).
+  const result = await page
+    .evaluate(() => {
+      const buttonTexts = [
+        "alles akzeptieren",
+        "alle akzeptieren",
+        "akzeptieren",
+        "accept all",
+        "accept",
+        "zustimmen",
+        "ok",
+        "verstanden",
+        "agree",
+        "i agree",
+      ];
+      const selectors = [
+        'button[id*="accept" i]',
+        'button[class*="accept" i]',
+        '[id*="cookie" i] button',
+        '[class*="cookie" i] button',
+        '[id*="consent" i] button',
+        '[class*="consent" i] button',
+      ];
+      // 1. Versuch: text-basiert
+      const allButtons = Array.from(
+        document.querySelectorAll<HTMLElement>('button, a, [role="button"]'),
+      );
+      for (const btn of allButtons) {
+        const txt = (btn.innerText || btn.textContent || "").trim().toLowerCase();
+        if (buttonTexts.some((t) => txt === t || txt.includes(t))) {
+          (btn as HTMLElement).click();
+          return `text-match: "${txt.substring(0, 40)}"`;
+        }
+      }
+      // 2. Versuch: id/class-basiert
+      for (const sel of selectors) {
+        const el = document.querySelector<HTMLElement>(sel);
+        if (el) {
+          el.click();
+          return `selector: ${sel}`;
+        }
+      }
+      return null;
+    })
+    .catch(() => null);
+  if (result) {
+    // Banner-Animation Dauer
+    await new Promise((r) => setTimeout(r, 800));
+  }
+}
+
 async function captureOne(
   auditId: string,
   url: string,
@@ -44,6 +100,9 @@ async function captureOne(
     await page.setViewport(viewport);
     await page.goto(url, { waitUntil: "domcontentloaded", timeout: 45000 });
     await new Promise((r) => setTimeout(r, 2500));
+    // Cookie-Banner-Dismiss vor Screenshot (Bug 1 aus full-fidelity-test).
+    // Errors werden geschluckt — wenn kein Banner: weiter machen.
+    await dismissCookieBanner(page).catch(() => {});
     const buf = (await page.screenshot({ type: "png", fullPage: false })) as Buffer;
     return await saveScreenshot(auditId, kind, buf);
   } catch (err) {

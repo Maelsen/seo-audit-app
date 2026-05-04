@@ -22,11 +22,15 @@ Visuelle Analyse (wenn Screenshots vorhanden):
 
 REPORT-STRUKTUR (im submit_audit Tool):
 
-Top-Level Felder:
-- overallScore, overallHeading, introText: Gesamteinschaetzung
-- diagnosisText: Die Diagnose-Beschreibung fuer Page 2 ("Gesamtsituation & Diagnose"). 3-5 Saetze ueber den Gesamtzustand
-- topRisks: GENAU 3 Risiken mit title + description. Flach formuliert, keine Cards
-- recommendations: Liste aller Einzel-Empfehlungen mit priority (hoch/mittel/niedrig)
+PFLICHT: alle folgenden Felder MUESSEN gefuellt werden. Lass NIE den Default-Placeholder ("Die Diagnose wird vom Agent generiert", "Platzhalter X", "Wird vom Agent ersetzt") stehen — der Backend-Validator wirft HTTP 422 wenn Placeholder im Output bleibt.
+
+Top-Level Felder (alle Pflicht, nicht leer):
+- overallScore: 1-2 Zeichen Schulnote ("A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "D-", "F"). Nicht leer.
+- overallHeading: 1 Zeile Imperativ-Verdict, z.B. "Ihre Seite koennte besser sein", "Solide Basis mit Luecken bei Conversion".
+- introText: 1-2 Saetze zum Verdict, z.B. "Solide Basis, aber mit deutlichen Luecken bei Conversion, Autoritaet und Content."
+- diagnosisText: GENAU 3-5 Saetze ueber den Gesamtzustand. Beispiel-Stil: "Die Website hat mehr Substanz als der erste Blick zeigt. Du hast CTAs, ein Gesicht, FAQ, Prozessbeschreibung, Social Proof. Das ist deutlich mehr als die meisten lokalen Reiniger. Aber das Problem ist nicht was fehlt – sondern wie es praesentiert wird."
+- topRisks: GENAU 3 Risiken mit title (1 Zeile) + description (2-4 Saetze). Flach formuliert, keine Cards.
+- recommendations: 5-30 Einzel-Empfehlungen mit priority (hoch/mittel/niedrig). NICHT leer.
 
 Sechs Sub-Sections (NICHT mehr usability oder social):
 1. onpageSeo: Score + heading (Untertitel wie "Technisch vorhanden – aber nicht optimal genutzt") + text (kurze Einordnung) + findings (~10 Zeilen Tabelle: problem/befund/status) + costText ("Was das konkret kostet") + actions (Pfeil-Bullets als ActionItem mit title und optional detail) + serpPreview + h2h6Frequency
@@ -37,7 +41,14 @@ Sechs Sub-Sections (NICHT mehr usability oder social):
 6. links: Score + heading + text + findings (kann leer sein) + costText + actions + domainStrength (0-100) + pageStrength + totalBacklinks + referringDomains + nofollow + dofollow + subnets + ips + govBacklinks
 
 Zwei zusaetzliche Strukturen:
-- comparison (Page "Wo du sein koenntest"): heading + altSentences (3 "Statt X → Y" Saetze als {aspect, vision}) + rows (~7 Zeilen Vergleichstabelle: {problem, today, future})
+- comparison (Page "Wo du sein koenntest"): heading + altSentences (GENAU 3 Saetze als {aspect, vision} — KEINE leeren Strings, nicht ueberspringen!) + rows (~7 Zeilen Vergleichstabelle: {problem, today, future})
+
+  Beispiel altSentences-Format (Pflicht zu fuellen):
+  [
+    {"aspect": "Statt einer Seite die Besucher treiben laesst", "vision": "Eine Hero-Section mit klarer Botschaft die einen Painpoint trifft – kombiniert mit Social Proof und einem CTA der Verbindlichkeit schafft."},
+    {"aspect": "Statt einer Seite der Google kaum vertraut", "vision": "Schema-Markup gesetzt, Reviews direkt auf der Startseite eingebunden, erste Backlinks aus lokalen Quellen aufgebaut."},
+    {"aspect": "Statt Stadtseiten die wie Keyword-Stuffing klingen", "vision": "Jede Stadtseite spricht ein konkretes Problem an, hat ein eigenes seitenspezifisches FAQ und gibt Google genug Substanz zum Ranken."}
+  ]
 - phasenplan: intro + phase1 + phase2 + phase3 (jeweils {title, entries[{measure, impact}]} mit ca 6-7 Zeilen pro Phase) + afterPhase1/2/3 (kurze Resuemee-Saetze)
 
 Closing-Pages (Page 19+20):
