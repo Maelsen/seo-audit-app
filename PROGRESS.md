@@ -2,6 +2,39 @@
 
 Was gebaut wurde, welche Vertraege/Typen entstanden, welche Gotchas auftraten.
 
+## 2026-05-04: /api/admin/reseed-template Endpoint
+
+### Was
+
+Neuer POST-Endpoint `src/app/api/admin/reseed-template/route.ts` der die `default.json` aus dem aktuellen `BUILDERS`-Map regeneriert. Behebt das ueblicherweise unsichtbare Problem dass `start:railway` mit `--if-missing` die `default.json` auf dem Persistent Volume **nicht** ueberschreibt — Code-Aenderungen an `page-builders.ts` landen nach `git push` auf Railway zwar im Container, aber das alte JSON-Template bleibt liegen und wird vom Editor + PDF-Renderer weiter benutzt.
+
+Production lief vorher noch auf einem April-14-Snapshot mit **53 Blocks / 14 Pages** — die ganze 20-Seiten-Migration M0-M14 war nicht live, ohne dass es jemandem aufgefallen waere weil der Volume-Wipe in M1 deferred wurde und nie nachgezogen.
+
+POST `/api/admin/reseed-template` ruft jetzt einmalig die gleiche `BUILDERS`-Map auf wie das `seed-default-template.ts` Skript, aber **ohne** `--if-missing` — ueberschreibt die Datei direkt. Behoelt `name`/`version`/`createdAt`/`assets` aus dem existierenden Template, ersetzt nur `pages` + `updatedAt`. Basic-Auth-protected via `proxy.ts` (kein eigener Auth-Layer).
+
+Workflow: nach jedem Code-Push der `page-builders.ts` aendert, im eingeloggten Browser-Tab `fetch('/api/admin/reseed-template', {method:'POST'})` — fertig. Alternativ kann der Endpoint auch im `start:railway` Skript hooks bekommen (z.B. mit einem Build-Hash-Vergleich), aber der manuelle Trigger ist explizit und nicht-destruktiv.
+
+### Reibungspunkt — fuer die naechste Migration vormerken
+
+`data/templates/default.json` ist gitignored, Railway hat einen Persistent Volume Mount, der Bootstrap nutzt `--if-missing`. Diese drei Faktoren zusammen heissen: jeder Code-Aenderung an einem Page-Builder muss explizit ein Volume-Reset oder ein Reseed folgen, sonst sieht der User das alte Template. Der Endpoint loest das jetzt mit einem 200ms-fetch vom Browser. Ohne ihn wuerde man Railway-Console-Access oder lokales `BASIC_AUTH_PASS` brauchen — beides hatten wir gerade nicht. **Fuer kuenftige Page-Builder-Aenderungen: den Reseed-Endpoint nach Railway-Deploy einmalig per Browser-Tab triggern.**
+
+### Verifikation
+
+- `npx tsc --noEmit` ✓
+- Lokal: `curl -X POST :3000/api/admin/reseed-template` → `{"ok":true,"pageCount":20,"blockCount":290}`
+- Production (nach Auto-Deploy): Browser-Tab POST → 200 + JSON, GET `/api/templates/default` zeigt 290 Blocks (vorher 53), inkl. `cover-monitor-bezel`, `inh-social0-icon` mit `data:image/svg+xml;base64,...` und `comparison.altSentences[0].aspect` Binding.
+- Production-Editor `/editor/default` Page 20: alle 13 Inhaber-Blocks (3 social-pills + 3 social-icons + 3 contact-bg + 3 contact-icons + 3 contact-text) im Overlay, korrekte Frame-Sizes (Pill 34x34, Icon 19x19, Contact-Icon 15x15).
+
+### Gebaute Dateien
+
+```
+NEU:
+  src/app/api/admin/reseed-template/route.ts
+    POST → regeneriert default.json aus BUILDERS
+GEAENDERT:
+  PROGRESS.md  (dieser Eintrag)
+```
+
 ## 2026-05-03: Backlog-Polish (M5.1 + M4.1 + M13.1)
 
 ### Was
