@@ -213,6 +213,10 @@ export type ResourceTileBlock = BlockBase & {
   tilePadding?: Mm;
   tileLayout?: "centered" | "left";
   iconSize?: Mm;
+  // Optional SVG-Icon als data-URL. Wenn gesetzt, wird das SVG-Image
+  // statt dem icon-Text gerendert (Vasileios-Style mit echten Glyphen
+  // statt Unicode-Symbolen). icon bleibt als Fallback erhalten.
+  iconSvg?: string;
 };
 
 export type SerpPreviewBlock = BlockBase & {

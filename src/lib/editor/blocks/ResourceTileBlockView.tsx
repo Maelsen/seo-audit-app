@@ -51,7 +51,20 @@ export function ResourceTileBlockView({ block, audit }: Props): ReactElement {
           flexShrink: 0,
         }}
       >
-        {block.icon}
+        {block.iconSvg ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={block.iconSvg}
+            alt=""
+            style={{
+              width: `${iconSize * 0.65}mm`,
+              height: `${iconSize * 0.65}mm`,
+              objectFit: "contain",
+            }}
+          />
+        ) : (
+          block.icon
+        )}
       </div>
       <div
         style={{

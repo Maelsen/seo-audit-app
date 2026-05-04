@@ -146,7 +146,9 @@ function buildCover(): Block[] {
         textAlign: "center",
         lineHeight: 1.0,
         letterSpacing: 1,
-        textShadow: "1.2mm 1.2mm 0 rgba(0,0,0,0.55)",
+        // Subtiler Drop-Shadow analog Vasileios' Original — vorher 1.2mm war
+        // zu stark, ueberdeckte den weichen Glow-Effekt.
+        textShadow: "0.6mm 0.7mm 0.4mm rgba(0,0,0,0.4)",
         textTransform: "uppercase",
       }),
     },
@@ -208,18 +210,30 @@ function buildCover(): Block[] {
       id: "cover-monitor-stand-neck",
       type: "shape",
       shape: "rect",
-      frame: { x: 98, y: 243, w: 14, h: 8 },
+      frame: { x: 99, y: 243, w: 12, h: 6 },
       zIndex: 49,
       fill: "#2a2a2a",
+    },
+    // Trapez-Sockel mit 2 gestaffelten rects approximiert (oben schmaler,
+    // unten breiter). Vasileios' Original hat einen klassischen Monitor-
+    // Trapez-Sockel — kein echter Polygon-Block im Schema, deshalb 2 rects.
+    {
+      id: "cover-monitor-stand-base-top",
+      type: "shape",
+      shape: "rect",
+      frame: { x: 86, y: 249, w: 38, h: 2 },
+      zIndex: 49,
+      fill: "#aaaaaa",
+      borderRadius: 0.6,
     },
     {
       id: "cover-monitor-stand-base",
       type: "shape",
       shape: "rect",
-      frame: { x: 78, y: 250, w: 54, h: 3 },
+      frame: { x: 78, y: 251, w: 54, h: 2.5 },
       zIndex: 49,
       fill: "#aaaaaa",
-      borderRadius: 1.5,
+      borderRadius: 1,
     },
     {
       id: "cover-screenshot",
@@ -2201,9 +2215,55 @@ function buildPerformance1(): Block[] {
   ];
 }
 
+// SVG-Icons fuer ResourceTiles (Vasileios-Style: weisse Glyphen auf cyan-Bg).
+// Inline data-URLs analog zu M13 Social-Icons. ASCII-only fuer btoa().
+
+const ICON_HTML_TAG =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>';
+
+const ICON_CODE_BRACES =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5a2 2 0 0 0 2 2h1"/><path d="M16 21h1a2 2 0 0 0 2-2v-5a2 2 0 0 1 2-2 2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1"/></svg>';
+
+const ICON_PAINT =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 11h2a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-9.5"/><circle cx="6" cy="14" r="3"/><path d="M9 11V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v6"/></svg>';
+
+const ICON_IMAGE =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>';
+
+const ICON_FILE =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+
+const ICON_HASH =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>';
+
+const ICON_LINK =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>';
+
+const ICON_LINK_BROKEN =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17H7a5 5 0 0 1 0-10h2"/><path d="M15 7h2a5 5 0 0 1 4 8"/><line x1="8" y1="12" x2="12" y2="12"/><line x1="2" y1="2" x2="22" y2="22"/></svg>';
+
+const ICON_ARROW_OUT =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
+
+const ICON_ARROW_RIGHT_BOX =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
+
+const ICON_CUBE =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>';
+
+const ICON_LAYERS =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>';
+
+const ICON_FLAG =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>';
+
+function svgToTileDataUrl(svg: string): string {
+  return `data:image/svg+xml;base64,${btoa(svg)}`;
+}
+
 // 6 ResourceTiles in einer Reihe, bound to sections.leistung.resourceCounts.*
-// iconBg-Farben angelehnt an gängige File-Type-Farben (HTML orange, JS gelb, CSS blau,
-// IMG grau, Other cyan, Total dunkel-cyan).
+// Vasileios-Style: alle Tiles mit cyan-Bg + weissen SVG-Glyphen statt
+// File-Type-Brand-Colors. Konsistenter Look passend zur Vasileios-Vorlage.
 function buildResourceTiles(): Block[] {
   const tileY = 172;
   const tileW = 28;
@@ -2216,16 +2276,15 @@ function buildResourceTiles(): Block[] {
     fieldPath: string;
     label: string;
     icon: string;
-    iconBg: string;
-    iconColor: string;
+    iconSvg: string;
   };
   const specs: TileSpec[] = [
-    { id: "html", fieldPath: "html", label: "Anzahl der HTML-Seiten", icon: "HTML", iconBg: "#e34c26", iconColor: "#ffffff" },
-    { id: "js", fieldPath: "js", label: "Anzahl der JS-Ressourcen", icon: "JS", iconBg: "#f7df1e", iconColor: "#1a1a1a" },
-    { id: "css", fieldPath: "css", label: "Anzahl der CSS-Ressourcen", icon: "{ }", iconBg: "#2965f1", iconColor: "#ffffff" },
-    { id: "img", fieldPath: "img", label: "Anzahl der Bilder", icon: "IMG", iconBg: "#6c757d", iconColor: "#ffffff" },
-    { id: "other", fieldPath: "other", label: "Andere Ressourcen", icon: "•••", iconBg: BRAND_CYAN, iconColor: "#1a1a1a" },
-    { id: "total", fieldPath: "total", label: "Gesamtzahl Objekte", icon: "#", iconBg: BRAND_CYAN, iconColor: "#1a1a1a" },
+    { id: "html", fieldPath: "html", label: "Anzahl der HTML-Seiten", icon: "HTML", iconSvg: svgToTileDataUrl(ICON_HTML_TAG) },
+    { id: "js", fieldPath: "js", label: "Anzahl der JS-Ressourcen", icon: "JS", iconSvg: svgToTileDataUrl(ICON_CODE_BRACES) },
+    { id: "css", fieldPath: "css", label: "Anzahl der CSS-Ressourcen", icon: "{ }", iconSvg: svgToTileDataUrl(ICON_PAINT) },
+    { id: "img", fieldPath: "img", label: "Anzahl der Bilder", icon: "IMG", iconSvg: svgToTileDataUrl(ICON_IMAGE) },
+    { id: "other", fieldPath: "other", label: "Andere Ressourcen", icon: "•••", iconSvg: svgToTileDataUrl(ICON_FILE) },
+    { id: "total", fieldPath: "total", label: "Gesamtzahl Objekte", icon: "#", iconSvg: svgToTileDataUrl(ICON_HASH) },
   ];
 
   return specs.map((s, i) => ({
@@ -2239,8 +2298,9 @@ function buildResourceTiles(): Block[] {
     zIndex: 50,
     label: s.label,
     icon: s.icon,
-    iconBg: s.iconBg,
-    iconColor: s.iconColor,
+    iconSvg: s.iconSvg,
+    iconBg: BRAND_CYAN,
+    iconColor: "#1a1a1a",
     valueStyle: textStyle({
       fontSize: 13,
       fontWeight: 800,
@@ -2350,7 +2410,9 @@ function buildPerformance2(): Block[] {
       id: "perf2-closing-note",
       type: "text",
       binding: { kind: "audit", path: "sections.leistung.closingNote" },
-      frame: { x: 20, y: 197, w: 170, h: 12 },
+      // Vasileios platziert die closingNote kompakt direkt unter den arrows
+      // (nicht am Page-Bottom). y:197 → y:170 fuer engere Anbindung.
+      frame: { x: 20, y: 170, w: 170, h: 12 },
       zIndex: 50,
       style: textStyle({
         fontSize: 10.5,
@@ -2514,6 +2576,7 @@ function buildLinks1(): Block[] {
       zIndex: 50,
       label: "Total Backlinks",
       icon: "🔗",
+      iconSvg: svgToTileDataUrl(ICON_LINK),
       iconBg: BRAND_CYAN,
       iconColor: "#1a1a1a",
       tileBg: "#222222",
@@ -2544,6 +2607,7 @@ function buildLinks1(): Block[] {
       zIndex: 50,
       label: "Verweisende Domänen",
       icon: "↗",
+      iconSvg: svgToTileDataUrl(ICON_ARROW_OUT),
       iconBg: BRAND_CYAN,
       iconColor: "#1a1a1a",
       tileBg: "#222222",
@@ -2585,15 +2649,14 @@ function buildLinkStatTiles(): Block[] {
     fieldPath: string;
     label: string;
     icon: string;
-    iconBg: string;
-    iconColor: string;
+    iconSvg: string;
   };
   const specs: TileSpec[] = [
-    { id: "nofollow", fieldPath: "nofollow", label: "Nofollow-Backlinks", icon: "⊘", iconBg: BRAND_CYAN, iconColor: "#1a1a1a" },
-    { id: "dofollow", fieldPath: "dofollow", label: "Dofollow-Backlinks", icon: "▶", iconBg: BRAND_CYAN, iconColor: "#1a1a1a" },
-    { id: "subnets", fieldPath: "subnets", label: "Subnets", icon: "▦", iconBg: BRAND_CYAN, iconColor: "#1a1a1a" },
-    { id: "ips", fieldPath: "ips", label: "IPs", icon: "≡", iconBg: BRAND_CYAN, iconColor: "#1a1a1a" },
-    { id: "gov", fieldPath: "govBacklinks", label: "Gov-Backlinks", icon: "⚑", iconBg: BRAND_CYAN, iconColor: "#1a1a1a" },
+    { id: "nofollow", fieldPath: "nofollow", label: "Nofollow-Backlinks", icon: "⊘", iconSvg: svgToTileDataUrl(ICON_LINK_BROKEN) },
+    { id: "dofollow", fieldPath: "dofollow", label: "Dofollow-Backlinks", icon: "▶", iconSvg: svgToTileDataUrl(ICON_ARROW_RIGHT_BOX) },
+    { id: "subnets", fieldPath: "subnets", label: "Subnets", icon: "▦", iconSvg: svgToTileDataUrl(ICON_CUBE) },
+    { id: "ips", fieldPath: "ips", label: "IPs", icon: "≡", iconSvg: svgToTileDataUrl(ICON_LAYERS) },
+    { id: "gov", fieldPath: "govBacklinks", label: "Gov-Backlinks", icon: "⚑", iconSvg: svgToTileDataUrl(ICON_FLAG) },
   ];
 
   return specs.map((s, i) => ({
@@ -2607,8 +2670,9 @@ function buildLinkStatTiles(): Block[] {
     zIndex: 50,
     label: s.label,
     icon: s.icon,
-    iconBg: s.iconBg,
-    iconColor: s.iconColor,
+    iconSvg: s.iconSvg,
+    iconBg: BRAND_CYAN,
+    iconColor: "#1a1a1a",
     tileBg: "#222222",
     tileBorderRadius: 2,
     tilePadding: 3,
@@ -2918,7 +2982,9 @@ function buildPhasenplan2(): Block[] {
       id: "pp2-phase3-table",
       type: "table",
       binding: { kind: "audit", path: "phasenplan.phase3.entries" },
-      frame: { x: 20, y: 73, w: 170, h: 110 },
+      // h:110 war zu generoes — Vasileios' Tabelle ist auf ca. 90mm kompakt.
+      // Reduziert auf h:90 damit afterPhase1/2/3-Texte nicht ueberlappen.
+      frame: { x: 20, y: 73, w: 170, h: 90 },
       zIndex: 50,
       columns: [
         { header: "Maßnahme", fieldPath: "measure", width: 85 },
@@ -2943,12 +3009,14 @@ function buildPhasenplan2(): Block[] {
       rowDividerColor: "#333333",
       rowVerticalPadding: 2,
     },
-    // ---- Nach Phase 1/2/3 (3 zeilen-Blocks am Page-Ende) ----
+    // ---- Nach Phase 1/2/3 (3 zeilen-Blocks direkt unter Tabelle) ----
+    // Vasileios platziert die Texte kompakt direkt nach der Phase-3-Tabelle
+    // (nicht am Page-Bottom). y:195/210/225 → y:175/190/205.
     {
       id: "pp2-after-phase1",
       type: "text",
       binding: { kind: "audit", path: "phasenplan.afterPhase1" },
-      frame: { x: 20, y: 195, w: 170, h: 10 },
+      frame: { x: 20, y: 175, w: 170, h: 12 },
       zIndex: 50,
       style: textStyle({
         fontSize: 9.5,
@@ -2962,7 +3030,7 @@ function buildPhasenplan2(): Block[] {
       id: "pp2-after-phase2",
       type: "text",
       binding: { kind: "audit", path: "phasenplan.afterPhase2" },
-      frame: { x: 20, y: 210, w: 170, h: 10 },
+      frame: { x: 20, y: 190, w: 170, h: 12 },
       zIndex: 50,
       style: textStyle({
         fontSize: 9.5,
@@ -2976,7 +3044,7 @@ function buildPhasenplan2(): Block[] {
       id: "pp2-after-phase3",
       type: "text",
       binding: { kind: "audit", path: "phasenplan.afterPhase3" },
-      frame: { x: 20, y: 225, w: 170, h: 10 },
+      frame: { x: 20, y: 205, w: 170, h: 12 },
       zIndex: 50,
       style: textStyle({
         fontSize: 9.5,
