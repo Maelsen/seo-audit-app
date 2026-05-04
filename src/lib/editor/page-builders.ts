@@ -336,7 +336,8 @@ function subDonut(d: SubDonut): Block[] {
       size: SUB_DONUT_DIAMETER,
       strokeWidth: 2.5,
       labelStyle: textStyle({
-        fontSize: 11,
+        // 11 → 9 damit auch "B+"/"D-" in den 19mm-Sub-Donut passen.
+        fontSize: 9,
         fontWeight: 700,
         color: "#ffffff",
         textAlign: "center",
@@ -431,7 +432,8 @@ function buildGesamtsituation(): Block[] {
       size: 52,
       strokeWidth: 5.5,
       labelStyle: textStyle({
-        fontSize: 34,
+        // 34 → 28 damit alle Noten ("B+", "C+", "D-", etc.) sicher in den Ring passen.
+        fontSize: 28,
         fontWeight: 800,
         color: "#ffffff",
         textAlign: "center",
@@ -804,7 +806,8 @@ function buildOnPageSeo1(): Block[] {
       size: 37,
       strokeWidth: 5,
       labelStyle: textStyle({
-        fontSize: 24,
+        // 24 → 18 damit "C+"/"D-"/"B+" sicher reinpassen ohne Ring zu touchen.
+        fontSize: 18,
         fontWeight: 800,
         color: "#ffffff",
         textAlign: "center",
@@ -1144,7 +1147,8 @@ function buildUxConversion1(): Block[] {
       size: 37,
       strokeWidth: 5,
       labelStyle: textStyle({
-        fontSize: 24,
+        // 24 → 18 damit "C+"/"D-"/"B+" sicher reinpassen ohne Ring zu touchen.
+        fontSize: 18,
         fontWeight: 800,
         color: "#ffffff",
         textAlign: "center",
@@ -1380,7 +1384,8 @@ function buildSeitenstrukturContent1(): Block[] {
       size: 37,
       strokeWidth: 5,
       labelStyle: textStyle({
-        fontSize: 24,
+        // 24 → 18 damit "C+"/"D-"/"B+" sicher reinpassen ohne Ring zu touchen.
+        fontSize: 18,
         fontWeight: 800,
         color: "#ffffff",
         textAlign: "center",
@@ -1641,7 +1646,8 @@ function buildLokalesSeo1(): Block[] {
       size: 37,
       strokeWidth: 5,
       labelStyle: textStyle({
-        fontSize: 24,
+        // 24 → 18 damit "C+"/"D-"/"B+" sicher reinpassen ohne Ring zu touchen.
+        fontSize: 18,
         fontWeight: 800,
         color: "#ffffff",
         textAlign: "center",
@@ -1910,7 +1916,8 @@ function buildPerformance1(): Block[] {
       size: 37,
       strokeWidth: 5,
       labelStyle: textStyle({
-        fontSize: 24,
+        // 24 → 18 damit "C+"/"D-"/"B+" sicher reinpassen ohne Ring zu touchen.
+        fontSize: 18,
         fontWeight: 800,
         color: "#ffffff",
         textAlign: "center",
@@ -2467,7 +2474,8 @@ function buildLinks1(): Block[] {
       size: 37,
       strokeWidth: 5,
       labelStyle: textStyle({
-        fontSize: 24,
+        // 24 → 18 damit "C+"/"D-"/"B+" sicher reinpassen ohne Ring zu touchen.
+        fontSize: 18,
         fontWeight: 800,
         color: "#ffffff",
         textAlign: "center",
