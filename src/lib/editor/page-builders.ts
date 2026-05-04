@@ -192,10 +192,12 @@ function buildCover(): Block[] {
       id: "cover-monitor-bezel",
       type: "shape",
       shape: "rect",
-      frame: { x: 22, y: 127, w: 166, h: 116 },
+      // Bezel mit ~1.8mm Padding um den Screenshot (vorher 3mm war zu fett —
+      // Vasileios' Mockup hat einen schmaleren, eleganteren Rand).
+      frame: { x: 23, y: 128, w: 164, h: 114 },
       zIndex: 49,
       fill: "#2a2a2a",
-      borderRadius: 3,
+      borderRadius: 4,
       boxShadow: "0 2mm 6mm rgba(0,0,0,0.45)",
     },
     {
