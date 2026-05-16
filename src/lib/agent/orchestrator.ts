@@ -10,6 +10,43 @@ import { loadStyleProfile } from "../storage";
 const MODEL = "claude-sonnet-4-5";
 const TOOL_NAME = "submit_audit";
 
+// Die AI emittiert "priority" gelegentlich als Synonym ("high", "sehr hoch",
+// "Hoch") statt exakt "hoch"/"mittel"/"niedrig". Strikte Zod-Enum-Validierung
+// wirft dann den kompletten Report weg (an einer einzigen recommendations-
+// Zeile). normalizeAgentOutput() coerced die haeufigen Varianten VOR der
+// Validierung — die AI sieht weiterhin das saubere Enum im Tool-Schema, und
+// unbekannte Werte werden weiterhin von Zod fail-loud abgelehnt.
+const PRIORITY_ALIASES: Record<string, "hoch" | "mittel" | "niedrig"> = {
+  hoch: "hoch",
+  high: "hoch",
+  "sehr hoch": "hoch",
+  kritisch: "hoch",
+  critical: "hoch",
+  dringend: "hoch",
+  mittel: "mittel",
+  medium: "mittel",
+  mid: "mittel",
+  moderat: "mittel",
+  niedrig: "niedrig",
+  low: "niedrig",
+  gering: "niedrig",
+};
+
+function normalizeAgentOutput(input: unknown): void {
+  if (!input || typeof input !== "object") return;
+  const recs = (input as Record<string, unknown>).recommendations;
+  if (!Array.isArray(recs)) return;
+  for (const rec of recs) {
+    if (rec && typeof rec === "object" && "priority" in rec) {
+      const p = (rec as Record<string, unknown>).priority;
+      if (typeof p === "string") {
+        const alias = PRIORITY_ALIASES[p.trim().toLowerCase()];
+        if (alias) (rec as Record<string, unknown>).priority = alias;
+      }
+    }
+  }
+}
+
 export type AgentInput = {
   url: string;
   screamingFrog?: ScreamingFrogData;
@@ -183,6 +220,7 @@ export async function runAgent(
   }
 
   onProgress?.("Output gegen Schema prüfen");
+  normalizeAgentOutput(toolUse.input);
   const result = auditSchema.safeParse(toolUse.input);
   if (!result.success) {
     throw new Error(

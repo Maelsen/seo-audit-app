@@ -71,16 +71,15 @@ function seedRealAi(): boolean {
   }
   step("Seed test-real-ai (echtes AI-Audit, kostet ~$0.30)");
 
-  const body = {
-    url: "https://www.eme-gebaeudereinigung.de",
-    projectName: "EME Test (full-fidelity)",
-  };
-  // POST /api/upload als JSON ohne Files (CSV/PDF optional)
-  // Endpoint streamt SSE — wir lesen bis "result"-event und holen auditId
+  // POST /api/upload erwartet multipart/form-data mit "url" + "projectName"
+  // Streamt NDJSON ueber `ndjsonResponse` — wir warten bis Stream endet, dann
+  // sehen wir den letzten "result"-event mit auditId.
   const tmpFile = `${FFT_DIR}/upload-resp.txt`;
+  const url = "https://www.eme-gebaeudereinigung.de";
+  const projectName = "EME Test (full-fidelity)";
   try {
     execSync(
-      `curl -s -X POST -H "Content-Type: application/json" -d '${JSON.stringify(body)}' ${APP}/api/upload --max-time 240 -o ${tmpFile}`,
+      `curl -s -X POST -F "url=${url}" -F "projectName=${projectName}" ${APP}/api/upload --max-time 480 -o ${tmpFile}`,
       { cwd, stdio: "inherit" },
     );
   } catch {
@@ -89,25 +88,44 @@ function seedRealAi(): boolean {
   }
 
   const resp = readFileSync(tmpFile, "utf-8");
-  // SSE: extrahiere "auditId" aus letztem result-event
-  const match = resp.match(/"auditId":\s*"([a-z0-9-]+)"/i);
+  const match = resp.match(/"auditId":\s*"([a-f0-9-]{36})"/i);
   if (!match) {
-    console.warn("✗ Konnte auditId nicht aus Upload-Response extrahieren");
+    console.warn(`✗ Konnte auditId nicht aus Upload-Response extrahieren (${resp.length} bytes)`);
     return false;
   }
   const realAuditId = match[1];
+  console.log(`  upload done: auditId=${realAuditId}`);
 
-  // Rename: data/audits/{realAuditId}.json → data/audits/test-real-ai.json
+  // Schritt 2: /api/analyze ruft AI-Agent (orchestrator → submit_audit)
+  console.log("  AI-Agent (analyze) startet — kann 60-180s dauern...");
+  const analyzeFile = `${FFT_DIR}/analyze-resp.txt`;
+  try {
+    execSync(
+      `curl -s -X POST -H "Content-Type: application/json" -d '{"auditId":"${realAuditId}"}' ${APP}/api/analyze --max-time 480 -o ${analyzeFile}`,
+      { cwd, stdio: "inherit" },
+    );
+  } catch {
+    console.warn("✗ /api/analyze failed");
+    return false;
+  }
+  const analyzeResp = readFileSync(analyzeFile, "utf-8");
+  if (analyzeResp.includes('"type":"error"')) {
+    console.warn(`✗ Analyze hat Error: ${analyzeResp.substring(0, 200)}`);
+    return false;
+  }
+  console.log(`  analyze done (${analyzeResp.length} bytes response)`);
+
+  // Rename audit JSON
   const src = resolve(cwd, `data/audits/${realAuditId}.json`);
   const dst = resolve(cwd, `data/audits/${REAL_AI_VARIANT}.json`);
   if (!existsSync(src)) {
-    console.warn(`✗ ${src} fehlt nach Upload`);
+    console.warn(`✗ ${src} fehlt nach Analyze`);
     return false;
   }
   const audit = JSON.parse(readFileSync(src, "utf-8"));
   audit.id = REAL_AI_VARIANT;
   writeFileSync(dst, JSON.stringify(audit, null, 2));
-  console.log(`✓ test-real-ai gespeichert (Original-ID: ${realAuditId})`);
+  console.log(`✓ test-real-ai gespeichert (Original-ID: ${realAuditId}, score=${audit.overallScore}, recommendations=${audit.recommendations?.length ?? 0})`);
   return true;
 }
 

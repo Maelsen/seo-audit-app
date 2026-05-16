@@ -2,6 +2,43 @@
 
 Was gebaut wurde, welche Vertraege/Typen entstanden, welche Gotchas auftraten.
 
+## 2026-05-16: Bug 2 abgeschlossen — Placeholder-Leak + AI-priority-Normalisierung
+
+### Was
+
+Bug 2 aus dem full-fidelity-test-System fertig gebaut + E2E-verifiziert. Commit `250a704` hatte Bug 1/3/4/5/6 abgedeckt, Bug 2 blieb offen (uncommitteter WIP in 3 Dateien).
+
+**Placeholder-Leak (Bug 2 Kern).** `src/app/api/upload/route.ts` schrieb beim Audit-Anlegen Default-Strings ("Platzhalter 1/2/3", "Die Diagnose wird vom Agent generiert", introText-Default). `src/app/api/analyze/route.ts` merged nach dem AI-Run nur overallScore/overallHeading/introText/sections/topRisks/recommendations — NICHT diagnosisText/comparison/phasenplan/summary/inhaber. Fuer jedes Feld das die AI nicht setzte blieb der Upload-Default stehen und leakte ins finale PDF.
+- `upload/route.ts`: alle Text-Defaults auf `""` / leere Arrays (`emptyComparison/emptyPhasenplan/emptySummary`, `topRisks: []`). Die Page-Builder binden direkt an die Audit-Felder und haben keine eigenen Placeholder-Fallback-Texte — leere Felder rendern als visuelle Luecke, nicht als Placeholder-String.
+- `analyze/route.ts`: merged jetzt ALLE AI-Felder. `inhaber` wird conditional gemergt — nur `body`/`outroItalic`/`ps` wenn die AI sie gesetzt hat; `name`/`email`/`phone`/`photo` bleiben die Vasileios-Defaults aus `defaultInhaber()`.
+
+**assertNoPlaceholders Validator.** `prompts.ts` versprach der AI einen "Backend-Validator wirft HTTP 422" — den gab es nicht (leere Drohung). `analyze/route.ts` hat jetzt `assertNoPlaceholders(result)`: scannt `JSON.stringify(result)` gegen 3 Regex (Diagnose-Default / "Wird vom Agent ersetzt" / `Platzhalter \d`), wirft bei Treffer. Prompt-Text auf "lehnt den Report ab" korrigiert (das falsche "HTTP 422" raus — der ndjson-Stream liefert 200 + error-event, nicht 422).
+
+**AI-priority-Enum-Normalisierung (separater Bug, beim E2E aufgedeckt).** Der erste Analyze-E2E-Run scheiterte an `recommendations[16].priority` — die AI emittiert das Enum gelegentlich als Synonym statt exakt `hoch`/`mittel`/`niedrig`. Strikte Zod-Validierung warf dann den kompletten 21kB-Report weg. `orchestrator.ts` hat jetzt `normalizeAgentOutput()` das vor `auditSchema.safeParse()` die priority-Werte gegen `PRIORITY_ALIASES` coerced (high→hoch, sehr hoch→hoch, medium→mittel, low→niedrig, ...). Die AI sieht weiterhin das saubere Enum im Tool-Schema; wirklich unbekannte Werte werden weiter fail-loud abgelehnt.
+
+### Geaenderte Dateien
+
+```
+GEAENDERT:
+  src/app/api/upload/route.ts      Placeholder-Defaults → "" / leere Arrays
+  src/app/api/analyze/route.ts     merged alle AI-Felder + assertNoPlaceholders()
+  src/lib/agent/orchestrator.ts    normalizeAgentOutput() vor Schema-Validierung
+  src/lib/agent/prompts.ts         422-Drohung → ehrliche Validator-Beschreibung
+  scripts/full-fidelity-test.ts    seedRealAi: multipart-Upload + separater analyze-Step
+```
+
+### Verifikation (E2E gegen lokalen Dev-Server :3007)
+
+- `tsc --noEmit` ✓, `lint` ✓ (0 Errors, 4 preexisting Warnings)
+- **Upload-Pfad:** `POST /api/upload` (example.com, kein AI) → Audit mit `overallHeading/introText/diagnosisText=""` + `topRisks/altSentences/entries/topIssues []`. PDF 20 Seiten, `pdftotext`-Grep: 0 Placeholder.
+- **Analyze-Pfad:** `POST /api/analyze` → AI-Agent (Sonnet) → 19 Empfehlungen, 3 Top-Risiken, Schema gruen. Gemergter Audit: `diagnosisText` / `comparison` (3 altSentences + 7 rows) / `phasenplan` (7 entries) / `summary` (3 topIssues) gefuellt; `inhaber.body` von AI, `inhaber.name`/`email` Vasileios-Default behalten. Finales PDF 20 Seiten, 0 Placeholder.
+- **priority-Fix:** erster Analyze-Run scheiterte an invalid Enum, nach `normalizeAgentOutput()` lief der Re-Run durch, alle priorities ∈ {hoch,mittel,niedrig}.
+
+### Gotchas / Reibung
+
+- Port 3000 war von einem fremden Projekt (`website_ezeyflow` next dev) belegt — Dev-Server auf `PORT=3007` gestartet statt das andere Projekt zu killen. `full-fidelity-test.ts` hardcoded `APP=http://localhost:3000`; der seedRealAi-Refactor wurde daher manuell per `curl` gegen :3007 nachgespielt (gleiche Schritte: multipart-upload → analyze → check), das Skript selbst lief nicht. **Vormerken:** `APP` in `full-fidelity-test.ts` per env-Var ueberschreibbar machen, dann ist das Skript port-agnostisch.
+- `orchestrator.ts` `MODEL` ist noch `claude-sonnet-4-5` — aktueller waere `claude-sonnet-4-6`. Nicht angefasst (out of scope), aber vormerken.
+
 ## 2026-05-04: /api/admin/reseed-template Endpoint
 
 ### Was

@@ -215,6 +215,12 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // Defaults: KEINE Placeholder-Strings. Wenn AI diese Felder nicht setzt,
+    // bleiben sie leer und rendern als visuelle Luecke (statt "Platzhalter 1"
+    // ins finale PDF zu leaken). Vorher leak-bug aus full-fidelity-test
+    // (Bug 2 + 5): Defaults wie "Die Diagnose wird vom Agent generiert" und
+    // "Platzhalter X" landeten im AI-output Audit wenn AI das submit_audit
+    // Tool ohne diese Felder aufgerufen hat.
     const audit: AuditData = {
       id: auditId,
       createdAt: now,
@@ -222,17 +228,11 @@ export async function POST(req: NextRequest) {
       url: normalizedUrl,
       projectName,
       overallScore: "C",
-      overallHeading: "Ihre Seite koennte besser sein",
-      introText:
-        "Dieser Bericht bewertet Ihre Website anhand wichtiger Faktoren wie On-Page-SEO, Off-Page-Backlinks, Performance und mehr.",
-      diagnosisText:
-        "Die Diagnose wird vom Agent generiert. Hier steht die Zusammenfassung der Gesamtsituation.",
+      overallHeading: "",
+      introText: "",
+      diagnosisText: "",
       sections: stub(),
-      topRisks: [
-        { title: "Platzhalter 1", description: "Wird vom Agent ersetzt" },
-        { title: "Platzhalter 2", description: "Wird vom Agent ersetzt" },
-        { title: "Platzhalter 3", description: "Wird vom Agent ersetzt" },
-      ],
+      topRisks: [],
       comparison: emptyComparison(),
       phasenplan: emptyPhasenplan(),
       summary: emptySummary(),

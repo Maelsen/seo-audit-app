@@ -22,7 +22,7 @@ Visuelle Analyse (wenn Screenshots vorhanden):
 
 REPORT-STRUKTUR (im submit_audit Tool):
 
-PFLICHT: alle folgenden Felder MUESSEN gefuellt werden. Lass NIE den Default-Placeholder ("Die Diagnose wird vom Agent generiert", "Platzhalter X", "Wird vom Agent ersetzt") stehen — der Backend-Validator wirft HTTP 422 wenn Placeholder im Output bleibt.
+PFLICHT: alle folgenden Felder MUESSEN gefuellt werden. Lass NIE einen Default-Placeholder ("Die Diagnose wird vom Agent generiert", "Platzhalter X", "Wird vom Agent ersetzt") stehen — der Backend-Validator lehnt den Report ab wenn ein Placeholder im Output bleibt.
 
 Top-Level Felder (alle Pflicht, nicht leer):
 - overallScore: 1-2 Zeichen Schulnote ("A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "D-", "F"). Nicht leer.
