@@ -2,6 +2,57 @@
 
 Was gebaut wurde, welche Vertraege/Typen entstanden, welche Gotchas auftraten.
 
+## 2026-05-16: Audit-Liste/Dashboard (letztes Backlog-Feature)
+
+### Was
+
+Neue Dashboard-Page `/audits` zum Wiederfinden + Verwalten alter Audits — das letzte echt offene Backlog-Item. (Beim Bauen kam raus dass die zwei anderen Backlog-Items, Style-Profile-Learning + Multi-Template-PDF-Export, laengst gebaut waren — siehe PLAN.md-Korrektur-Commit.)
+
+- **`GET /api/audit`** (NEU, `src/app/api/audit/route.ts`): mappt `listAudits()` auf `AuditSummary[]`. Bewusst nicht die volle `AuditData` — `originalAi` (riesiger JSON-String) + `rawInputs` bleiben draussen, nur id/projectName/url/overallScore/createdAt/updatedAt/recommendationCount/hasScreenshot gehen ueber den Draht.
+- **`DELETE /api/audit/[id]`** (NEU, Handler in bestehender `[id]/route.ts`): ruft `deleteAudit()`, 404 wenn Datei fehlt.
+- **`deleteAudit(id)`** in `storage.ts` — `fs.unlink` analog `deleteTemplate()`.
+- **`AuditSummary`-Typ** in `types.ts`.
+- **Dashboard-Page** `src/app/audits/page.tsx` (NEU): Client-Component, dunkles Inline-Style-Theme wie die Landing-Page. Live-Filter (projectName + url), pro Audit eine Row mit Score-Badge (`gradeColor`), Projekt-Name/URL/Datum/Empfehlungs-Count, Buttons Oeffnen (→ `/audit/[id]`) / PDF (→ `/api/generate-pdf`) / Loeschen. Loeschen ist **Two-Step inline** (erster Klick → Button wird rot "Wirklich loeschen?", zweiter Klick loescht) — kein `window.confirm` (das blockiert die Browser-Automation). Empty-State + Loading-State + Error-State.
+- **Landing-Page** `page.tsx`: Link "Alte Audits ansehen →" neben dem Editor-Link.
+
+### Public Interfaces
+
+```ts
+// src/lib/types.ts
+AuditSummary = { id, projectName, url, overallScore: Grade,
+                 createdAt, updatedAt, recommendationCount, hasScreenshot }
+// src/lib/storage.ts
+deleteAudit(id: string): Promise<boolean>
+// GET  /api/audit            → { audits: AuditSummary[] }   (sortiert: neueste zuerst)
+// DELETE /api/audit/[id]     → { ok: true } | 404 { error }
+```
+
+### Geaenderte / neue Dateien
+
+```
+NEU:
+  src/app/api/audit/route.ts        GET → AuditSummary[]
+  src/app/audits/page.tsx           Dashboard-Page
+GEAENDERT:
+  src/lib/types.ts                  + AuditSummary
+  src/lib/storage.ts                + deleteAudit()
+  src/app/api/audit/[id]/route.ts   + DELETE-Handler
+  src/app/page.tsx                  + Link zu /audits
+```
+
+### Verifikation (E2E gegen Dev-Server :3007 + Chrome)
+
+- `tsc --noEmit` ✓, `lint` ✓ (0 Errors, 4 preexisting Warnings)
+- `GET /api/audit` → 33 Audits, nur Summary-Felder, kein `originalAi`/`rawInputs`/`sections` im Payload.
+- `DELETE /api/audit/nonexistent` → HTTP 404 `{"error":"not found"}`.
+- Chrome `/audits`: Page rendert, Filter "example" engt 33 → 2 ein ("X von Y Audits"-Counter stimmt). Loeschen-Two-Step: 1. Klick → roter "Wirklich loeschen?"-Button, 2. Klick → Row weg + Counter 33 → 32 (Datei tatsaechlich von Disk geloescht). "Oeffnen" navigiert korrekt zur Audit-Review-Page. 0 Konsolen-Fehler.
+- Landing-Page zeigt "Alte Audits ansehen →".
+
+### Gotchas / Reibung
+
+- Loeschen bewusst ohne `window.confirm` gebaut — der dialog-Block-Hinweis fuer Browser-Automation gilt auch fuer echte User-Flows nicht, aber Inline-Two-Step ist sowieso die bessere UX (kein modaler Unterbruch).
+- Optionaler Nachzug: ein "← Zur Uebersicht"-Link in der Audit-Review-Page schliesst den Navigations-Loop (aktuell kommt man nur ueber Browser-Back zurueck).
+
 ## 2026-05-16: Bug 2 abgeschlossen — Placeholder-Leak + AI-priority-Normalisierung
 
 ### Was

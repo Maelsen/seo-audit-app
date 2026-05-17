@@ -153,7 +153,10 @@ export default function LandingPage() {
           <p style={{ color: "#9ca3af", fontSize: 14 }}>
             URL eingeben, Exporte hochladen, AI macht den Rest
           </p>
-          <p style={{ marginTop: 12, fontSize: 13 }}>
+          <p style={{ marginTop: 12, fontSize: 13, display: "flex", gap: 16, justifyContent: "center" }}>
+            <Link href="/audits" style={{ color: "#38E1E1", textDecoration: "none" }}>
+              Alte Audits ansehen →
+            </Link>
             <Link href="/editor" style={{ color: "#38E1E1", textDecoration: "none" }}>
               Template-Editor öffnen →
             </Link>

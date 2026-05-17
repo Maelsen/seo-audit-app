@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { loadAudit, saveAudit, appendEdit } from "@/lib/storage";
+import { loadAudit, saveAudit, appendEdit, deleteAudit } from "@/lib/storage";
 import { extractAndUpdateStyleProfile } from "@/lib/agent/style-profile";
 import { randomUUID } from "crypto";
 import type { AuditData, EditEntry } from "@/lib/types";
@@ -59,4 +59,16 @@ export async function PATCH(
   }
 
   return NextResponse.json({ audit: updated });
+}
+
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+  const ok = await deleteAudit(id);
+  if (!ok) {
+    return NextResponse.json({ error: "not found" }, { status: 404 });
+  }
+  return NextResponse.json({ ok: true });
 }

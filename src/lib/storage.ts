@@ -171,3 +171,13 @@ export async function deleteTemplate(id: string): Promise<boolean> {
     return false;
   }
 }
+
+export async function deleteAudit(id: string): Promise<boolean> {
+  const file = path.join(AUDITS_DIR, `${id}.json`);
+  try {
+    await fs.unlink(file);
+    return true;
+  } catch {
+    return false;
+  }
+}

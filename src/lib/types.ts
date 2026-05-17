@@ -207,6 +207,20 @@ export type AuditData = {
   originalAi?: string;
 };
 
+// Schlanke Audit-Repraesentation fuer die Dashboard-Liste — die volle
+// AuditData (inkl. originalAi-String + rawInputs) wird nicht ueber den
+// Draht geschickt, nur diese Felder.
+export type AuditSummary = {
+  id: string;
+  projectName: string;
+  url: string;
+  overallScore: Grade;
+  createdAt: string;
+  updatedAt: string;
+  recommendationCount: number;
+  hasScreenshot: boolean;
+};
+
 export type EditEntry = {
   id: string;
   auditId: string;
