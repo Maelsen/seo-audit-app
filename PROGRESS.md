@@ -2,6 +2,40 @@
 
 Was gebaut wurde, welche Vertraege/Typen entstanden, welche Gotchas auftraten.
 
+## 2026-05-17: Layout-Fix — Auto-Shrink + Prompt-Laengen-Limits gegen Text-Ueberlauf
+
+### Was / Warum
+
+Erster kompletter Audit ueber die UI (EME Gebaeudereinigung, eme-gebaeudereinigung.de) + Visual-Diff gegen Vasileios' Referenz-PDF deckte einen systemischen Bug auf: Das 20-Seiten-Template wurde in M3-M13 pixelgenau auf Vasileios' exakte, sehr knappe Original-Texte vermessen. Block-Frames haben FESTE Hoehen. Sobald die AI normal-lange Texte schreibt, laufen Bloecke ueber — Page 2 (overallHeading 2-zeilig ueber den Body), Page 17/18 (`phasenplan.intro` 3 Saetze, 7mm-Frame schneidet ab), Page 19 (`summary.topIssues`-Bodies ~360 Zeichen, Bloecke ueberlappen). 16/20 Seiten waren layout-treu, 4 hatten den Ueberlauf.
+
+Fix in zwei Schichten (User-Entscheidung "Beides"):
+
+**1. Auto-Shrink (Safety-Net, `src/lib/pdf/render.ts`).** Neue `autoShrinkOverflowingText()` laeuft im Puppeteer-Kontext nach `fonts.ready`, vor `page.pdf()`. Fuer jeden `[data-block-type="text"]`: solange `scrollHeight > clientHeight`, fontSize in 0.5px-Schritten reduzieren bis es passt (Floor: 60% der Ausgangsgroesse bzw. 6.5px, Guard 60 Iterationen). Bloecke die ohnehin passen bleiben unangetastet. Faengt JEDEN Text-Ueberlauf ab — kein Abschneiden mitten im Satz, keine Ueberlappung mehr.
+
+**2. Prompt-Laengen-Limits (`src/lib/agent/prompts.ts`).** Harte Zeichen-Limits fuer die ueberlauf-anfaelligen Felder: `overallHeading` MAX 55 (1 Zeile), `phasenplan.intro` MAX 90 (1 Zeile), `summary.subline` 65, `summary.closingSubline` 60, `summary.closingBody` 280, `topIssues` headline 50 / body 200 (GENAU 2 kurze Saetze). Damit generiert die AI Texte die ins fixe Design passen — so knapp wie Vasileios schreibt.
+
+### Verifikation (E2E)
+
+- Kompletter Audit ueber die Chrome-UI erstellt — Formular → Upload (PageSpeed + Screenshots) → AI-Analyse (3,4 Min) → Audit-Review-Page → 20-Seiten-PDF. Ganzer Flow lief sauber.
+- 20-Seiten-PDF gegen `docs/measurements/page-NN.png` verglichen (Seite fuer Seite selbst geprueft — der erste Subagent-Vergleich war unzuverlaessig, zaehlte 21 Seiten und meldete Page 8 faelschlich als kaputt).
+- Auto-Shrink isoliert verifiziert (Re-Render des bestehenden Audits OHNE neue AI): Page 2/17/19 — kein Overlap, kein Abschnitt mehr, Texte vollstaendig.
+- Prompt-Limits verifiziert mit 1 Re-Analyse: overallHeading 44Z, intro 73Z (1 Zeile), topIssues-Bodies 191-195Z — alle im Limit. Nur `closingBody` (392Z) ignorierte das Limit — Auto-Shrink faengt es sauber ab. Genau dafuer ist die 2-Schichten-Loesung da.
+- Final-Render Page 1/2/5/17/19: alle sauber, keine Regression durch den globalen Auto-Shrink.
+- `tsc` ✓, `lint` ✓ (0 Errors).
+
+### Offen (NICHT Teil dieses Fixes)
+
+- Page 10/12: leere Bild-Platzhalter-Rahmen wenn die AI keine Bilder liefert (`comparisonImages: []`, `schemaMarkupImage: ""`). Inhaerente Inhalts-Luecke — die Slots sind als "von Vasileios per Editor fuellbar" designt, kein Template-Bug.
+- Cover-Mockup ist Quer- statt Hochformat, Pfeil-Glyph der Bullet-Listen weicht leicht ab — kosmetisch.
+
+### Geaenderte Dateien
+
+```
+GEAENDERT:
+  src/lib/pdf/render.ts        + autoShrinkOverflowingText() vor page.pdf()
+  src/lib/agent/prompts.ts     Laengen-Limits fuer 7 ueberlauf-anfaellige Felder
+```
+
 ## 2026-05-16: Audit-Liste/Dashboard (letztes Backlog-Feature)
 
 ### Was
