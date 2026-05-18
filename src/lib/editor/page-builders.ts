@@ -1848,12 +1848,14 @@ function buildLokalesSeo2(): Block[] {
         lineHeight: 1.4,
       }),
     },
-    // Schema-Markup-Code-Image (links unten). ImageBlockView rendert dashed-cyan
-    // Placeholder wenn schemaMarkupImage leer ist.
+    // Schema-Markup-Code-Image (links unten). Fest eingebautes JSON-LD-Beispiel
+    // (SCHEMA_MARKUP_DATA_URL) — illustrativ, fuer jeden Audit gleich. Im Editor
+    // pro Kunde austauschbar (staticSrc ueberschreiben).
     {
       id: "ls2-schema-image",
       type: "image",
-      binding: { kind: "audit", path: "sections.lokalesSeo.schemaMarkupImage" },
+      binding: { kind: "static" },
+      staticSrc: SCHEMA_MARKUP_DATA_URL,
       frame: { x: 20, y: 228, w: 90, h: 60 },
       zIndex: 50,
       objectFit: "contain",
@@ -1863,7 +1865,8 @@ function buildLokalesSeo2(): Block[] {
     {
       id: "ls2-schema-caption",
       type: "text",
-      binding: { kind: "audit", path: "sections.lokalesSeo.schemaMarkupCaption" },
+      binding: { kind: "static" },
+      staticText: "So sieht ein Schema-Markup im Quellcode aus",
       frame: { x: 115, y: 235, w: 75, h: 8 },
       zIndex: 50,
       style: textStyle({
@@ -2274,6 +2277,73 @@ const ICON_FLAG =
 function svgToTileDataUrl(svg: string): string {
   return `data:image/svg+xml;base64,${btoa(svg)}`;
 }
+
+// Schema-Markup-Beispielbild (Page 12, Lokales SEO). Fest eingebautes
+// JSON-LD-Code-Panel als SVG — fuer jeden Audit identisch (rein illustrativ,
+// kein AI-Output, kein website-spezifischer Screenshot). Vasileios kann es
+// im Editor pro Kunde austauschen. ASCII-only fuer btoa().
+const SCHEMA_MARKUP_CODE: string[] = [
+  "{",
+  '  "@context": "https://schema.org",',
+  '  "@type": "LocalBusiness",',
+  '  "name": "Muster Gebaeudereinigung",',
+  '  "telephone": "+49 711 1234567",',
+  '  "address": {',
+  '    "@type": "PostalAddress",',
+  '    "streetAddress": "Musterstrasse 12",',
+  '    "addressLocality": "Stuttgart",',
+  '    "postalCode": "70173"',
+  "  },",
+  '  "openingHours": "Mo-Fr 08-18 Uhr",',
+  '  "aggregateRating": {',
+  '    "@type": "AggregateRating",',
+  '    "ratingValue": "4.9",',
+  '    "reviewCount": "127"',
+  "  }",
+  "}",
+];
+
+function escapeSvgText(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function buildSchemaMarkupSvg(): string {
+  const W = 600;
+  const H = 400;
+  const lh = 17.5;
+  const x = 30;
+  const top = 66;
+  const rows = SCHEMA_MARKUP_CODE.map((line, i) => {
+    const y = top + i * lh;
+    const ci = line.indexOf(":");
+    if (ci === -1) {
+      return `<text x="${x}" y="${y}" xml:space="preserve" fill="#8b95a3">${escapeSvgText(
+        line,
+      )}</text>`;
+    }
+    const key = escapeSvgText(line.slice(0, ci + 1));
+    const val = escapeSvgText(line.slice(ci + 1));
+    return `<text x="${x}" y="${y}" xml:space="preserve"><tspan fill="#38E1E1">${key}</tspan><tspan fill="#d4dbe3">${val}</tspan></text>`;
+  }).join("");
+  return (
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" ` +
+    `font-family="Menlo, Consolas, monospace" font-size="13">` +
+    `<rect width="${W}" height="${H}" fill="#14171c"/>` +
+    `<rect width="${W}" height="34" fill="#1f242c"/>` +
+    `<rect y="34" width="${W}" height="1" fill="#2c333d"/>` +
+    `<circle cx="24" cy="17" r="5.5" fill="#ff5f56"/>` +
+    `<circle cx="44" cy="17" r="5.5" fill="#ffbd2e"/>` +
+    `<circle cx="64" cy="17" r="5.5" fill="#27c93f"/>` +
+    rows +
+    `</svg>`
+  );
+}
+
+const SCHEMA_MARKUP_DATA_URL = svgToTileDataUrl(buildSchemaMarkupSvg());
 
 // 6 ResourceTiles in einer Reihe, bound to sections.leistung.resourceCounts.*
 // Vasileios-Style: alle Tiles mit cyan-Bg + weissen SVG-Glyphen statt

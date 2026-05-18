@@ -8,6 +8,20 @@ import { resolveChromiumExecutable } from "../chromium-path";
 // mitten im Satz abzuschneiden oder optisch in den naechsten Block zu laufen.
 // Faengt variable AI-Textlaengen ab (das Template ist auf Vasileios' kurze
 // Original-Texte pixel-vermessen). Laeuft im Browser-Kontext nach fonts.ready.
+// Leere Bild-Slots (Block ohne gesetzte Bildquelle) rendern als gestrichelter
+// "hier Bild rein"-Kasten — gewollt als Editor-Affordance, aber im finalen
+// Kunden-PDF wuerde der unfertig aussehen. Im PDF werden sie ausgeblendet,
+// die Seite laeuft sauber ohne Bild weiter.
+async function hideEmptyImagePlaceholders(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    document
+      .querySelectorAll<HTMLElement>('[data-block-type="image-empty"]')
+      .forEach((el) => {
+        el.style.display = "none";
+      });
+  });
+}
+
 async function autoShrinkOverflowingText(page: Page): Promise<void> {
   await page.evaluate(() => {
     const blocks = document.querySelectorAll<HTMLElement>(
@@ -58,6 +72,7 @@ export async function renderHtmlToPdf(html: string): Promise<Buffer> {
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: "load", timeout: 60000 });
     await page.evaluate(() => (document as Document & { fonts?: { ready: Promise<unknown> } }).fonts?.ready);
+    await hideEmptyImagePlaceholders(page);
     await autoShrinkOverflowingText(page);
     const pdf = await page.pdf({
       format: "A4",

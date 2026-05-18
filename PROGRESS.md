@@ -2,6 +2,37 @@
 
 Was gebaut wurde, welche Vertraege/Typen entstanden, welche Gotchas auftraten.
 
+## 2026-05-18: Bild-Platzhalter — leere Slots im PDF ausgeblendet + Schema-Bild fest eingebaut
+
+### Was / Warum
+
+Beim Review des UI-Audits fielen leere gestrichelte Bild-Kaesten auf (Page 10: 3 Stueck, Page 12: 1). Ursache: Die Bild-Slots wurden in M8/M9 als Editor-Platzhalter gebaut — Page-10-Images als reine `kind:static`-Bloecke ohne Quelle (an GAR KEINE Daten gebunden), Page-12-Schema-Image an `lokalesSeo.schemaMarkupImage` gebunden, das die AI nie fuellt (AI erzeugt nur Text, keine Bilder). Bei einem voll-automatischen Audit fuellt die niemand → `image-empty`-Platzhalter (dashed cyan) im fertigen Kunden-PDF.
+
+Zwei verschiedene Faelle, zwei Loesungen:
+
+**1. Leere Bild-Slots im PDF ausblenden (`render.ts`).** Neue `hideEmptyImagePlaceholders()` setzt im Puppeteer-Kontext alle `[data-block-type="image-empty"]` auf `display:none`, vor `page.pdf()`. Der gestrichelte Kasten bleibt damit eine reine Editor-Affordance (Vasileios sieht im Editor weiterhin wo er Bilder reinziehen kann), erscheint aber nicht mehr im PDF. Page 10 laeuft jetzt sauber als Text-Seite.
+
+**2. Schema-Markup-Bild fest eingebaut (`page-builders.ts`).** Das Schema-Code-Beispiel auf Page 12 ist fuer jeden Audit identisch (rein illustrativ). Statt eines AI-/Editor-gefuellten Slots gibt es jetzt ein fest eingebautes JSON-LD-Code-Panel: `buildSchemaMarkupSvg()` rendert ~18 Zeilen JSON-LD als SVG (dunkles Panel, Mac-Traffic-Lights, cyan Keys / helle Values), `SCHEMA_MARKUP_DATA_URL` via `svgToTileDataUrl()` (btoa, ASCII-only — gleiche Technik wie M13.1 Social-Icons). `ls2-schema-image` ist jetzt `kind:static` mit dem Data-URL als `staticSrc`, `ls2-schema-caption` statischer Text. Im Editor pro Kunde austauschbar.
+
+Die Page-10-Bilder (website-spezifische Abschnitts-Screenshots) bleiben bewusst manuell — die App kann nicht entscheiden welche Sektionen relevant sind, das braucht Vasileios' Auge. Die Slots sind nur nicht mehr im PDF sichtbar wenn leer.
+
+### Geaenderte Dateien
+
+```
+GEAENDERT:
+  src/lib/pdf/render.ts            + hideEmptyImagePlaceholders()
+  src/lib/editor/page-builders.ts  + buildSchemaMarkupSvg() / SCHEMA_MARKUP_*;
+                                   ls2-schema-image → static SVG, caption → static
+GENERIERT (gitignored):
+  data/templates/default.json      reseed (Page-12-Bloecke aktualisiert)
+```
+
+### Verifikation
+
+- `tsc` ✓, `lint` ✓ (0 Errors)
+- `default.json` reseeded (`POST /api/admin/reseed-template`) → `ls2-schema-image` binding `static` + `staticSrc` gesetzt, Caption statisch.
+- Re-Render Audit `b010e21e`: Page 10 = saubere Text-Seite ohne dashed-Kaesten, Page 12 = JSON-LD-Code-Panel sichtbar mit Caption.
+
 ## 2026-05-17: Layout-Fix — Auto-Shrink + Prompt-Laengen-Limits gegen Text-Ueberlauf
 
 ### Was / Warum
