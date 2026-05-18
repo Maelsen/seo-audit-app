@@ -66,3 +66,6 @@ docs/measurements/*.png
 /SEO AUDIT WASCHBÄR SERVICE.pdf
 /visilis sprachmemo.txt
 /sprachnachricht.txt
+
+# Review-PDFs (lokaler Vergleich, nicht committen)
+public/review-*.pdf
