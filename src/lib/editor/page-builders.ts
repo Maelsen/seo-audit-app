@@ -192,9 +192,10 @@ function buildCover(): Block[] {
       id: "cover-monitor-bezel",
       type: "shape",
       shape: "rect",
-      // Bezel mit ~1.8mm Padding um den Screenshot (vorher 3mm war zu fett —
-      // Vasileios' Mockup hat einen schmaleren, eleganteren Rand).
-      frame: { x: 23, y: 128, w: 164, h: 114 },
+      // 5:4-Monitor (100x80mm Screen + 2mm Bezel-Padding) angelehnt an
+      // Vasileios' Original, das einen kompakten 4:3-ish Monitor zeigt.
+      // Davor 164x114mm = sehr breit/Querformat — passte nicht zur Vorlage.
+      frame: { x: 53, y: 128, w: 104, h: 84 },
       zIndex: 49,
       fill: "#2a2a2a",
       borderRadius: 4,
@@ -212,7 +213,7 @@ function buildCover(): Block[] {
       id: "cover-monitor-stand-neck",
       type: "shape",
       shape: "rect",
-      frame: { x: 99, y: 243, w: 12, h: 6 },
+      frame: { x: 99, y: 212, w: 12, h: 7 },
       zIndex: 49,
       fill: "#2a2a2a",
     },
@@ -223,7 +224,7 @@ function buildCover(): Block[] {
       id: "cover-monitor-stand-base-top",
       type: "shape",
       shape: "rect",
-      frame: { x: 86, y: 249, w: 38, h: 2 },
+      frame: { x: 86, y: 219, w: 38, h: 2 },
       zIndex: 49,
       fill: "#aaaaaa",
       borderRadius: 0.6,
@@ -232,7 +233,7 @@ function buildCover(): Block[] {
       id: "cover-monitor-stand-base",
       type: "shape",
       shape: "rect",
-      frame: { x: 78, y: 251, w: 54, h: 2.5 },
+      frame: { x: 78, y: 221, w: 54, h: 2.5 },
       zIndex: 49,
       fill: "#aaaaaa",
       borderRadius: 1,
@@ -241,7 +242,7 @@ function buildCover(): Block[] {
       id: "cover-screenshot",
       type: "image",
       binding: { kind: "audit", path: "screenshots.cover" },
-      frame: { x: 25, y: 130, w: 160, h: 110 },
+      frame: { x: 55, y: 130, w: 100, h: 80 },
       zIndex: 50,
       objectFit: "cover",
       objectPosition: "top",

@@ -7,7 +7,7 @@ import type { SeoptimerData } from "../parsers/seoptimer";
 import type { PageSpeedData } from "../parsers/pagespeed";
 import { loadStyleProfile } from "../storage";
 
-const MODEL = "claude-sonnet-4-5";
+const MODEL = "claude-sonnet-4-6";
 const TOOL_NAME = "submit_audit";
 
 // Die AI emittiert "priority" gelegentlich als Synonym ("high", "sehr hoch",

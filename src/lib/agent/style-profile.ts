@@ -6,7 +6,7 @@ import {
 } from "../storage";
 import type { EditEntry, StyleProfile } from "../types";
 
-const MODEL = "claude-sonnet-4-5";
+const MODEL = "claude-sonnet-4-6";
 const TOOL_NAME = "update_style_profile";
 const MAX_LEARNINGS = 12;
 

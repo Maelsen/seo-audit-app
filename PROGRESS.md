@@ -2,6 +2,39 @@
 
 Was gebaut wurde, welche Vertraege/Typen entstanden, welche Gotchas auftraten.
 
+## 2026-05-18: Cover-Mockup auf 5:4 + Sonnet-4.6-Upgrade
+
+### Was
+
+Zwei kleinere Polish-Items vor dem Production-Deploy zusammengefasst:
+
+**Cover-Mockup-Proportionen.** `buildCover()` hatte den Monitor mit 164×114mm-Bezel und 160×110mm-Screenshot (sehr breites Querformat, fast Edge-to-Edge). Vasileios' Original zeigt einen kompakteren 4:3-ish Monitor. Frames angepasst auf 5:4-Format: Screenshot 100×80mm zentriert (`x=55, w=100`), Bezel 104×84mm mit 2mm-Padding, Stand-Hals + Sockel entsprechend nach unten verschoben (y=212/219/221). Das `objectFit:cover, objectPosition:top` croppt den Desktop-Screenshot oben auf den 5:4-Frame — Hero-Section bleibt sichtbar.
+
+**Sonnet-4-5 → Sonnet-4-6.** `MODEL` in `orchestrator.ts`, `chat-orchestrator.ts` und `style-profile.ts` aktualisiert (3 Vorkommen). Verifiziert mit Re-Analyse: Output sogar tighter als 4.5 — `topIssues`-Bodies 114-136 Zeichen (Limit 200, vorher 191-195), `phasenplan.intro` 55 Zeichen (Limit 90), `overallHeading` 41 Zeichen (Limit 55). Schema-Validation und Prompt-Limits voll respektiert.
+
+### Gotcha — nicht-deterministischer Schema-Aussetzer
+
+Der ERSTE 4.6-Run scheiterte an Zod-Validation: AI emittierte `comparison` als String statt Objekt. Beim direkten Re-Run identische Eingabe → Erfolg, also nicht-deterministischer One-off (analog zum `priority`-Enum-Aussetzer mit 4.5, der zum `normalizeAgentOutput()`-Fix fuehrte). Beide Modelle haben gelegentliche Schema-Drift, das `comparison`-as-string ist KEINE 4.6-Regression. Vormerken: falls die Failure-Rate in Produktion auffaellig wird, gleiche Normalisierungs-Logik wie bei `priority` ergaenzen (string-Coercion oder Retry-Loop).
+
+### Geaenderte Dateien
+
+```
+GEAENDERT:
+  src/lib/editor/page-builders.ts  buildCover() Frames auf 5:4 (Bezel/
+                                   Screenshot/Stand-Neck/Stand-Base)
+  src/lib/agent/orchestrator.ts    MODEL: 4-5 → 4-6
+  src/lib/agent/chat-orchestrator.ts  MODEL: 4-5 → 4-6
+  src/lib/agent/style-profile.ts   MODEL: 4-5 → 4-6
+GENERIERT (gitignored):
+  data/templates/default.json      reseed (Cover-Bloecke aktualisiert)
+```
+
+### Verifikation
+
+- `tsc` ✓, `lint` ✓
+- Cover-Render Audit `b010e21e`: Monitor ist kompakter 5:4 mit Screenshot-Hero-Section sichtbar, Stand mittig darunter, gegen Vasileios' Page-01 visuell aligned.
+- Sonnet-4.6-Run: 20 Empfehlungen, 3 Top-Risiken, Schema gruen, alle Prompt-Limits eingehalten.
+
 ## 2026-05-18: Bild-Platzhalter — leere Slots im PDF ausgeblendet + Schema-Bild fest eingebaut
 
 ### Was / Warum
